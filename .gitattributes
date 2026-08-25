@@ -1,0 +1,10 @@
+# リポジトリ内は常に LF で保存する。
+* text=auto eol=lf
+
+# hook ラッパーは実行スクリプトなので改行コードを固定する。
+# .sh が CRLF で checkout されると POSIX 環境で
+# `/bin/sh^M: bad interpreter` になるため、LF を強制する。
+*.sh text eol=lf
+
+# PowerShell は Windows 専用なので CRLF のままにしておく。
+*.ps1 text eol=crlf
