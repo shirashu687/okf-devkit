@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "okf-devkit"
+version = "0.1.0"
+description = "Keep an OKF v0.2 documentation bundle in sync with the code it describes."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Rintaro Kariya" }]
+keywords = ["okf", "open-knowledge-format", "documentation", "docs-as-code", "llm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Documentation",
+  "Topic :: Software Development :: Documentation",
+]
+
+# markdown-it-py は `render` のみで使うが、既定機能として扱うため必須依存にする。
+# PyYAML は任意（未導入時は内蔵の厳格な簡易パーサへフォールバックする）が、
+# hook / CI で自動書き込みする運用では入れておくことを強く推奨する。
+dependencies = [
+  "markdown-it-py>=3.0,<4",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# PyYAML 抜きで入れたい場合との対称性のために残してある。
+yaml = ["pyyaml>=6.0"]
+
+[project.scripts]
+okf = "okf_devkit.cli:run"
+
+[project.urls]
+Homepage = "https://github.com/rintaro/okf-devkit"
+Repository = "https://github.com/rintaro/okf-devkit"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+okf_devkit = [
+  "defaults.yml",
+  "assets/*",
+  "scaffold/*.tmpl",
+  "scaffold/templates/*.md",
+  "scaffold/hooks/*",
+]

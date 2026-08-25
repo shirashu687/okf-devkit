@@ -1,0 +1,122 @@
+# okf-devkit の組み込み既定設定。
+#
+# ここには「どのリポジトリでも同じ」普遍的な設定だけを置く。
+# プロジェクト固有の設定（bundle_root / layers / layer_map / log.paths /
+# log.baseline / site_name）は各リポジトリの okf.yml に書く。
+#
+# マージ規則: dict は再帰的にマージし、**リストとスカラーは丸ごと置換**する。
+# つまり okf.yml で `types:` を書いた時点で、そのリストが唯一の正になる。
+
+# OKF バンドルのルート（プロジェクトルートからの相対パス）
+bundle_root: docs
+
+# ドキュメントの表示名。既定はプロジェクトルートのディレクトリ名。
+# site_name: My Project
+
+# バンドル対象外。バンドルルートからの相対パスに対する glob で指定する。
+exclude:
+  - "_*"
+  - "_*/**"
+  - ".*"
+  - ".*/**"
+
+# OKF v0.2 の予約ファイル。frontmatter を持たず、index の対象にもならない。
+reserved:
+  - index.md
+  - log.md
+
+# type 語彙表。この並び順が index.md のセクション順になる。
+types:
+  - Project Overview
+  - Architecture
+  - Reference
+  - How-To
+  - Decision Record
+  - Glossary
+  - Backlog Item
+  - Convention
+
+# status 語彙（OKF v0.2 §5.4）。既定は stable。
+statuses:
+  - draft
+  - stable
+  - deprecated
+
+# layer 語彙（OKF 仕様外の独自拡張）。
+# 層を使わないリポジトリは `layers: [shared]` のままでよい。
+layers:
+  - shared
+
+# layer → バンドル内の既定ディレクトリ（new doc の出力先に使う）
+layer_dirs:
+  shared: project
+
+# 変更パス → 層の判定。上から順に評価し、最初にマッチしたものを採用する。
+# layer: skip はどの log.md にも記録しないことを意味する。
+layer_map:
+  - { glob: "docs/**", layer: skip }
+  - { glob: "**", layer: shared }
+
+# コミット subject → log.md のプレフィックス推定（OKF v0.2 §9 の慣例3種のみ）。
+# 上から順に評価し、最初にマッチしたものを採用する（大文字小文字は無視）。
+# 英単語には単語境界 \b を付ける（`padding` が `add` に一致しないようにするため）。
+# Conventional Commits の type（feat: / remove: 等）を優先評価する。
+# 正規表現は**単一引用符**で書くこと（YAML の単一引用符はエスケープを解釈しない。
+# 二重引用符だと `\b` の扱いが PyYAML と内蔵パーサで食い違うため拒否される）。
+kind_rules:
+  - { pattern: '^\s*(feat|add)(\([^)]*\))?!?\s*:', kind: "**Creation**" }
+  - { pattern: '^\s*(remove|deprecate)(\([^)]*\))?!?\s*:', kind: "**Deprecation**" }
+  - { pattern: '(削除|廃止|非推奨|\bremove[ds]?\b|\bdrop(s|ped)?\b|\bdeprecat)', kind: "**Deprecation**" }
+  - { pattern: '(追加|実装|新規|作成|\badd(s|ed)?\b|\bfeat(ure)?\b|\bcreate[ds]?\b)', kind: "**Creation**" }
+  - { pattern: '.*', kind: "**Update**" }
+
+# backlog 専用語彙（OKF 仕様外の独自拡張）
+backlog:
+  dir: backlog
+  prefix: B
+  states: [todo, doing, done, dropped]
+  state_order: [doing, todo, done, dropped]
+  priorities: [high, medium, low]
+  efforts: [S, M, L, XL]
+  feasibilities: [A, B, C, D]
+  ai: [full, assisted, manual]
+
+# new doc / new backlog が使うテンプレート（バンドルルートからの相対パス）
+templates:
+  Architecture: _templates/architecture.md
+  Reference: _templates/reference.md
+  How-To: _templates/how-to.md
+  Decision Record: _templates/decision-record.md
+  Glossary: _templates/glossary.md
+  Backlog Item: _templates/backlog-item.md
+
+# index.md の生成ルール
+index:
+  start_marker: "<!-- okf:auto:start -->"
+  end_marker: "<!-- okf:auto:end -->"
+  root_heading: "ドキュメント"
+  heading_suffix: " ドキュメント"
+  subdir_section: "ディレクトリ"
+  other_section: "その他"
+  deprecated_section: "非推奨"
+  okf_version: "0.2"
+
+# log.md の生成ルール
+log:
+  heading_prefix: "変更履歴 — "
+  # 自動追記の対象になる層。ここから外した層は `--layer <名前>` を明示した
+  # ときだけ処理される。shared（= バンドルルートの log.md）は「リリース・
+  # 大きな節目のみ」に使う想定のため、既定では自動追記の対象外にしてある。
+  layers: []
+  # 層 → log.md の出力先（バンドルルートからの相対パス）。
+  # 未指定の層は `<layer>/log.md` になる。
+  paths:
+    shared: log.md
+  # このコミット**以前**は追記対象にしない（既存リポジトリへの導入時の基準点）。
+  # 手書きの既存エントリがある状態でここが空だと二重追記になるため、
+  # okf は書き込みを拒否する。
+  baseline: ""
+
+# stale 判定のしきい値
+stale:
+  draft_days: 30

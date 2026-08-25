@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OKF Markdown からローカル生成する閲覧用 HTML
+docs/*.html
+docs/**/*.html
+docs/_assets/
+_site/
+docs/**/.*.tmp
+docs/**/.*.okftmp
+_site/**/.*.tmp
+_site/**/.*.okftmp
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
