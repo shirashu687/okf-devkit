@@ -1,0 +1,74 @@
+# okf-devkit の設定ファイル。`okf init` が生成した。
+#
+# ここに書くのは**このリポジトリ固有の設定だけ**でよい。
+# types / statuses / kind_rules / backlog の語彙、index のマーカーといった
+# 普遍的な設定はパッケージ同梱の defaults.yml から自動的に継承される。
+# 上書きしたいキーだけをここに書き足すこと。
+#
+# マージ規則: dict は再帰的にマージし、**リストとスカラーは丸ごと置換**する。
+# 既定の一覧に1件足したいときも、リスト全体を書くこと。
+#
+# 語彙を変更したら docs/CONVENTIONS.md の表も必ず合わせること
+# （CONVENTIONS.md が人間・LLM にとっての正）。
+
+# OKF バンドルのルート（プロジェクトルートからの相対パス）
+bundle_root: docs
+
+# 生成 HTML のタイトルなどに使う表示名
+site_name: okf-devkit
+
+# layer 語彙（OKF 仕様外の独自拡張）。
+# `shared` は層をまたぐ知識用の予約語。
+layers:
+  - cli
+  - render
+  - scaffold
+  - shared
+
+# layer → バンドル内のディレクトリ（`okf new doc` の出力先に使う）
+layer_dirs:
+  cli: cli
+  render: render
+  scaffold: scaffold
+  shared: project
+
+# 変更パス → 層の判定。上から順に評価し、最初にマッチしたものを採用する。
+# layer: skip はどの log.md にも記録しないことを意味する。
+# **このマッピングが `okf log` と `okf affected` の精度を決める。**
+layer_map:
+  # 生成物・エージェント作業用ディレクトリは履歴にも affected にも出さない
+  - { glob: "docs/**", layer: skip }
+  - { glob: ".okf/**", layer: skip }
+  - { glob: ".claude/**", layer: skip }
+  # render 層: 閲覧用 HTML の生成器と、そこに埋め込まれる静的アセット
+  - { glob: "src/okf_devkit/renderer.py", layer: render }
+  - { glob: "src/okf_devkit/assets/**", layer: render }
+  - { glob: "tests/test_render.py", layer: render }
+  # scaffold 層: `okf init` が利用者リポジトリへ配る雛形と、同梱の既定設定
+  - { glob: "src/okf_devkit/scaffold/**", layer: scaffold }
+  - { glob: "src/okf_devkit/defaults.yml", layer: scaffold }
+  - { glob: "tests/test_init.py", layer: scaffold }
+  # cli 層: 上記以外のパッケージ本体と、それを検証するテスト
+  - { glob: "src/okf_devkit/**", layer: cli }
+  - { glob: "tests/**", layer: cli }
+  # 残り（README / pyproject.toml / .github/** など）はリポジトリ全体の話題
+  - { glob: "**", layer: shared }
+
+# index.md の見出し
+index:
+  root_heading: okf-devkit ドキュメント
+
+log:
+  # 自動追記の対象になる層。ここから外した層は `--layer <名前>` を
+  # 明示したときだけ処理される。
+  layers: [cli, render, scaffold]
+  # 層 → log.md の出力先（バンドルルートからの相対パス）
+  paths:
+    cli: cli/log.md
+    render: render/log.md
+    scaffold: scaffold/log.md
+    shared: log.md
+  # このコミット**以前**は追記対象にしない。
+  # 既存リポジトリに後から導入し、log.md に手書きの既存エントリがある場合は、
+  # 移行済みの最後のコミット SHA をここに入れる（二重追記の防止）。
+  baseline: ""
