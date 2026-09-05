@@ -33,6 +33,14 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
+      - name: Check protected and upstream changes (pull requests)
+        if: github.event_name == 'pull_request'
+        env:
+          CHANGE_BASE: ${{ github.event.pull_request.base.sha }}
+          CHANGE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python -c "import os, subprocess, sys; raise SystemExit(subprocess.run([sys.executable, 'harness/project/check_changes.py', '--base', os.environ['CHANGE_BASE'], '--head', os.environ['CHANGE_HEAD']]).returncode)"
+
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e .
 

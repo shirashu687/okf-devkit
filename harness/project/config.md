@@ -13,6 +13,8 @@
 | 検証の選択・結果・完了報告 | [verify-report.md](../core/procedures/verify-report.md)。結果は成功 / 失敗 / 未実行 / 実行不能の4値 |
 | 中断・別セッションからの再開 | [handover.md](../core/procedures/handover.md)。状態の正本は同じworklog |
 | 通常・大の作業記録 | [worklog.md](../core/templates/worklog.md) を `harness/state/journal/<task-id-or-slug>.md` に複製。小作業は省略可、中断時は必須 |
+| 保護対象・上流管理ファイルの変更検査 | [check_changes.py](check_changes.py)。開始SHAから作業ツリーまたはbase/headの2コミットを検査 |
+| 正当な変更の機械可読な宣言 | `harness/state/journal/<task-id-or-slug>.changes.json`。目的・確認の正本は対応するworklog |
 | 課題の作成・更新 | [課題管理規約](../../docs/agents/issue-tracker.md) と [backlog索引](../../docs/backlog/index.md) |
 | 受付課題の分類 | [triageラベル](../../docs/agents/triage-labels.md) |
 | ドメイン語・設計判断 | [配置規約](../../docs/agents/domain.md)、[CONTEXT.md](../../CONTEXT.md)、[Decision Record索引](../../docs/project/decisions/index.md)。ADR本文は必要になったときに作る |
@@ -32,6 +34,33 @@
 | コード変更時の影響文書確認 | `.venv/Scripts/python.exe -m okf_devkit.cli affected --base <固定した比較点>`。結果の扱いはdocs入口に従う |
 | CIのテスト | [ci.yml](../../.github/workflows/ci.yml) の `test`。Windows/UbuntuとPython 3.11/3.13で `python tests/run_all.py` |
 | CIの独立smoke | 同じworkflowの `smoke`。Ubuntu/Python 3.11で一時リポジトリのinit・index・lint・render・logとhook応答を検証 |
+
+## 変更検査と宣言
+
+対象ルートで次を実行する。`--base` は必須で、Gitコミットへ解決できる比較点を渡す。省略形のrefを渡しても検査は完全SHAを出力するが、宣言の `base` はその完全SHAと一致させる。
+
+```text
+.venv/Scripts/python.exe harness/project/check_changes.py --base <BASE_SHA>
+.venv/Scripts/python.exe harness/project/check_changes.py --base <BASE_SHA> --head <HEAD_SHA>
+```
+
+`--head` なしは staged / unstaged / 未追跡の非ignore対象を含む現在の作業ツリー、`--head` ありは指定した2コミット間だけを検査する。CIでは必ずPRイベントの `github.event.pull_request.base.sha` と `github.event.pull_request.head.sha` を環境変数経由で渡す。シェル文へGitHub式や外部文字列を直接展開せず、両SHAが解決できない場合・全ゼロの場合・履歴がshallowの場合・競合中の場合は成功へ置き換えない。
+
+初期の分類対象は検査スクリプトが正とし、次の一覧はレビュー用の対応表である。
+
+| 分類 | 対象 |
+| --- | --- |
+| 保護対象 | `AGENTS.md`、`CLAUDE.md`、`harness/core/policy/**`、`harness/core/procedures/verify-report.md`、`harness/project/config.md`、`harness/project/check_changes.py`、`.github/workflows/**`、`tests/**`、`pyproject.toml`、`okf.yml`、`.claude/settings*.json`、`.codex/**` |
+| 上流管理 | `.agents/skills/**`、`.claude/skills/**`、`skills-lock.json`、`THIRD_PARTY_NOTICES.md`、`harness/project/skill-profile.md` |
+
+変更が保護対象または上流管理に該当する場合、同じ比較差分内で追加・変更した `harness/state/journal/<task-id-or-slug>.changes.json` に対象パスを列挙する。宣言は次の条件を満たす必要がある。
+
+- `version: 1`、比較元の完全SHA、実在するリポジトリ相対Markdown worklog、空でない `changes` を持つ。
+- `path` は実際の差分にある保護対象または上流管理ファイルだけを、glob・絶対パス・`..`なしで列挙する。renameは旧名と新名の両方を列挙する。
+- 宣言ファイル自体が比較差分内で追加・変更された場合だけ読み取る。比較元に残っている古い宣言を、新しい変更の許可へ再利用しない。
+- 終了コードは `0`（宣言漏れなし）、`1`（未宣言または不正な宣言）、`2`（比較不能）である。出力はパス・分類・宣言状態・診断だけで、変更ファイルの本文を含めない。
+
+宣言は利用者の許可の証明ではない。review担当は、依頼、開始SHAからの正確なdiff、理由、検証結果を照合し、検査・CI・制約の同時変更による迂回可能性も記録する。上流変更がある場合は出所・対象・理由を `skill-profile.md` の更新手順と照合する。
 
 テスト、OKF検査、CI smokeは別の結果として扱う。ローカルテスト成功からCI smoke成功を推定しない。単独の型検査やPython lintコマンドは既存の必須コマンドとして定義されていない。上表の `lint` はOKF文書の検査を指す。
 
@@ -55,3 +84,16 @@
 - 上流スキルのコピーは `.agents/skills/` と `.claude/skills/`。ガイドは共通内容への参照として前者をリンクする。製品ごとの実効導入元と更新方式は採用プロファイルに従う。
 - [Claudeプロジェクト設定](../../.claude/settings.json) は上流プラグインの重複利用を抑える設定であり、外部送信やファイル改変を強制的に止める設定ではない。
 - 検証報告・引継ぎの自前手順は設置済みで、上記の役割対応表から参照する。full retrospective（retro）の詳細手順だけはまだ設置していない。ガイドにある上流スキルの利用案内と、未設置のretro手順を混同しない。
+
+## 外部設定・権限の観測と再確認
+
+GitHub設定や製品権限はこのタスクで変更しない。T-0005の詳細化時点（2026-09-06）の読み取り観測は、従来型のmain branch protectionが未設定、activeなdefault ruleset `21655324` が存在し、creation / update / deletion / non-fast-forwardとCopilot reviewを対象にし、bypass actorは空、required status checksは未設定、である。これは当時の観測であり、現在の強制や将来のマージ拒否を保証しない。ユーザー全体の実効権限は未確認である。
+
+再確認は設定変更を伴わない読み取りだけで行い、時刻・対象SHA・取得手段・結果をworklogへ記録する。GitHub CLIが認証済みの場合は、リモートから得た `OWNER/REPO` に対して次のAPIを照会し、応答本文やトークンをworklogへ転記しない。利用できない場合はGitHubのRepository settingsで同じ項目を目視確認し、未確認と記録する。
+
+```text
+gh api repos/OWNER/REPO/branches/main/protection
+gh api repos/OWNER/REPO/rulesets
+```
+
+確認するのはrulesetの状態、対象、bypass actor、required status checks、branch protectionの存在だけである。設定を追加・更新してCI失敗をマージ拒否へ変える作業、製品権限の付与、外部送信の許可は本タスクの範囲外である。CIの検知とマージ拒否を同一視しない。
