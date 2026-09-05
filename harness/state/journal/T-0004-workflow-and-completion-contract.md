@@ -74,7 +74,7 @@
 | contract-static | はい | 成功 | `2ae7c426` + 作業ツリー | PowerShellの参照・scope・契約マーカーチェック | 相対リンクが実在し、コアに固有コマンドがなく、必須契約語がある | terminal output: `markdown-links: all relative targets exist`; `core-scope: no project-specific commands or package names`; `contract-markers: all present` | 初回確認後の文書状態 |
 | project-required-t0004-boundary | はい | 成功 | target repository / `a37649c`（T-0005commit前） | `.venv/Scripts/python.exe tests/run_all.py`（T-0005のtestを除外） | T-0004変更を含む既存テストが全件成功 | terminal output: `Ran 144 tests`; `OK`; failures 0 / errors 0 / skipped 0 | T-0005の別commitが後から入ったため、対象境界を分離 |
 | project-required-current-head | はい | 失敗 | target repository / `456c8b5`（T-0005作業中の観測） | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 152 tests`; errors 3 in `test_harness_changes.py` | T-0005外部commitの作業中状態。T-0004変更の成功へ読み替えない。履歴として保持 |
-| project-required-current-head-rerun | はい | 成功 | target repository / `c68a0b3` + T-0005完了状態 | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 153 tests`; failures 0 / errors 0 / skipped 0 | 外部T-0005の完了後に再実行。前回失敗は削除しない |
+| project-required-current-head-rerun | はい | 成功 | target repository / `c6b91e7` 現HEAD | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 155 tests`; failures 0 / errors 0 / skipped 0 | T-0005外部変更とT-0004完了記録後の現HEADで再実行。前回失敗と153件時点は履歴として保持 |
 | okf-index-write | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` | OKF索引が最新になる | terminal output: `index.md はすべて最新です。` | `harness/` はOKF外だが入口規約に従い実行 |
 | okf-lint | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli lint` | error 0 / warn 0 | terminal output: `lint: error 0 件 / warn 0 件` | `harness/` はOKF外 |
 | okf-index-check | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` | exit 0 | terminal output: `index.md はすべて最新です。` | — |
@@ -142,7 +142,7 @@
 
 ## 完了 / 中断要約
 
-完了。小・通常・大の入口、4値検証報告、作業記録、別セッション再開、未コミット/未追跡補完、二軸review、対象版固定、変更宣言を設置した。T-0004対象境界の既存テスト144件と現在HEADの153件、OKF検査、参照検査、宣言検査を記録した。CI test/smokeとfull retrospectiveは未実行で、retro詳細手順未設置および外部T-0005作業として理由を残した。
+完了。小・通常・大の入口、4値検証報告、作業記録、別セッション再開、未コミット/未追跡補完、二軸review、対象版固定、変更宣言を設置した。T-0004対象境界の既存テスト144件と現HEADの最新テスト155件、OKF検査、参照検査、宣言検査を記録した。CI test/smokeとfull retrospectiveは未実行で、retro詳細手順未設置および外部T-0005作業として理由を残した。
 
 ## full retrospective（retro）判定
 
