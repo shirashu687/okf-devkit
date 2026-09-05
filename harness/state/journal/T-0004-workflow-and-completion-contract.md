@@ -12,8 +12,8 @@
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
 | 最終検証時HEAD（完了記録commit直前） | `b8e6e3d`（T-0005外部commitを含む） |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
-| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3, db057a5; declaration check output; verification output; concurrent T-0005 commits 456c8b5 and 8acec25 excluded; no secrets` |
-| 完了記録commit | `db057a5` |
+| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3, b8e6e3d, db057a5, 21aef73; declaration check output; verification output; concurrent T-0005 commits 456c8b5 and 8acec25 excluded; no secrets` |
+| 完了記録commit（最終境界検査時点） | `21aef73` |
 
 ## 目的・範囲
 
@@ -81,6 +81,7 @@
 | ci-test | はい | 未実行 | `.github/workflows/ci.yml` | CI test job | Windows/Ubuntu × Python 3.11/3.13 | — | ローカル実行から推定しない |
 | ci-smoke | はい | 未実行 | `.github/workflows/ci.yml` | CI smoke job | Ubuntu/Python 3.11の独立smoke | — | CI実行なし |
 | change-declaration | はい | 成功 | `456c8b5...b8e6e3d` | `.venv/Scripts/python.exe harness/project/check_changes.py --base 456c8b5d3b1004d94681a6d52d073215b5aaa412 --head b8e6e3d` | 保護対象の宣言漏れなし | terminal output: `result=ok (declaration presence is not human approval or semantic review)` | `verify-report.md` と `config.md` は宣言済み。T-0005外部変更は比較対象外 |
+| completion-boundary-check | はい | 成功 | `8acec25...21aef73` | `.venv/Scripts/python.exe harness/project/check_changes.py --base 8acec25 --head 21aef73` | 完了記録commitに保護対象の追加変更がない | terminal output: `result=ok`; worklogのみordinary | 記録commitの境界確認 |
 | code-review-standards | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Standards axis | 文書規約・入口・config・制約に適合し、判断上のsmellを区別する | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
 | code-review-spec | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Spec axis | T-0004/HARNESS_SPECの完了条件を満たしscope creepがない | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
 
