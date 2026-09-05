@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "base": "456c8b5d3b1004d94681a6d52d073215b5aaa412",
+  "worklog": "harness/state/journal/T-0004-workflow-and-completion-contract.md",
+  "changes": [
+    {
+      "path": "harness/core/procedures/verify-report.md",
+      "reason": "T-0004の4値検証、対象版固定、二軸review、作業ツリー補完を定義する"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "T-0004の検証コマンド、期待条件、作業記録、上流接続を対象プロジェクトへ対応づける"
+    }
+  ]
+}

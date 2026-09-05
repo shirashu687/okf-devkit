@@ -10,9 +10,9 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
-| 最新HEAD（最終修正前の現物照合時） | `456c8b5`（T-0005外部commitを含む） |
+| 最新HEAD（最終検証時） | `c68a0b3`（T-0005外部commitを含む） |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
-| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c and verification output; concurrent T-0005 commit 456c8b5 is excluded; no secrets` |
+| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3 and verification output; declaration for c68a0b3; concurrent T-0005 commit 456c8b5 is excluded; no secrets` |
 
 ## 目的・範囲
 
@@ -54,7 +54,8 @@
 - commit `4a00b50`: 初回の手順、guide/config、worklog
 - commit `b0db5ff`: `CONTEXT.md`、未追跡列挙の明記、journalパスのconfig参照化、source ticket参照の修正
 - concurrent commit `456c8b5`: T-0005相当のpolicy/config/checker/test（T-0004対象外。変更せず保持）
-- 最終修正予定: 小作業の既存テスト必須、configの期待条件、CONTEXTの状態正本説明、review後の完了記録
+- commit `c68a0b3`: 小作業の既存テスト必須、configの期待条件、CONTEXTの状態正本説明、review指摘の修正
+- 追加宣言: `T-0004-workflow-and-completion-contract.changes.json`（比較点 `456c8b5d3b1004d94681a6d52d073215b5aaa412`）
 
 ## 判断と根拠
 
@@ -70,14 +71,16 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | contract-static | はい | 成功 | `2ae7c426` + 作業ツリー | PowerShellの参照・scope・契約マーカーチェック | 相対リンクが実在し、コアに固有コマンドがなく、必須契約語がある | terminal output: `markdown-links: all relative targets exist`; `core-scope: no project-specific commands or package names`; `contract-markers: all present` | 初回確認後の文書状態 |
 | project-required-t0004-boundary | はい | 成功 | target repository / `a37649c`（T-0005commit前） | `.venv/Scripts/python.exe tests/run_all.py`（T-0005のtestを除外） | T-0004変更を含む既存テストが全件成功 | terminal output: `Ran 144 tests`; `OK`; failures 0 / errors 0 / skipped 0 | T-0005の別commitが後から入ったため、対象境界を分離 |
-| project-required-current-head | はい | 失敗 | target repository / `456c8b5` | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 152 tests`; errors 3 in `test_harness_changes.py` | T-0005外部commit由来。T-0004変更の成功へ読み替えない。既存testを一時退避したT-0004境界の再実行は成功 |
+| project-required-current-head | はい | 失敗 | target repository / `456c8b5`（T-0005作業中の観測） | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 152 tests`; errors 3 in `test_harness_changes.py` | T-0005外部commitの作業中状態。T-0004変更の成功へ読み替えない。履歴として保持 |
+| project-required-current-head-rerun | はい | 成功 | target repository / `c68a0b3` | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 153 tests`; failures 0 / errors 0 / skipped 0 | 外部T-0005の完了後に再実行。前回失敗は削除しない |
 | okf-index-write | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` | OKF索引が最新になる | terminal output: `index.md はすべて最新です。` | `harness/` はOKF外だが入口規約に従い実行 |
 | okf-lint | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli lint` | error 0 / warn 0 | terminal output: `lint: error 0 件 / warn 0 件` | `harness/` はOKF外 |
 | okf-index-check | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` | exit 0 | terminal output: `index.md はすべて最新です。` | — |
 | ci-test | はい | 未実行 | `.github/workflows/ci.yml` | CI test job | Windows/Ubuntu × Python 3.11/3.13 | — | ローカル実行から推定しない |
 | ci-smoke | はい | 未実行 | `.github/workflows/ci.yml` | CI smoke job | Ubuntu/Python 3.11の独立smoke | — | CI実行なし |
-| code-review-standards | はい | 未実行 | `2ae7c426...a37649c`（T-0004commit列） | code-review Standards axis | 文書規約・入口・config・制約に適合し、判断上のsmellを区別する | — | 最終修正commit後にT-0004列を再実行する。`456c8b5`は除外 |
-| code-review-spec | はい | 未実行 | `2ae7c426...a37649c`（T-0004commit列） | code-review Spec axis | T-0004/HARNESS_SPECの完了条件を満たしscope creepがない | — | 最終修正commit後にT-0004列を再実行する。`456c8b5`は除外 |
+| change-declaration | はい | 未実行 | `456c8b5...c68a0b3` | `harness/project/check_changes.py --base 456c8b5... --head c68a0b3` | 保護対象の宣言漏れなし | — | 宣言追加後に実行する |
+| code-review-standards | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Standards axis | 文書規約・入口・config・制約に適合し、判断上のsmellを区別する | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
+| code-review-spec | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Spec axis | T-0004/HARNESS_SPECの完了条件を満たしscope creepがない | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
 
 ### 演習
 
@@ -97,20 +100,19 @@
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 対象: `harness/` の今回の変更、未追跡の新規文書、本worklog
-- 結果: 静的契約検査、4値演習、作業ツリー演習を通過。初回reviewの指摘を修正し、最終修正後に再reviewする
+- 結果: 静的契約検査、4値演習、作業ツリー演習を通過。初回reviewの指摘を修正し、T-0005外部commitを除外した最終修正reviewも成功
 
 ### 標準軸
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 標準: `AGENTS.md`、`harness/core/guide.md`、`harness/project/config.md`、`harness/core/policy/requirements.md`
-- 結果: 初回reviewでworklog状態、source ticket参照、CONTEXTの説明、小作業/期待条件の不足を指摘。`b0db5ff` と最終修正で対応し、固定比較点から再reviewする
+- 結果: 初回reviewでworklog状態、source ticket参照、CONTEXTの説明、小作業/期待条件の不足を指摘。`b0db5ff`、`c68a0b3`、追加宣言で対応し、最終reviewは成功
 
 ## 残作業・妨げ・再開前提
 
 ### 残作業
 
-- 最終修正をcommitし、対象変更後の必須検証を再実行する。
-- 固定比較点から二軸reviewを再実行し、結果を記録する。
+- 変更検査の宣言を実行し、追加宣言を含む最終記録commitを作成する。
 - worklogの最終結果、retro判定、commit SHAを更新して完了状態を確定する。
 
 ### 妨げ
@@ -126,7 +128,7 @@
 
 ## 次の一手
 
-小作業の既存テスト必須とconfigの期待条件を含む最終修正をcommitし、固定比較点 `2ae7c4261bce9d31324c35d6eaeb244c67794c22` から再reviewする。
+追加宣言を含む最終記録をcommitし、`git status --short --branch` と最終HEADを照合してタスク完了を確定する。
 
 ## handover-resume exercise
 
