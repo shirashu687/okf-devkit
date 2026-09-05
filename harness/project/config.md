@@ -27,7 +27,7 @@
 
 | 検証・実行条件 | コマンド・参照 |
 | --- | --- |
-| 変更後の既存テスト | `.venv/Scripts/python.exe tests/run_all.py` |
+| 変更後の必須既存テスト | `.venv/Scripts/python.exe tests/run_all.py` |
 | OKF文書更新後の索引生成 | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` |
 | OKF文書更新後の規約検査 | `.venv/Scripts/python.exe -m okf_devkit.cli lint` |
 | OKF文書更新後の索引確認 | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` |
@@ -63,6 +63,8 @@
 宣言は利用者の許可の証明ではない。review担当は、依頼、開始SHAからの正確なdiff、理由、検証結果を照合し、検査・CI・制約の同時変更による迂回可能性も記録する。上流変更がある場合は出所・対象・理由を `skill-profile.md` の更新手順と照合する。
 
 テスト、OKF検査、CI smokeは別の結果として扱う。ローカルテスト成功からCI smoke成功を推定しない。単独の型検査やPython lintコマンドは既存の必須コマンドとして定義されていない。上表の `lint` はOKF文書の検査を指す。
+
+既存テストは作業区分にかかわらず必須であり、終了コード0、失敗0、エラー0を期待する。実行不能なら代替確認と限界を4値で記録し、成功へ読み替えない。OKF文書を変更した場合は、索引生成が終了コード0で最新状態になり、lintがerror 0 / warn 0、索引確認が終了コード0であることを期待する。CI testはworkflowの全matrix、CI smokeは独立smokeの全手順が成功することを期待し、ローカル結果から推定しない。
 
 ## 作業記録と引継ぎ
 

@@ -10,9 +10,9 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
-| 最新HEAD（review修正後の現物照合時） | `b0db5ff` |
+| 最新HEAD（最終修正前の現物照合時） | `456c8b5`（T-0005外部commitを含む） |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
-| 証拠の保存先 | `target repository commit and verification output; no secrets` |
+| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c and verification output; concurrent T-0005 commit 456c8b5 is excluded; no secrets` |
 
 ## 目的・範囲
 
@@ -53,7 +53,8 @@
 
 - commit `4a00b50`: 初回の手順、guide/config、worklog
 - commit `b0db5ff`: `CONTEXT.md`、未追跡列挙の明記、journalパスのconfig参照化、source ticket参照の修正
-- T-0004対象外の未追跡: `harness/project/check_changes.py`、`tests/test_harness_changes.py`（開始後に現れた無関係な変更。commitに含めない）
+- concurrent commit `456c8b5`: T-0005相当のpolicy/config/checker/test（T-0004対象外。変更せず保持）
+- 最終修正予定: 小作業の既存テスト必須、configの期待条件、CONTEXTの状態正本説明、review後の完了記録
 
 ## 判断と根拠
 
@@ -68,12 +69,15 @@
 | 識別子 | 適用 | 結果 | 対象版・範囲 | コマンド / 確認方法 | 期待条件 | 証拠 | 理由・限界 / 再試行 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | contract-static | はい | 成功 | `2ae7c426` + 作業ツリー | PowerShellの参照・scope・契約マーカーチェック | 相対リンクが実在し、コアに固有コマンドがなく、必須契約語がある | terminal output: `markdown-links: all relative targets exist`; `core-scope: no project-specific commands or package names`; `contract-markers: all present` | 初回確認後の文書状態 |
-| project-required | はい | 成功 | target repository / `2ae7c426` + worktree | `.venv/Scripts/python.exe tests/run_all.py` | 既存テストが全件成功 | terminal output: `Ran 144 tests`; `OK`; failures 0 / errors 0 / skipped 0 | 通常権限ではvenv起動不能だったため同じコマンドを昇格実行 |
+| project-required-t0004-boundary | はい | 成功 | target repository / `a37649c`（T-0005commit前） | `.venv/Scripts/python.exe tests/run_all.py`（T-0005のtestを除外） | T-0004変更を含む既存テストが全件成功 | terminal output: `Ran 144 tests`; `OK`; failures 0 / errors 0 / skipped 0 | T-0005の別commitが後から入ったため、対象境界を分離 |
+| project-required-current-head | はい | 失敗 | target repository / `456c8b5` | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 152 tests`; errors 3 in `test_harness_changes.py` | T-0005外部commit由来。T-0004変更の成功へ読み替えない。既存testを一時退避したT-0004境界の再実行は成功 |
 | okf-index-write | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` | OKF索引が最新になる | terminal output: `index.md はすべて最新です。` | `harness/` はOKF外だが入口規約に従い実行 |
 | okf-lint | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli lint` | error 0 / warn 0 | terminal output: `lint: error 0 件 / warn 0 件` | `harness/` はOKF外 |
 | okf-index-check | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` | exit 0 | terminal output: `index.md はすべて最新です。` | — |
 | ci-test | はい | 未実行 | `.github/workflows/ci.yml` | CI test job | Windows/Ubuntu × Python 3.11/3.13 | — | ローカル実行から推定しない |
 | ci-smoke | はい | 未実行 | `.github/workflows/ci.yml` | CI smoke job | Ubuntu/Python 3.11の独立smoke | — | CI実行なし |
+| code-review-standards | はい | 未実行 | `2ae7c426...a37649c`（T-0004commit列） | code-review Standards axis | 文書規約・入口・config・制約に適合し、判断上のsmellを区別する | — | 最終修正commit後にT-0004列を再実行する。`456c8b5`は除外 |
+| code-review-spec | はい | 未実行 | `2ae7c426...a37649c`（T-0004commit列） | code-review Spec axis | T-0004/HARNESS_SPECの完了条件を満たしscope creepがない | — | 最終修正commit後にT-0004列を再実行する。`456c8b5`は除外 |
 
 ### 演習
 
@@ -93,22 +97,21 @@
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 対象: `harness/` の今回の変更、未追跡の新規文書、本worklog
-- 結果: 静的契約検査、4値演習、作業ツリー演習を通過。新規セッション再開後に最終確認する
+- 結果: 静的契約検査、4値演習、作業ツリー演習を通過。初回reviewの指摘を修正し、最終修正後に再reviewする
 
 ### 標準軸
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 標準: `AGENTS.md`、`harness/core/guide.md`、`harness/project/config.md`、`harness/core/policy/requirements.md`
-- 結果: 初回reviewでworklogの状態、source ticket参照、CONTEXTの不足を指摘し、`b0db5ff` で修正。固定比較点からの再reviewを実施する
+- 結果: 初回reviewでworklog状態、source ticket参照、CONTEXTの説明、小作業/期待条件の不足を指摘。`b0db5ff` と最終修正で対応し、固定比較点から再reviewする
 
 ## 残作業・妨げ・再開前提
 
 ### 残作業
 
-- 対象変更後の必須検証を再実行する。
+- 最終修正をcommitし、対象変更後の必須検証を再実行する。
 - 固定比較点から二軸reviewを再実行し、結果を記録する。
 - worklogの最終結果、retro判定、commit SHAを更新して完了状態を確定する。
-- 成果物をcommitし、本タスクの完了記録へcommit SHAを記録する。
 
 ### 妨げ
 
@@ -119,10 +122,11 @@
 - target repositoryの `codex/t0003-japanese-entry` ブランチと開始SHAを維持する。
 - worklog、config、requirements、guideの順序を守る。
 - CI結果はローカル結果から推定しない。
+- `456c8b5` とそれに含まれるT-0005成果物は別作業として保持し、T-0004のreview・検証範囲から除外する。
 
 ## 次の一手
 
-review指摘を修正した変更を固定比較点 `2ae7c4261bce9d31324c35d6eaeb244c67794c22` から再reviewし、指摘がなければ影響する検証結果と完了状態を更新する。
+小作業の既存テスト必須とconfigの期待条件を含む最終修正をcommitし、固定比較点 `2ae7c4261bce9d31324c35d6eaeb244c67794c22` から再reviewする。
 
 ## handover-resume exercise
 
