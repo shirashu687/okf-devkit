@@ -130,14 +130,14 @@
 
 ## 次の一手
 
-完了記録commit後に`git status --short --branch`とHEADを照合し、T-0004対象の変更がcommit済みであることを確認する。
+完了確認済み。次の改善はT-0006のretro手順・台帳で扱い、T-0005外部変更はその作業の正本で扱う。
 
 ## handover-resume exercise
 
 - 読んだ入口: `AGENTS.md` → `harness/core/guide.md` → `harness/project/config.md` → `harness/core/policy/requirements.md` → 本worklog。
 - 観測したブランチ/status: `git status --short --branch` の結果は `## codex/t0003-japanese-entry`。`harness/core/guide.md` と `harness/project/config.md` が変更済み、`harness/core/procedures/` と `harness/core/templates/` と `harness/state/` が未追跡で、開始時からの変更・今回の変更の記録と一致した。HEADは開始SHA `2ae7c4261bce9d31324c35d6eaeb244c67794c22` と一致した。
 - 実行した次の一手と結果: 新規セッションとして指定順に入口とworklogを読み、`git status --short --branch` とHEADを確認した。handover-resume受け入れ演習の入口・状態照合は成功。
-- worklogの次の状態: handover-resume演習は成功。残作業は固定比較点からの仕様軸・標準軸review、必要な修正の再検証、commitと完了記録。
+- worklogの次の状態（演習時点）: handover-resume演習後にreview、再検証、commit、完了記録を行う。これらは後続のworklog更新で完了済み。
 - セッション識別子: `CODEX_SESSION_ID=01a0721e-f3e0-7703-9c8f-420992da0140`; `CODEX_THREAD_ID=01a0722a-63bd-7f60-a303-6bba8ca508bf`
 
 ## 完了 / 中断要約
