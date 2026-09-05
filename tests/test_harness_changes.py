@@ -149,6 +149,23 @@ class HarnessChangesTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("status=D", result.stdout)
 
+    def test_rename_between_protected_and_ordinary_paths_requires_both_names(self) -> None:
+        base = self.base_repository()
+        self.git("mv", "harness/core/policy/requirements.md", "renamed-policy.txt")
+        self.declaration(base, [self.change("harness/core/policy/requirements.md")])
+
+        missing_new = self.run_checker(base)
+        self.assertEqual(missing_new.returncode, 1, missing_new.stdout + missing_new.stderr)
+        self.assertIn("renamed-policy.txt", missing_new.stdout)
+
+        self.declaration(
+            base,
+            [self.change("harness/core/policy/requirements.md"), self.change("renamed-policy.txt")],
+        )
+        complete = self.run_checker(base)
+        self.assertEqual(complete.returncode, 0, complete.stdout + complete.stderr)
+        self.assertIn("path=renamed-policy.txt category=protected", complete.stdout)
+
     def test_upstream_copies_and_lock_are_each_reported(self) -> None:
         base = self.base_repository()
         self.write(".agents/skills/example/SKILL.md", "changed upstream\n")
@@ -222,6 +239,28 @@ class HarnessChangesTest(unittest.TestCase):
         result = self.run_checker(comparison_base)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("undeclared", result.stdout)
+
+    def test_head_declaration_worklog_must_be_a_blob(self) -> None:
+        base = self.base_repository()
+        self.write("harness/core/policy/requirements.md", "changed policy\n")
+        directory = self.repo / "harness" / "state" / "journal" / "not-a-file.md"
+        directory.mkdir(parents=True)
+        (directory / "child.txt").write_text("tree\n", encoding="utf-8")
+        document = {
+            "version": 1,
+            "base": base,
+            "worklog": "harness/state/journal/not-a-file.md",
+            "changes": [self.change("harness/core/policy/requirements.md")],
+        }
+        self.write(
+            "harness/state/journal/T-0005.changes.json",
+            json.dumps(document) + "\n",
+        )
+        head = self.commit_all("invalid tree worklog")
+
+        result = self.run_checker(base, head)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("worklog does not exist", result.stdout)
 
     def test_working_tree_covers_staged_unstaged_and_untracked_but_head_does_not(self) -> None:
         base = self.base_repository()

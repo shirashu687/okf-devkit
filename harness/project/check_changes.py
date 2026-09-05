@@ -59,18 +59,22 @@ class ComparisonUnavailable(Exception):
 class ChangedPath:
     path: str
     status: str
+    rename_peer: str | None = None
 
 
 def run_git(repo: Path, args: list[str]) -> subprocess.CompletedProcess[bytes]:
     """Run git without a shell and return bytes so NUL paths stay intact."""
 
-    return subprocess.run(
-        ["git", *args],
-        cwd=repo,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    try:
+        return subprocess.run(
+            ["git", *args],
+            cwd=repo,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    except OSError as exc:
+        raise ComparisonUnavailable("Git executable is unavailable") from exc
 
 
 def git_error(args: Iterable[str], proc: subprocess.CompletedProcess[bytes]) -> str:
@@ -82,12 +86,15 @@ def git_error(args: Iterable[str], proc: subprocess.CompletedProcess[bytes]) -> 
 
 
 def find_repo_root() -> Path:
-    proc = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    except OSError as exc:
+        raise ComparisonUnavailable("Git executable is unavailable") from exc
     if proc.returncode != 0:
         raise ComparisonUnavailable("current directory is not a Git repository")
     raw_root = proc.stdout.decode("utf-8", errors="surrogateescape").strip()
@@ -139,8 +146,8 @@ def parse_name_status(raw: bytes) -> list[ChangedPath]:
             old_path = decode_git_field(fields[index])
             new_path = decode_git_field(fields[index + 1])
             index += 2
-            result.append(ChangedPath(old_path, f"{status}:old"))
-            result.append(ChangedPath(new_path, f"{status}:new"))
+            result.append(ChangedPath(old_path, f"{status}:old", new_path))
+            result.append(ChangedPath(new_path, f"{status}:new", old_path))
         else:
             if index >= len(fields):
                 raise ComparisonUnavailable("Git returned an incomplete change record")
@@ -182,7 +189,11 @@ def changed_paths(repo: Path, base: str, head: str | None) -> list[ChangedPath]:
         if existing is None:
             unique[item.path] = item
         else:
-            unique[item.path] = ChangedPath(item.path, f"{existing.status},{item.status}")
+            unique[item.path] = ChangedPath(
+                item.path,
+                f"{existing.status},{item.status}",
+                existing.rename_peer or item.rename_peer,
+            )
     return list(unique.values())
 
 
@@ -199,6 +210,16 @@ def classify(path: str) -> str:
     if any(matches(path, pattern) for pattern in UPSTREAM_PATTERNS):
         return "upstream"
     return "ordinary"
+
+
+def change_category(path: str, changed_by_path: dict[str, ChangedPath]) -> str:
+    category = classify(path)
+    item = changed_by_path.get(path)
+    if category == "ordinary" and item is not None and item.rename_peer:
+        peer_category = classify(item.rename_peer)
+        if peer_category != "ordinary":
+            return peer_category
+    return category
 
 
 def is_declaration_path(path: str) -> bool:
@@ -254,8 +275,8 @@ def worklog_exists(repo: Path, path: str, head: str | None) -> bool:
             return worktree_file(repo, path).is_file()
         except ValueError:
             return False
-    proc = run_git(repo, ["cat-file", "-e", f"{head}:{path}"])
-    return proc.returncode == 0
+    proc = run_git(repo, ["cat-file", "-t", f"{head}:{path}"])
+    return proc.returncode == 0 and proc.stdout.strip() == b"blob"
 
 
 def load_declarations(
@@ -311,7 +332,7 @@ def load_declarations(
             changed = changed_by_path.get(path)
             if changed is None:
                 diagnostics.append(f"invalid declaration {declaration_path}: path is not in this comparison: {path}")
-            elif classify(path) == "ordinary":
+            elif change_category(path, changed_by_path) == "ordinary":
                 diagnostics.append(f"invalid declaration {declaration_path}: path is not protected or upstream: {path}")
             elif path in declared:
                 diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
@@ -320,9 +341,11 @@ def load_declarations(
     return declared, diagnostics
 
 
-def report_paths(paths: list[ChangedPath], declared: dict[str, str]) -> None:
+def report_paths(
+    paths: list[ChangedPath], declared: dict[str, str], changed_by_path: dict[str, ChangedPath]
+) -> None:
     for item in sorted(paths, key=lambda value: value.path):
-        category = classify(item.path)
+        category = change_category(item.path, changed_by_path)
         if category == "ordinary":
             state = "not-applicable"
         elif item.path in declared:
@@ -355,9 +378,9 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"base={base}")
     print(f"head={head if head is not None else 'working-tree'}")
-    report_paths(paths, declared)
+    report_paths(paths, declared, changed_by_path)
 
-    protected_paths = [item.path for item in paths if classify(item.path) != "ordinary"]
+    protected_paths = [item.path for item in paths if change_category(item.path, changed_by_path) != "ordinary"]
     for path in protected_paths:
         if path not in declared:
             diagnostics.append(f"undeclared protected or upstream change: {path}")
