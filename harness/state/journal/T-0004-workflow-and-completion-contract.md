@@ -12,7 +12,8 @@
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
 | 最終検証時HEAD（完了記録commit直前） | `b8e6e3d`（T-0005外部commitを含む） |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
-| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3, b8e6e3d; declaration check output; verification output; concurrent T-0005 changes excluded; no secrets` |
+| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3, db057a5; declaration check output; verification output; concurrent T-0005 commits 456c8b5 and 8acec25 excluded; no secrets` |
+| 完了記録commit | `db057a5` |
 
 ## 目的・範囲
 
@@ -56,7 +57,7 @@
 - concurrent commit `456c8b5`: T-0005相当のpolicy/config/checker/test（T-0004対象外。変更せず保持）
 - commit `c68a0b3`: 小作業の既存テスト必須、configの期待条件、CONTEXTの状態正本説明、review指摘の修正
 - 追加宣言: `T-0004-workflow-and-completion-contract.changes.json`（比較点 `456c8b5d3b1004d94681a6d52d073215b5aaa412`）
-- T-0004対象外の未コミット変更: `harness/project/check_changes.py`、`tests/test_harness_changes.py`（別セッション由来。変更せず保持）
+- concurrent commit `8acec25`: T-0005の変更検査修正（T-0004対象外。変更せず保持）
 
 ## 判断と根拠
 
@@ -73,7 +74,7 @@
 | contract-static | はい | 成功 | `2ae7c426` + 作業ツリー | PowerShellの参照・scope・契約マーカーチェック | 相対リンクが実在し、コアに固有コマンドがなく、必須契約語がある | terminal output: `markdown-links: all relative targets exist`; `core-scope: no project-specific commands or package names`; `contract-markers: all present` | 初回確認後の文書状態 |
 | project-required-t0004-boundary | はい | 成功 | target repository / `a37649c`（T-0005commit前） | `.venv/Scripts/python.exe tests/run_all.py`（T-0005のtestを除外） | T-0004変更を含む既存テストが全件成功 | terminal output: `Ran 144 tests`; `OK`; failures 0 / errors 0 / skipped 0 | T-0005の別commitが後から入ったため、対象境界を分離 |
 | project-required-current-head | はい | 失敗 | target repository / `456c8b5`（T-0005作業中の観測） | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 152 tests`; errors 3 in `test_harness_changes.py` | T-0005外部commitの作業中状態。T-0004変更の成功へ読み替えない。履歴として保持 |
-| project-required-current-head-rerun | はい | 成功 | target repository / `c68a0b3` | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 153 tests`; failures 0 / errors 0 / skipped 0 | 外部T-0005の完了後に再実行。前回失敗は削除しない |
+| project-required-current-head-rerun | はい | 成功 | target repository / `c68a0b3` + T-0005完了状態 | `.venv/Scripts/python.exe tests/run_all.py` | 現在HEADの全テストが成功 | terminal output: `Ran 153 tests`; failures 0 / errors 0 / skipped 0 | 外部T-0005の完了後に再実行。前回失敗は削除しない |
 | okf-index-write | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` | OKF索引が最新になる | terminal output: `index.md はすべて最新です。` | `harness/` はOKF外だが入口規約に従い実行 |
 | okf-lint | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli lint` | error 0 / warn 0 | terminal output: `lint: error 0 件 / warn 0 件` | `harness/` はOKF外 |
 | okf-index-check | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` | exit 0 | terminal output: `index.md はすべて最新です。` | — |
@@ -124,7 +125,7 @@
 - target repositoryの `codex/t0003-japanese-entry` ブランチと開始SHAを維持する。
 - worklog、config、requirements、guideの順序を守る。
 - CI結果はローカル結果から推定しない。
-- `456c8b5` とそれに含まれるT-0005成果物は別作業として保持し、T-0004のreview・検証範囲から除外する。
+- `456c8b5` と `8acec25` のT-0005成果物は別作業として保持し、T-0004のreview・検証範囲から除外する。
 
 ## 次の一手
 
@@ -146,4 +147,4 @@
 
 - 判定: トリガーあり。仮想環境の権限差、別セッションの並行変更、検証スクリプトの再試行が発生した。
 - 実施: 未実行。`harness/core/procedures/retrospective.md` はT-0004の範囲外で未設置。失敗・再試行・外部変更を本worklogへ記録し、詳細手順と改善台帳はT-0006で扱う。
-- 残存リスク: CIのmatrix/smokeは未実行。T-0005の未コミット変更が別途存在するため、T-0004のcommit・宣言・検証範囲と混同しない。
+- 残存リスク: CIのmatrix/smokeは未実行。T-0005の別commitをT-0004のcommit・宣言・検証範囲と混同しない。
