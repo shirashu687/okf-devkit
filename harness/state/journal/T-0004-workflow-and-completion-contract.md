@@ -5,14 +5,14 @@
 | 項目 | 値 |
 | --- | --- |
 | 課題ID / 作業名 | `T-0004-workflow-and-completion-contract` |
-| 状態 | `進行中` |
+| 状態 | `完了` |
 | 作業場所 | `C:/Users/rinta/Documents/1_projects/okf-devkit` |
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
-| 最新HEAD（最終検証時） | `c68a0b3`（T-0005外部commitを含む） |
+| 最終検証時HEAD（完了記録commit直前） | `b8e6e3d`（T-0005外部commitを含む） |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
-| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3 and verification output; declaration for c68a0b3; concurrent T-0005 commit 456c8b5 is excluded; no secrets` |
+| 証拠の保存先 | `T-0004 commits 4a00b50, b0db5ff, a37649c, c68a0b3, b8e6e3d; declaration check output; verification output; concurrent T-0005 changes excluded; no secrets` |
 
 ## 目的・範囲
 
@@ -56,6 +56,7 @@
 - concurrent commit `456c8b5`: T-0005相当のpolicy/config/checker/test（T-0004対象外。変更せず保持）
 - commit `c68a0b3`: 小作業の既存テスト必須、configの期待条件、CONTEXTの状態正本説明、review指摘の修正
 - 追加宣言: `T-0004-workflow-and-completion-contract.changes.json`（比較点 `456c8b5d3b1004d94681a6d52d073215b5aaa412`）
+- T-0004対象外の未コミット変更: `harness/project/check_changes.py`、`tests/test_harness_changes.py`（別セッション由来。変更せず保持）
 
 ## 判断と根拠
 
@@ -78,7 +79,7 @@
 | okf-index-check | はい | 成功 | target repository docs bundle | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` | exit 0 | terminal output: `index.md はすべて最新です。` | — |
 | ci-test | はい | 未実行 | `.github/workflows/ci.yml` | CI test job | Windows/Ubuntu × Python 3.11/3.13 | — | ローカル実行から推定しない |
 | ci-smoke | はい | 未実行 | `.github/workflows/ci.yml` | CI smoke job | Ubuntu/Python 3.11の独立smoke | — | CI実行なし |
-| change-declaration | はい | 未実行 | `456c8b5...c68a0b3` | `harness/project/check_changes.py --base 456c8b5... --head c68a0b3` | 保護対象の宣言漏れなし | — | 宣言追加後に実行する |
+| change-declaration | はい | 成功 | `456c8b5...b8e6e3d` | `.venv/Scripts/python.exe harness/project/check_changes.py --base 456c8b5d3b1004d94681a6d52d073215b5aaa412 --head b8e6e3d` | 保護対象の宣言漏れなし | terminal output: `result=ok (declaration presence is not human approval or semantic review)` | `verify-report.md` と `config.md` は宣言済み。T-0005外部変更は比較対象外 |
 | code-review-standards | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Standards axis | 文書規約・入口・config・制約に適合し、判断上のsmellを区別する | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
 | code-review-spec | はい | 成功 | `456c8b5...c68a0b3`（最終T-0004修正） | code-review Spec axis | T-0004/HARNESS_SPECの完了条件を満たしscope creepがない | final review: no findings after worklog/declaration updates | 初回実装列は `2ae7c426...a37649c` で別途review済み。`456c8b5`は除外 |
 
@@ -112,8 +113,7 @@
 
 ### 残作業
 
-- 変更検査の宣言を実行し、追加宣言を含む最終記録commitを作成する。
-- worklogの最終結果、retro判定、commit SHAを更新して完了状態を確定する。
+- なし。CI test/smokeは未実行として残し、T-0005外部変更は別作業で扱う。
 
 ### 妨げ
 
@@ -128,7 +128,7 @@
 
 ## 次の一手
 
-追加宣言を含む最終記録をcommitし、`git status --short --branch` と最終HEADを照合してタスク完了を確定する。
+完了記録commit後に`git status --short --branch`とHEADを照合し、T-0004対象の変更がcommit済みであることを確認する。
 
 ## handover-resume exercise
 
@@ -140,4 +140,10 @@
 
 ## 完了 / 中断要約
 
-実装中。まだ検証・review・commitが完了していない。
+完了。小・通常・大の入口、4値検証報告、作業記録、別セッション再開、未コミット/未追跡補完、二軸review、対象版固定、変更宣言を設置した。T-0004対象境界の既存テスト144件と現在HEADの153件、OKF検査、参照検査、宣言検査を記録した。CI test/smokeとfull retrospectiveは未実行で、retro詳細手順未設置および外部T-0005作業として理由を残した。
+
+## full retrospective（retro）判定
+
+- 判定: トリガーあり。仮想環境の権限差、別セッションの並行変更、検証スクリプトの再試行が発生した。
+- 実施: 未実行。`harness/core/procedures/retrospective.md` はT-0004の範囲外で未設置。失敗・再試行・外部変更を本worklogへ記録し、詳細手順と改善台帳はT-0006で扱う。
+- 残存リスク: CIのmatrix/smokeは未実行。T-0005の未コミット変更が別途存在するため、T-0004のcommit・宣言・検証範囲と混同しない。
