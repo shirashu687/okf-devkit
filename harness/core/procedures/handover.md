@@ -4,7 +4,7 @@
 
 ## 1. 中断前に同じworklogを更新する
 
-通常・大の作業では `harness/state/journal/<task-id-or-slug>.md` を使う。小作業でも、別セッションへ渡すなら [worklogテンプレート](../templates/worklog.md) を同じ場所へ複製する。新しい状態ファイルを別に作って、worklogと正本を分けない。
+通常・大の作業では、[config.md](../../project/config.md) の「作業記録と引継ぎ」で定めた journal 配下に `<task-id-or-slug>.md` を置く。小作業でも、別セッションへ渡すなら [worklogテンプレート](../templates/worklog.md) を同じ場所へ複製する。新しい状態ファイルを別に作って、worklogと正本を分けない。
 
 中断前に次を現物で確認してから記録する。
 
@@ -26,7 +26,7 @@
 1. [AGENTS.md](../../../AGENTS.md) — 入口と優先順位。
 2. [日本語作業ガイド](../guide.md) — 作業区分と読む条件。
 3. [config.md](../../project/config.md) と [requirements.md](../policy/requirements.md) — 配置、コマンド、制約、実行前提。
-4. `harness/state/journal/<task-id-or-slug>.md` — この作業の状態、最新検証、次の一手。
+4. configで定めた journal の `<task-id-or-slug>.md` — この作業の状態、最新検証、次の一手。
 5. worklogから参照された仕様、チケット、決定、差分、証拠 — 必要なものだけ。
 
 worklogに書かれた要約を、そのまま現物の代わりにしない。読了後、再開セッションで次を照合する。

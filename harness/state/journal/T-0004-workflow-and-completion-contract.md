@@ -10,7 +10,7 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
-| 最新HEAD | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
+| 最新HEAD（review開始時） | `4a00b50` |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
 | 証拠の保存先 | `target repository commit and verification output; no secrets` |
 
@@ -36,7 +36,7 @@
 
 ### 完了条件
 
-- `/backlog/T-0004-workflow-and-completion-contract.md` の受け入れ⑦⑧⑨と追加の完了条件
+- 別リポジトリのsource ticket `C:/Users/rinta/Documents/1_projects/harness/docs/backlog/T-0004-workflow-and-completion-contract.md` の受け入れ⑦⑧⑨と追加の完了条件
 - 仕様の §2.2、§2.3、§4、§8.1
 
 ## 開始時の状態
@@ -51,9 +51,8 @@
 
 ### 今回の変更
 
-- 変更済み: `harness/core/guide.md`、`harness/project/config.md`
-- 未追跡: `harness/core/procedures/verify-report.md`、`harness/core/procedures/handover.md`、`harness/core/templates/worklog.md`
-- 進行中の記録: 本ファイル
+- commit `4a00b50`: `harness/core/guide.md`、`harness/project/config.md`、`harness/core/procedures/verify-report.md`、`harness/core/procedures/handover.md`、`harness/core/templates/worklog.md`、本worklog
+- review修正中: `CONTEXT.md`、未追跡列挙の明記、journalパスのconfig参照化
 
 ## 判断と根拠
 
@@ -99,13 +98,13 @@
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 標準: `AGENTS.md`、`harness/core/guide.md`、`harness/project/config.md`、`harness/core/policy/requirements.md`
-- 結果: AGENTS/config/requirementsと上記コア文書の配置・範囲を確認。code-reviewスキルの二軸reviewをcommit後に実施する
+- 結果: 初回reviewでworklogの状態、source ticket参照、CONTEXTの不足を指摘。修正後に再reviewする
 
 ## 残作業・妨げ・再開前提
 
 ### 残作業
 
-- 固定比較点から仕様軸・標準軸reviewを行い、必要な修正を再検証する。
+- review指摘（journalパス、未追跡列挙、source ticket、CONTEXT、worklog状態）を修正し、固定比較点から二軸reviewを再実行する。
 - 成果物をcommitし、本タスクの完了記録へcommit SHAを記録する。
 
 ### 妨げ
@@ -120,7 +119,7 @@
 
 ## 次の一手
 
-固定比較点 `2ae7c4261bce9d31324c35d6eaeb244c67794c22` から仕様軸・標準軸のreviewを実施し、指摘があれば修正して影響検証を再実行する。
+review指摘を修正した変更を固定比較点 `2ae7c4261bce9d31324c35d6eaeb244c67794c22` から再reviewし、指摘がなければ影響する検証結果と完了状態を更新する。
 
 ## handover-resume exercise
 
