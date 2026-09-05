@@ -10,7 +10,7 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `2ae7c4261bce9d31324c35d6eaeb244c67794c22` |
-| 最新HEAD（review開始時） | `4a00b50` |
+| 最新HEAD（review修正後の現物照合時） | `b0db5ff` |
 | 作業者 / 製品 / モデル | `Codex / Codex / current session` |
 | 証拠の保存先 | `target repository commit and verification output; no secrets` |
 
@@ -51,8 +51,9 @@
 
 ### 今回の変更
 
-- commit `4a00b50`: `harness/core/guide.md`、`harness/project/config.md`、`harness/core/procedures/verify-report.md`、`harness/core/procedures/handover.md`、`harness/core/templates/worklog.md`、本worklog
-- review修正中: `CONTEXT.md`、未追跡列挙の明記、journalパスのconfig参照化
+- commit `4a00b50`: 初回の手順、guide/config、worklog
+- commit `b0db5ff`: `CONTEXT.md`、未追跡列挙の明記、journalパスのconfig参照化、source ticket参照の修正
+- T-0004対象外の未追跡: `harness/project/check_changes.py`、`tests/test_harness_changes.py`（開始後に現れた無関係な変更。commitに含めない）
 
 ## 判断と根拠
 
@@ -98,13 +99,15 @@
 
 - 比較点: `2ae7c4261bce9d31324c35d6eaeb244c67794c22`
 - 標準: `AGENTS.md`、`harness/core/guide.md`、`harness/project/config.md`、`harness/core/policy/requirements.md`
-- 結果: 初回reviewでworklogの状態、source ticket参照、CONTEXTの不足を指摘。修正後に再reviewする
+- 結果: 初回reviewでworklogの状態、source ticket参照、CONTEXTの不足を指摘し、`b0db5ff` で修正。固定比較点からの再reviewを実施する
 
 ## 残作業・妨げ・再開前提
 
 ### 残作業
 
-- review指摘（journalパス、未追跡列挙、source ticket、CONTEXT、worklog状態）を修正し、固定比較点から二軸reviewを再実行する。
+- 対象変更後の必須検証を再実行する。
+- 固定比較点から二軸reviewを再実行し、結果を記録する。
+- worklogの最終結果、retro判定、commit SHAを更新して完了状態を確定する。
 - 成果物をcommitし、本タスクの完了記録へcommit SHAを記録する。
 
 ### 妨げ
