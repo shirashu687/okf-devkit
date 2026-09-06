@@ -10,7 +10,7 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `cfdbffe1a01e99432aa9d527c12192fb5a9e3669` |
-| 最新HEAD | `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a`（T-0006成果物commit） |
+| 最新HEAD | `f414ce6ce4cafc37e9c32abbde066b15f7173258`（T-0006検証境界記録commit） |
 | 作業者 / 製品 / モデル | `Codex` / `Codex` / `GPT-5（正確なdeployment名は実行環境に未露出）` |
 | 証拠の保存先 | `target repository worklog、terminal output、隔離演習の要約。秘密情報なし` |
 
@@ -59,7 +59,7 @@
 
 - 変更済み: `CONTEXT.md`、`harness/core/guide.md`、`harness/core/procedures/verify-report.md`、`harness/core/templates/worklog.md`、`harness/project/config.md`
 - 未追跡: `harness/core/procedures/retrospective.md`、`harness/ledger.md`、本worklog、`.changes.json`
-- T-0006成果物commit: `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a`。並行T-0007の変更はcommitへ含めていない。
+- T-0006成果物commit: `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a`。検証境界記録commit: `f414ce6ce4cafc37e9c32abbde066b15f7173258`。設計側完了commit: `b6c378b`。並行T-0007の変更はcommitへ含めていない。
 
 ### 作業中に検出した並行変更
 
@@ -131,6 +131,7 @@
 | code-review-standards | はい | 成功 | `cfdbffe1...`からT-0006対象（未コミット/未追跡を含む。T-0007パスを除外） | 並列review agentによるAGENTS/config/requirements/docs規約の標準軸review | documented-standard violationなし。入口ごとのretro要約重複は低確信のbaseline smellとして残し、中央手順への参照で許容 | review agent `01a0743d-ab4e-7700-b13d-cfddc6497cef` の再review: no remaining documented violations | T-0007の並行変更と共有configのObsidian hunksはT-0006対象から除外 |
 | ci-test | はい | 未実行 | GitHub Actions | workflow `test` | Windows/Ubuntu × Python 3.11/3.13 | — | 実CIは実行しない。ローカルから推定しない |
 | ci-smoke | はい | 未実行 | GitHub Actions | workflow `smoke` | Ubuntu/Python 3.11 smoke | — | 実CIは実行しない。ローカルから推定しない |
+| source-backlog-okf | はい | 成功 | source harness / commit `b6c378b` | target venvのCLIで `index --write`、`lint`、`index --check` | T-0006完了反映後の生成index最新、lint error 0 / warn 0、index-check exit 0 | terminal output: `index.md を 1 件更新`; `lint: error 0 件 / warn 0 件`; `index.md はすべて最新` | source側のT-0007差分を部分stageから除外 |
 
 ### 演習の入出力要約
 
@@ -172,8 +173,8 @@
 
 ### 残作業
 
-- 設計側source T-0006へ検証表、evidence、完了条件、`state: done` / `done_at`、結果を反映する。
-- source更新後の記録commitを作り、T-0006の最終HEADとhead固定宣言を再確認する。
+- T-0006の実装・検証・source完了更新はなし。`ci-test` / `ci-smoke` は未実行の残存範囲で、ローカル成功から推定しない。
+- `IMP-0001`〜`IMP-0003`の期限つき試行・採用承認・改善効果確認は未実施であり、後続作業の判断範囲とする。
 
 ### 妨げ
 
@@ -188,8 +189,8 @@
 
 ## 次の一手
 
-T-0006成果物commit `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a` をsource T-0006のevidenceへ記録し、設計側の検証表・完了状態を更新する。その後、対象worklogのsource反映結果を記録commitへ保存する。並行T-0007変更はステージしない。
+T-0006完了を、target成果物commit `f6e8c395`、target記録commit `f414ce6`、source完了commit `b6c378b`、固定head宣言検査 `result=ok` で確認する。並行T-0007変更は作業ツリーに保持し、T-0006の対象へ戻さない。
 
 ## 完了 / 中断要約
 
-進行中。retro手順、台帳、既存フロー接続、実観測 `IMP-0001`〜`IMP-0003` を設置し、T-0006成果物を `f6e8c395` にコミットした。隔離11演習、参照/scope確認、既存テスト、T-0006範囲の変更宣言検査、仕様/標準reviewは成功。設計側T-0006完了更新とsource反映記録commitは残作業であり、CI test/smokeは未実行として扱う。並行T-0007変更は保持してT-0006の対象外とする。
+完了。retro手順、台帳、既存フロー接続、実観測 `IMP-0001`〜`IMP-0003` を設置し、target成果物を `f6e8c395`、検証境界worklogを `f414ce6`、設計側T-0006を `b6c378b` に記録した。隔離11演習、参照/scope確認、既存テスト、T-0006範囲の変更宣言検査、仕様/標準review、source OKF検査は成功。CI test/smokeは未実行、改善の試行・採用承認・効果確認は未実施として残す。並行T-0007変更は保持してT-0006の対象外とする。
