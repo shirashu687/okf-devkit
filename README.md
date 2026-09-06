@@ -112,7 +112,7 @@ okf sync
 設定は **「パッケージ同梱の `defaults.yml`」＋「プロジェクトルートの `okf.yml`」** のマージで決まる。
 
 - `types` / `statuses` / `kind_rules` / `backlog` の語彙、`index` のマーカーとリンク形式といった**普遍的な設定は同梱側**にある
-- `okf.yml` には**このリポジトリ固有の設定だけ**を書けばよい（`bundle_root` / `layers` / `layer_map` / `log.paths` / `log.baseline` / `site_name`）
+- `okf.yml` には**このリポジトリ固有の設定だけ**を書けばよい（`bundle_root` / `layers` / `layer_map` / `index.link_style` / `log.paths` / `log.baseline` / `site_name`）
 - マージ規則: **dict は再帰的にマージし、リストとスカラーは丸ごと置換**する
 
 生成 `index.md` のリンク形式は `index.link_style` で選ぶ。既定は既存互換の `bundle-absolute`、このリポジトリはObsidianで階層をそのまま辿れる `relative` を明示している。

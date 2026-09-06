@@ -134,6 +134,10 @@ class RelativeIndexLinkTests(OkfTestCase):
             "docs/project/overview.md",
             doc_text(type_="Project Overview", title="概要", description="概要。", code_globs=None),
         )
+        self.write(
+            "docs/project/deprecated.md",
+            doc_text(title="廃止文書", description="廃止された文書。", status="deprecated", code_globs=None),
+        )
         backlog_fields = {
             "doing": ("high", "T-0001-doing.md"),
             "todo": ("medium", "T-0002-todo.md"),
@@ -184,6 +188,9 @@ class RelativeIndexLinkTests(OkfTestCase):
         project = self.read("docs/project/index.md")
         self.assertIn("* [概要](./overview.md)", project)
         self.assert_link_resolves("project/index.md", "./overview.md")
+        self.assertIn("## 非推奨", project)
+        self.assertIn("* [廃止文書](./deprecated.md)", project)
+        self.assert_link_resolves("project/index.md", "./deprecated.md")
 
         backlog = self.read("docs/backlog/index.md")
         for state in ("doing", "todo", "done", "dropped"):
@@ -206,6 +213,25 @@ class RelativeIndexLinkTests(OkfTestCase):
         self.assertEqual(0, okf.cmd_index(self.bundle(), ns(write=True, check=False, quiet=True)))
         self.assertEqual(0, okf.cmd_index(self.bundle(), ns(write=False, check=True, quiet=True)))
         self.assertEqual(first, {path: self.read(path) for path in first})
+
+        default_config = self.make_config()
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(default_config), ns(write=True, check=False, quiet=True)))
+        absolute_default = {
+            path: self.read(path)
+            for path in (
+                "docs/index.md",
+                "docs/project/index.md",
+                "docs/backlog/index.md",
+            )
+        }
+        self.assertIn("* [project ドキュメント](/project/index.md)", absolute_default["docs/index.md"])
+        self.assertIn("* [概要](/project/overview.md)", absolute_default["docs/project/index.md"])
+        self.assertIn("/backlog/T-0003%20%28x%29%20%25%20日本語.md", absolute_default["docs/backlog/index.md"])
+
+        explicit_config = self.make_config(index_link_style="bundle-absolute")
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(explicit_config), ns(write=True, check=False, quiet=True)))
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(explicit_config), ns(write=False, check=True, quiet=True)))
+        self.assertEqual(absolute_default, {path: self.read(path) for path in absolute_default})
 
     def test_lint_and_sync_use_the_same_relative_link_style(self):
         bundle = self.bundle()
