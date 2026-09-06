@@ -192,6 +192,7 @@ class RelativeIndexRenderTests(OkfTestCase):
                 "docs/backlog/index.md",
             )
         }
+        source_doc = self.read("docs/special dir/foo (x) % 日本語.md")
 
         report = renderer.render_bundle(bundle, okf.Doc)
         self.assertFalse(report.warnings)
@@ -204,6 +205,7 @@ class RelativeIndexRenderTests(OkfTestCase):
         self.assertIn('href="overview.html"', self.read("docs/project/index.html"))
         self.assertIn('href="T-0001-task.html"', self.read("docs/backlog/index.html"))
         self.assertEqual(sources, {path: self.read(path) for path in sources})
+        self.assertEqual(source_doc, self.read("docs/special dir/foo (x) % 日本語.md"))
 
         output = self.repo / "_site"
         separate = renderer.render_bundle(self.bundle(), okf.Doc, output)
