@@ -59,7 +59,7 @@
 - 未追跡: `harness/state/journal/T-0006-retro-and-ledger.changes.json` — T-0006変更宣言
 - 確認方法: `git status --short`、`git diff --stat`、`git ls-files --others --exclude-standard`（開始SHA時点）
 
-作業中に先行T-0006の差分が別のコミット操作で `f6e8c39`（retro/ledger設置）と `f414ce6`（T-0006 worklog境界）へ進んだ。`git reflog --date=iso` で 2026-09-06 10:21:58 / 10:23:26 の2コミットを確認し、内容の巻戻し・書換えは行っていない。T-0006の完了状態やworklogは本タスクから変更していない。
+作業中に先行T-0006の差分が別のコミット操作で `f6e8c39`（retro/ledger設置）、`f414ce6`（T-0006 worklog境界）、`3d3a08c`（T-0006 worklog確定）、`df44d12`（T-0006境界補足）へ進んだ。`git reflog --date=iso` で 2026-09-06 10:21:58〜10:33:32 の4コミットを確認し、内容の巻戻し・書換えは行っていない。T-0006の完了状態やworklogは本タスクから変更していない。
 
 ### 今回の変更
 
