@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "base": "9724d5dc1095a433d654d41444c7fe450b3c7443",
+  "worklog": "harness/state/journal/T-0013-extract-distributable-core.md",
+  "changes": [
+    {
+      "path": "harness/core/policy/requirements.md",
+      "reason": "T-0013の配布版への明示移行。固有説明の移設・既存要件保持。上流本体と検査実装は変更しない。"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "T-0013の配布版への明示移行。固有説明の移設・既存要件保持。上流本体と検査実装は変更しない。"
+    },
+    {
+      "path": "harness/project/skill-profile.md",
+      "reason": "T-0013の配布版への明示移行。固有説明の移設・既存要件保持。上流本体と検査実装は変更しない。"
+    }
+  ]
+}
