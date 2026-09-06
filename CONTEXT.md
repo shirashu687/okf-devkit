@@ -20,4 +20,4 @@ okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を�
 - `harness/core/procedures/verify-report.md` は、対象版を固定して必須検証を `成功` / `失敗` / `未実行` / `実行不能` の4値で記録し、仕様軸と標準軸のreviewを分ける共通手順である。
 - `harness/core/templates/worklog.md` は、通常・大の作業と中断時に使う状態記録のテンプレートである。実際の状態正本はconfigで定めたjournal内のworklogで、配置、コマンド、制約は `harness/project/config.md` が定める。
 - `harness/core/procedures/handover.md` は、入口・config/制約・worklog・参照先の順に現物を照合して再開する手順である。上流handoffの一時文書はworklogの代替にしない。
-- full retrospective（retro）の詳細手順は未設置であり、トリガーがある場合は未実施の理由と次の一手を記録する。
+- `harness/core/procedures/retrospective.md` は、作業開始・再開時の期限確認と、完了・中断時のretroゲートから `harness/ledger.md` の観測・候補・試行・採否・撤去記録へ接続する。トリガーのない回は通常報告で終了し、専用自動検知や定時起動があるとは扱わない。

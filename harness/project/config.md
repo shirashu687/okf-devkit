@@ -12,6 +12,7 @@
 | 上流スキルの導入・更新・撤去 | [採用プロファイル](skill-profile.md)。導入状態は [skills-lock.json](../../skills-lock.json)、通知は [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) |
 | 検証の選択・結果・完了報告 | [verify-report.md](../core/procedures/verify-report.md)。結果は成功 / 失敗 / 未実行 / 実行不能の4値 |
 | 中断・別セッションからの再開 | [handover.md](../core/procedures/handover.md)。状態の正本は同じworklog |
+| retroゲート・改善候補・台帳更新 | [retrospective.md](../core/procedures/retrospective.md) と [ledger.md](../ledger.md)。トリガーがある回だけfull retroを行う |
 | 通常・大の作業記録 | [worklog.md](../core/templates/worklog.md) を `harness/state/journal/<task-id-or-slug>.md` に複製。小作業は省略可、中断時は必須 |
 | 保護対象・上流管理ファイルの変更検査 | [check_changes.py](check_changes.py)。開始SHAから作業ツリーまたはbase/headの2コミットを検査 |
 | 正当な変更の機械可読な宣言 | `harness/state/journal/<task-id-or-slug>.changes.json`。目的・確認の正本は対応するworklog |
@@ -68,7 +69,16 @@
 
 ## 作業記録と引継ぎ
 
-`harness/state/journal/` は進行中または引継ぎ対象のworklog置き場である。ファイル名は課題IDがあればそのID、なければ短いslugを使い、同じ作業について1枚だけ作る。テンプレートは共通項目だけを持ち、プロジェクト固有のコマンドや完了条件は作業ごとに記入する。
+`harness/state/journal/` は進行中または引継ぎ対象のworklog置き場である。ファイル名は課題IDがあればそのID、なければ短いslugを使い、同じ作業について1枚だけ作る。テンプレートは共通項目だけを持ち、プロジェクト固有のコマンドや完了条件は作業ごとに記入する。作業開始・再開時は [retrospective.md](../core/procedures/retrospective.md) に従って `harness/ledger.md` の試行期限・採用済みの見直し日を確認し、完了・中断時は同じworklogへretroゲートの確認範囲、根拠、処理済みID、未確認範囲、次の一手を残す。
+
+## Retroと改善台帳
+
+full retrospectiveの実行条件、トリガーなし・根拠不足・トリガーありの分岐、重複・上限・試行・採用・却下・廃止の記録方法は [retrospective.md](../core/procedures/retrospective.md) を正本とする。改善観測の正本は [harness/ledger.md](../ledger.md) であり、演習データや会話全文を台帳へ移さない。
+
+- 開始・再開時に、評価中10件・試行3件の上限、期限超過、採用済みの見直し日、巻戻し競合を確認する。
+- トリガーなしの回は通常の完了・中断報告で終了し、新しいretro文書や空の台帳行を作らない。
+- トリガーありの回は未処理の事象だけfull retroへ送り、台帳IDをworklogから参照する。人の採用承認なしに恒久ルールへ反映しない。
+- 定時起動、専用の意味検知、台帳validatorは設置していない。無稼働中の期限処理や、AIの検知の完全性を保証しない。
 
 通常・大の作業では作業開始時にworklogを作り、作業場所、ブランチ、開始SHA、開始時から存在する変更、今回の変更を区別して記録する。中断する場合は小作業でも作成し、最新のHEAD・作業ツリー・検証結果・妨げ・前提・具体的な次の一手を更新する。完了後の保管は仕様の記録寿命に従い、ここでは自動移動しない。
 
@@ -77,7 +87,7 @@
 - 上流 `implement` は実装の流れを提供する。このガイドの区分、ローカル制約、必須検証、worklog、利用者の権限を優先する。
 - 上流 `code-review` を使う場合は、開始時に解決した比較点を渡す。上流手順がコミット済み差分だけを対象にする場合、`git diff <開始SHA>` と未追跡の対象ファイルを自前で確認し、作業ツリー全体を仕様軸・標準軸の両方でreviewする。
 - 上流 `handoff` を明示的に使う場合、その一時文書はworklogへの参照と次セッションの用途だけを持つ。状態の正本を一時文書へ移さず、毎回のhandoff実行を必須にしない。
-- `harness/core/procedures/retrospective.md` は未設置である。full retrospective（retro）のトリガーがある場合は、仕様と制約を参照して未実施の理由、必要な次の一手、残存リスクを記録する。
+- [harness/core/procedures/retrospective.md](../core/procedures/retrospective.md) にfull retrospective（retro）のトリガー、台帳更新、期限確認、試行・採否の手順を置く。実行条件に該当しない回は通常報告で終え、根拠不足や実行不能はその範囲と次の一手を記録する。
 
 ## OKFと製品の接続
 
@@ -85,7 +95,7 @@
 - `harness/` から既存文書へは通常の相対Markdownリンクで到達する。`docs/` の本文をコピーしたり、コアの利用にOKF CLIを必須としたりしない。バンドル内のリンク・frontmatter・生成indexは執筆規約に従う。
 - 上流スキルのコピーは `.agents/skills/` と `.claude/skills/`。ガイドは共通内容への参照として前者をリンクする。製品ごとの実効導入元と更新方式は採用プロファイルに従う。
 - [Claudeプロジェクト設定](../../.claude/settings.json) は上流プラグインの重複利用を抑える設定であり、外部送信やファイル改変を強制的に止める設定ではない。
-- 検証報告・引継ぎの自前手順は設置済みで、上記の役割対応表から参照する。full retrospective（retro）の詳細手順だけはまだ設置していない。ガイドにある上流スキルの利用案内と、未設置のretro手順を混同しない。
+- 検証報告・引継ぎ・full retrospective（retro）の自前手順は設置済みで、上記の役割対応表から参照する。ガイドにある上流スキルの利用案内と、自前のretro手順・改善台帳を混同しない。
 
 ## 外部設定・権限の観測と再確認
 
