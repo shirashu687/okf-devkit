@@ -92,6 +92,9 @@ templates:
 
 # index.md の生成ルール
 index:
+  # 生成 index.md のリンク形式。bundle-absolute は OKF のバンドルルート起点、
+  # relative は各 index.md の親ディレクトリ起点。既存出力との互換性を優先する。
+  link_style: bundle-absolute
   start_marker: "<!-- okf:auto:start -->"
   end_marker: "<!-- okf:auto:end -->"
   root_heading: "ドキュメント"

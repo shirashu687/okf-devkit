@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "base": "cfdbffe1a01e99432aa9d527c12192fb5a9e3669",
+  "worklog": "harness/state/journal/T-0007-obsidian-okf.md",
+  "changes": [
+    {
+      "path": "okf.yml",
+      "reason": "対象リポジトリで生成indexのrelativeリンク形式を明示する"
+    },
+    {
+      "path": "tests/helpers.py",
+      "reason": "隔離テストでindex.link_style設定を指定できるようにする"
+    },
+    {
+      "path": "tests/test_index.py",
+      "reason": "通常/backlogの相対索引、既定互換、不正設定、冪等性を検証する"
+    },
+    {
+      "path": "tests/test_render.py",
+      "reason": "相対索引と特殊文字を含むリンクのHTML変換を検証する"
+    }
+  ]
+}

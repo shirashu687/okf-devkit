@@ -8,10 +8,11 @@ import io
 import json
 import unittest
 from pathlib import Path
+from urllib.parse import quote
 
 from okf_devkit import cli as okf
 from okf_devkit import renderer
-from helpers import OkfTestCase, doc_text
+from helpers import OkfTestCase, doc_text, ns
 
 
 class LinkRewriteTests(unittest.TestCase):
@@ -38,6 +39,18 @@ class LinkRewriteTests(unittest.TestCase):
         self.assertEqual("/missing.md", actual)
         self.assertIsNone(target)
         self.assertIn("HTML 化できない", warning or "")
+
+    def test_encoded_special_path_is_resolved_once_and_reencoded_for_html(self) -> None:
+        actual, target, warning = renderer.rewrite_href(
+            "index.md",
+            "index.html",
+            "/foo%20%28x%29%20%25%20日本語.md",
+            {"index.md", "foo (x) % 日本語.md"},
+        )
+        expected = quote("foo (x) % 日本語.html", safe="/:@-._~!$&'()*+,;=")
+        self.assertEqual(expected, actual)
+        self.assertEqual("foo (x) % 日本語.md", target)
+        self.assertIsNone(warning)
 
 
 @unittest.skipUnless(renderer.MarkdownIt is not None, "markdown-it-py が必要")
@@ -133,6 +146,72 @@ class RenderBundleTests(OkfTestCase):
         self.assertEqual(1, result)
         self.assertNotEqual(2, result)
         self.assertNotIn("decision", stdout.getvalue())
+
+
+@unittest.skipUnless(renderer.MarkdownIt is not None, "markdown-it-py が必要")
+class RelativeIndexRenderTests(OkfTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.write(
+            "docs/special dir/foo (x) % 日本語.md",
+            doc_text(title="特殊文書", description="特殊文字。", code_globs=None),
+        )
+        self.write(
+            "docs/project/overview.md",
+            doc_text(type_="Project Overview", title="概要", description="概要。", code_globs=None),
+        )
+        self.write(
+            "docs/backlog/T-0001-task.md",
+            doc_text(
+                type_="Backlog Item",
+                title="作業",
+                description="作業の説明。",
+                code_globs=None,
+                extra=(
+                    "state: done\n"
+                    "priority: medium\n"
+                    "effort: M\n"
+                    "created: 2026-01-01\n"
+                    "done_at: 2026-01-02"
+                ),
+            ),
+        )
+
+    def bundle(self) -> okf.Bundle:
+        return super().bundle(index_link_style="relative")
+
+    def test_adjacent_and_separate_html_rewrite_relative_indexes(self) -> None:
+        bundle = self.bundle()
+        self.assertEqual(0, okf.cmd_index(bundle, ns(write=True, check=False, quiet=True)))
+        sources = {
+            path: self.read(path)
+            for path in (
+                "docs/index.md",
+                "docs/special dir/index.md",
+                "docs/project/index.md",
+                "docs/backlog/index.md",
+            )
+        }
+
+        report = renderer.render_bundle(bundle, okf.Doc)
+        self.assertFalse(report.warnings)
+        root = self.read("docs/index.html")
+        self.assertIn('href="special%20dir/index.html"', root)
+        self.assertIn('href="project/index.html"', root)
+        special = self.read("docs/special dir/index.html")
+        special_href = quote("foo (x) % 日本語.html", safe="/:@-._~!$&'()*+,;=")
+        self.assertIn(f'href="{special_href}"', special)
+        self.assertIn('href="overview.html"', self.read("docs/project/index.html"))
+        self.assertIn('href="T-0001-task.html"', self.read("docs/backlog/index.html"))
+        self.assertEqual(sources, {path: self.read(path) for path in sources})
+
+        output = self.repo / "_site"
+        separate = renderer.render_bundle(self.bundle(), okf.Doc, output)
+        self.assertGreater(separate.written, 0)
+        self.assertIn('href="special%20dir/index.html"', self.read("_site/index.html"))
+        self.assertIn(f'href="{special_href}"', self.read("_site/special dir/index.html"))
+        self.assertIn('href="overview.html"', self.read("_site/project/index.html"))
+        self.assertIn('href="T-0001-task.html"', self.read("_site/backlog/index.html"))
 
 
 class HookConfigurationTests(unittest.TestCase):

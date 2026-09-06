@@ -21,6 +21,7 @@
 | ドメイン語・設計判断 | [配置規約](../../docs/agents/domain.md)、[CONTEXT.md](../../CONTEXT.md)、[Decision Record索引](../../docs/project/decisions/index.md)。ADR本文は必要になったときに作る |
 | OKF文書の編集 | [docs入口](../../docs/AGENTS.md) と [執筆規約](../../docs/CONVENTIONS.md) |
 | CLIの機能・利用方法 | [README.md](../../README.md) |
+| Obsidianでの閲覧 | 同じリポジトリルートをVaultとして開く。主要導線とOKFの限界は下記「OKFと製品の接続」 |
 
 ## 検証の実行場所とコマンド
 
@@ -92,7 +93,17 @@ full retrospectiveの実行条件、トリガーなし・根拠不足・トリ�
 ## OKFと製品の接続
 
 - [okf.yml](../../okf.yml) の `bundle_root` は `docs`。`harness/` とルート入口はバンドル外の通常Markdownで、OKF index・lint・staleの検査対象には含まれない。これらの参照と内容は変更時に別途確認する。
-- `harness/` から既存文書へは通常の相対Markdownリンクで到達する。`docs/` の本文をコピーしたり、コアの利用にOKF CLIを必須としたりしない。バンドル内のリンク・frontmatter・生成indexは執筆規約に従う。
+- この対象は `okf.yml` で `index.link_style: relative` を明示している。生成indexのリンクだけが各indexの親ディレクトリ起点になり、既定 `bundle-absolute` へ戻せる。`index --write`、`index --check`、lintのL13、syncは同じ設定を使う。frontmatter、`related`、`Doc.bundle_rel` のバンドル起点の意味は変わらない。
+- `harness/` から既存文書へは通常の相対Markdownリンクで到達する。`docs/` の本文をコピーしたり、コアの利用にOKF CLIを必須としたりしない。バンドル内のリンク・frontmatter・生成indexは執筆規約に従う。retro手順と台帳もOKFバンドル外の管理文書として扱う。
+- Obsidianでは `C:/Users/rinta/Documents/1_projects/okf-devkit` のリポジトリルートをそのままVaultとして開き、閲覧・検索・リンク移動を行う。Markdown + Gitが正本であり、専用コピー・community plugin・同期・公開は前提にしない。frontmatterは元のYAMLを保持し、必要ならPropertiesのソース表示を使う。
+- 主要導線は次のとおりで、リンク先の現物を確認する。
+  - [CONTEXT.md](../../CONTEXT.md)、[README.md](../../README.md)、[docs/CONVENTIONS.md](../../docs/CONVENTIONS.md) — 現行の用語・利用方法・OKF規約。
+  - [docs/index.md](../../docs/index.md) → 子ディレクトリの索引 → 実在する文書。生成indexのリンクは `relative`。
+  - [docs/backlog/index.md](../../docs/backlog/index.md) → 対象側のbacklog索引。現時点でタスク本文はなく、空の索引であることを保持する。
+  - [docs/project/decisions/index.md](../../docs/project/decisions/index.md) — ADR索引。現時点では空で、実在しないADRを追加しない。
+  - [T-0007 worklog](../state/journal/T-0007-obsidian-okf.md) — 現在の進行中作業の状態・検証・残存リスク。
+  - [改善台帳](../ledger.md) — T-0006で設置された評価中の観測と根拠worklog。
+- Gitの `/.obsidian/` 除外は個人状態を履歴へ入れないためのもので、Obsidianの読込み・検索・グラフから隠すアクセス制御ではない。OKFを使わないリポジトリでは、Markdown + Git、入口/config、検証契約を使い、OKF CLIを必須依存にしない。
 - 上流スキルのコピーは `.agents/skills/` と `.claude/skills/`。ガイドは共通内容への参照として前者をリンクする。製品ごとの実効導入元と更新方式は採用プロファイルに従う。
 - [Claudeプロジェクト設定](../../.claude/settings.json) は上流プラグインの重複利用を抑える設定であり、外部送信やファイル改変を強制的に止める設定ではない。
 - 検証報告・引継ぎ・full retrospective（retro）の自前手順は設置済みで、上記の役割対応表から参照する。ガイドにある上流スキルの利用案内と、自前のretro手順・改善台帳を混同しない。

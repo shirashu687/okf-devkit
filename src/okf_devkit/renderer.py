@@ -18,7 +18,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 try:
     from markdown_it import MarkdownIt
@@ -107,6 +107,9 @@ def _trust_level(doc: Any) -> tuple[str, str]:
 
 def _normalize_bundle_target(source_rel: str, href_path: str) -> str | None:
     """href のパスを Bundle ルート相対の POSIX パスへ解決する。"""
+    # index の Markdown 表記では、空白・括弧・`%` が URL エスケープされる。
+    # 比較対象の page_sources はファイルシステム上の生のパスなので、ここで一度だけ戻す。
+    href_path = unquote(href_path)
     if href_path.startswith("/"):
         candidate = href_path.lstrip("/")
     else:
@@ -143,7 +146,8 @@ def rewrite_href(
     target_html = str(PurePosixPath(target).with_suffix(".html"))
     output_dir = posixpath.dirname(output_rel) or "."
     relative = posixpath.relpath(target_html, output_dir)
-    rewritten = urlunsplit(("", "", relative, parsed.query, parsed.fragment))
+    encoded_relative = quote(relative, safe="/:@-._~!$&'()*+,;=")
+    rewritten = urlunsplit(("", "", encoded_relative, parsed.query, parsed.fragment))
     return rewritten, target, None
 
 

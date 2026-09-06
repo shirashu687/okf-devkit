@@ -22,7 +22,7 @@ related:
 
 - 1ファイル = 1コンセプト。**ファイルパスがそのドキュメントの ID**
 - すべての `.md` は **YAML frontmatter を持ち、`type` が必須**（`index.md` / `log.md` を除く）
-- リンクは**バンドルルート起点の絶対パス**（例: `/project/glossary.md` = `docs/project/glossary.md`）で書く
+- 本文と `related` のリンクは**バンドルルート起点の絶対パス**（例: `/project/glossary.md` = `docs/project/glossary.md`）を推奨する。自動生成 `index.md` のリンク形式だけは `okf.yml` の `index.link_style` に従う
 - 仕様: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
 
 ## 2. 構成

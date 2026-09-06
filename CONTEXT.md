@@ -9,6 +9,8 @@ okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を�
 - Markdown と Git の履歴がドキュメントの正本である。
 - docs/ は OKF バンドルで、docs/CONVENTIONS.md が frontmatter、リンク、backlog の書式を定める。
 - docs/backlog/ の state は課題の進捗であり、tags の triage ラベルとは別である。
+- Obsidian はリポジトリルートの同じ Markdown を読むUIであり、別の正本や専用コピーを作らない。個人状態の `.obsidian/` はGit管理外とする。
+- 生成 index.md のリンク形式は対象の `okf.yml` の `index.link_style` が決める。frontmatter、`related`、`Doc.bundle_rel` のバンドル起点の意味は変わらない。
 - 上流スキルは .agents/skills/ と .claude/skills/ にインストーラーがコピーした直接依存で、自前実装とは別に更新する。
 
 ## ドメイン文書の配置

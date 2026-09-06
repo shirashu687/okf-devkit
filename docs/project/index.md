@@ -2,5 +2,5 @@
 
 <!-- okf:auto:start -->
 ## ディレクトリ
-* [decisions ドキュメント](/project/decisions/index.md)
+* [decisions ドキュメント](./decisions/index.md)
 <!-- okf:auto:end -->
