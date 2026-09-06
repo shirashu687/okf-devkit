@@ -1,0 +1,163 @@
+{
+  "A": {
+    "event_count": 21,
+    "events_by_kind": {
+      "read": 8,
+      "search": 2,
+      "edit": 4,
+      "test": 7
+    },
+    "search_retry_events": 0,
+    "read_events_with_character_counts": 0,
+    "read_events_total": 8,
+    "recorded_read_chars_only": null,
+    "self_report": {
+      "next_step": "Coordinator independent review of uncommitted diff",
+      "planned_regression_fix_cycles": 1,
+      "implementation_files": [
+        "src/okf_devkit/renderer.py",
+        "tests/test_render.py"
+      ],
+      "failed_searches": 1,
+      "skill_duplicate": 0,
+      "first_test_outcome": {
+        "status": "failure",
+        "intentional_regression": true,
+        "test_methods": 14,
+        "failing_subtests": 4,
+        "exit_code": 1
+      },
+      "search_retries": 0,
+      "skill_invocations": 0,
+      "start_sha": "15da3018e1e899d0af28e3dfde5e4979dca4e9b8",
+      "human_edit_count": 0,
+      "environment_warning": "git global ignore file permission warning; required checks still passed; no environment failure",
+      "questions_to_human": 0,
+      "self_repair_cycles": 0,
+      "skill_false": 0,
+      "outcome": "local implementation and required checks complete",
+      "skill_misses": null,
+      "read_volume_characters": null,
+      "warning_skill_list_truncation": null,
+      "human_edit_scope": "implementation interval only; coordinator preparation excluded",
+      "final_test_outcomes": {
+        "environment_unavailable": false,
+        "claude_code": "not-run",
+        "affected": {
+          "status": "success",
+          "uncovered_code": [
+            "src/okf_devkit/renderer.py",
+            "tests/test_render.py"
+          ],
+          "affected_documents": 0
+        },
+        "focused": {
+          "status": "success",
+          "failed_tests": 0,
+          "tests": 14,
+          "exit_code": 0
+        },
+        "ci": "not-run",
+        "whitespace": "success",
+        "full": {
+          "skipped": 0,
+          "exit_code": 0,
+          "failed_tests": 0,
+          "status": "success",
+          "tests": 164,
+          "errors": 0
+        },
+        "ci_smoke": "not-run",
+        "declaration": "success"
+      },
+      "read_volume_limitations": "Self-recorded actions, not token telemetry. Character counts unavailable. Two broad outputs were truncated and followed by focused reads. Initial seven events backfilled from tool transcript before implementation. Failed wildcard search was not repeated as a query; exact file reads followed.",
+      "trial": "A",
+      "outstanding_issues": [
+        "Independent review pending",
+        "CI matrix, CI smoke and Claude Code not run"
+      ],
+      "event_count": 21
+    }
+  },
+  "B": {
+    "event_count": 20,
+    "events_by_kind": {
+      "read": 6,
+      "test": 7,
+      "skill": 1,
+      "search": 2,
+      "edit": 4
+    },
+    "search_retry_events": 0,
+    "read_events_with_character_counts": 0,
+    "read_events_total": 6,
+    "recorded_read_chars_only": null,
+    "self_report": {
+      "start_sha": "4b44e79960fc9ac9f28a59efac12500f9582a554",
+      "environment": "Python 3.12.14, PyYAML 6.0.3, markdown-it-py 3.0.0; clone-local import; initial clean status and assigned HEAD confirmed",
+      "first_test_outcomes": {
+        "focused": {
+          "status": "failure",
+          "tests": 14,
+          "failed_subtests": 3,
+          "intentional_regression": true
+        },
+        "full_suite": "not-run-before-fix"
+      },
+      "final_test_outcomes": {
+        "focused": {
+          "status": "success",
+          "tests": 14
+        },
+        "full_suite": {
+          "status": "success",
+          "tests": 164,
+          "failures": 0,
+          "errors": 0,
+          "skips": 0,
+          "seconds": 41.276
+        },
+        "affected": "success: no affected docs; code_globs coverage absent for renderer/tests",
+        "change_declaration": "success",
+        "diff_whitespace": "success",
+        "ci": "not-run",
+        "claude_code": "not-run",
+        "environment_failures": 0
+      },
+      "self_repair_cycles": 0,
+      "planned_red_to_green_cycles": 1,
+      "questions_to_human": 0,
+      "human_edit_count": 0,
+      "skill_misses": null,
+      "skill_false": 0,
+      "skill_duplicate": 0,
+      "skill_list_truncation_warning": null,
+      "event_count": 20,
+      "event_counts": {
+        "read": 6,
+        "test": 7,
+        "skill": 1,
+        "search": 2,
+        "edit": 4
+      },
+      "search_retries": 0,
+      "read_volume_chars": null,
+      "read_volume_limitations": "Self-recorded meaningful action events, some grouped by related reads; chars_read null because exact rendered/read volume was not instrumented. Not automatic token telemetry. Skill misses and truncation unobservable; false/duplicate counts refer only to this agent observed invocations. Human edits count is observed during implementation and excludes coordinator preparation.",
+      "limitations": [
+        "CI and Claude Code not exercised",
+        "Git global ignore permission and line-ending warnings were nonfatal",
+        "Affected success does not establish documentation coverage",
+        "Independent review pending"
+      ],
+      "next_step": "Coordinator independent review; implementation remains uncommitted",
+      "files_changed": [
+        "src/okf_devkit/renderer.py",
+        "tests/test_render.py",
+        "harness/state/journal/r2-anchors.md",
+        "harness/state/journal/r2-anchors.changes.json",
+        "trial-events.jsonl",
+        "trial-result.json"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# T-0008 R2 controlled comparison
+
+Frozen before implementation submissions, 2026-09-06. Source version and per-arm checkpoints are in preparation.json. Same source commit; differing preparation commits encode treatment, so checkpoint SHAs intentionally differ.
+
+Treatment: presence (A) or absence (B) of own guide, verification/handover/retro procedures, worklog template, and their active navigation pointers. Safety policy, mandatory tests, declaration checker, upstream skills and environment are held common. Prior journal and ledger observations are reset equally in isolated copies. Global Codex skills/tools are still common. Isolation is by fresh context and instructions, not OS access control.
+
+Agents: trial_a and trial_b, fork_turns=none, same inherited model and reasoning setting, no model overrides; neither receives previous work or solutions. The runtime does not expose per-agent deployment/seed/token telemetry, so identical configured inheritance is the reproducible claim. Same REQUEST.md and TRIAL.md bytes, differing only clone/checkpoint in dispatch. No implementation delegation; independent standards and spec reviews happen after first submission.
+
+Before launch, both clones passed 163 existing tests (0 failures/errors/skips) in the defined Python 3.12.14 + PyYAML 6.0.3 + markdown-it-py 3.0.0 environment. The source, tests, dependencies, upstream skills and policy/checker hashes were independently audited. Preliminary audit found residual B CONTEXT routes and deleted nonprocedural product facts; these were corrected before launch. Final audit found no blocker. A stale prior-journal pointer was removed before launch.
+
+Existing bug reproduced for both collision orders with duplicate heading IDs. request.md defines identical behavior requirements. check_output.py is the common independent output oracle, frozen before submissions; it checks uniqueness, matching TOC targets, stable existing noncollision anchors and determinism over seven inputs. It does not prescribe new collision suffix spelling.
+
+Measurement: per-arm trial-events.jsonl and trial-result.json are contemporaneous agent self-records. Human edits/questions, exploratory retries, repair cycles and skill events are distinct. Read volume is only recorded explicit reads; absent token telemetry is null, not zero. Wall time includes scheduler and tool latency; parallel shared-machine execution may contend. Measurement instructions add common overhead and cannot measure completely uninstrumented use. More lines/read bytes are not automatically worse quality.
+
+Judgment fixed before results: compare output correctness and independent review findings first. Preserve first failures, final results, and reviewer/coordinator fixes separately. A single pair with no improvement or material measurement uncertainty does not establish efficacy. Do not treat A superiority as a target outcome, or a B win as grounds to remove the harness. Claude Code/CI remain untested. Retain evidence and backlog status honestly.
