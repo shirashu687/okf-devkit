@@ -10,7 +10,7 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `cfdbffe1a01e99432aa9d527c12192fb5a9e3669` |
-| 最新HEAD | `cfdbffe1a01e99432aa9d527c12192fb5a9e3669` |
+| 最新HEAD | `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a`（T-0006成果物commit） |
 | 作業者 / 製品 / モデル | `Codex` / `Codex` / `GPT-5（正確なdeployment名は実行環境に未露出）` |
 | 証拠の保存先 | `target repository worklog、terminal output、隔離演習の要約。秘密情報なし` |
 
@@ -59,6 +59,7 @@
 
 - 変更済み: `CONTEXT.md`、`harness/core/guide.md`、`harness/core/procedures/verify-report.md`、`harness/core/templates/worklog.md`、`harness/project/config.md`
 - 未追跡: `harness/core/procedures/retrospective.md`、`harness/ledger.md`、本worklog、`.changes.json`
+- T-0006成果物commit: `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a`。並行T-0007の変更はcommitへ含めていない。
 
 ### 作業中に検出した並行変更
 
@@ -125,7 +126,7 @@
 | project-required | はい | 成功 | `cfdbffe1...` + T-0006作業ツリー（T-0007追加前） / `.venv` | `.venv/Scripts/python.exe tests/run_all.py` | 既存テスト155件、終了コード0、失敗0、エラー0 | terminal output: `Ran 155 tests`; `OK`; `実行 155 件 / 失敗 0 件 / エラー 0 件 / スキップ 0 件`; `exit=0` | 通常権限の初回起動は実行不能。許可された同一コマンドの昇格再試行で成功し、両方を履歴保持。T-0007の未コミットコード/test変更が後から混在したため、現在の混在ツリー全体の結果へ拡張しない |
 | change-declaration-t006-scope | はい | 成功 | `cfdbffe1...`からT-0006のみの作業ツリー（T-0007追加前） | `.venv/Scripts/python.exe harness/project/check_changes.py --base cfdbffe1a01e99432aa9d527c12192fb5a9e3669` | T-0006保護対象変更の宣言漏れなし | terminal output: `result=ok (declaration presence is not human approval or semantic review)`; `exit=0` | その後に並行T-0007の保護対象変更が追加されたため、現在の混在ツリーへ成功を拡張しない |
 | change-declaration-mixed-worktree | はい | 失敗 | `cfdbffe1...`から現在の混在作業ツリー | 同じ`check_changes.py --base` | 全変更の宣言漏れなし | terminal output: `result=invalid`; undeclared `okf.yml`, `tests/helpers.py`, `tests/test_index.py`, `tests/test_render.py` | T-0007並行変更が原因。T-0006の成果物不足とは扱わず、head固定検査へ分離する |
-| change-declaration-head | はい | 未実行 | T-0006成果物commitの`cfdbffe1...<T-0006_COMMIT>` | `.venv/Scripts/python.exe harness/project/check_changes.py --base cfdbffe1a01e99432aa9d527c12192fb5a9e3669 --head <T-0006_COMMIT>` | T-0006差分の宣言漏れなし | — | T-0006成果物commit後に実行 |
+| change-declaration-head | はい | 成功 | `cfdbffe1...f6e8c395` | `.venv/Scripts/python.exe harness/project/check_changes.py --base cfdbffe1a01e99432aa9d527c12192fb5a9e3669 --head f6e8c395eaa9bd69c0b3316c67892440dcc4e78a` | T-0006差分の宣言漏れなし | terminal output: `result=ok (declaration presence is not human approval or semantic review)`; `exit=0` | T-0006成果物だけの固定headで確認。現在の混在作業ツリーとは別境界 |
 | code-review-spec | はい | 成功 | `cfdbffe1...`からT-0006対象（未コミット/未追跡を含む。T-0007パスを除外） | 並列review agentによるsource T-0006 / `HARNESS_SPEC.md` §7仕様軸review | 初回指摘（AI出力、重要度、並行変更の帰属）を修正後、要件不足・scope creep・誤実装の残存指摘なし | review agent `01a0743d-aa10-7a80-8290-241ad1fd9a04` の再review: previous findings fixed / remaining completion evidence only | 成果物commitとhead固定宣言検査を完了境界で追加確認する |
 | code-review-standards | はい | 成功 | `cfdbffe1...`からT-0006対象（未コミット/未追跡を含む。T-0007パスを除外） | 並列review agentによるAGENTS/config/requirements/docs規約の標準軸review | documented-standard violationなし。入口ごとのretro要約重複は低確信のbaseline smellとして残し、中央手順への参照で許容 | review agent `01a0743d-ab4e-7700-b13d-cfddc6497cef` の再review: no remaining documented violations | T-0007の並行変更と共有configのObsidian hunksはT-0006対象から除外 |
 | ci-test | はい | 未実行 | GitHub Actions | workflow `test` | Windows/Ubuntu × Python 3.11/3.13 | — | 実CIは実行しない。ローカルから推定しない |
@@ -159,7 +160,7 @@
 
 - 比較点: `cfdbffe1a01e99432aa9d527c12192fb5a9e3669`
 - 対象: 今回のtracked差分、未追跡の新規文書、本worklog、source T-0006、`HARNESS_SPEC.md` §7。T-0007の並行パスと共有configのObsidian/OKF hunksは対象外として帰属を分けた。
-- 結果: 成功。初回reviewの「演習のAI出力/モデル情報不足」「重要度の未明示」「並行変更の帰属」指摘を修正し、再reviewで残存する仕様指摘なし。成果物commitとhead固定宣言検査は完了境界で確認する。
+- 結果: 成功。初回reviewの「演習のAI出力/モデル情報不足」「重要度の未明示」「並行変更の帰属」指摘を修正し、再reviewで残存する仕様指摘なし。成果物commit `f6e8c395` とhead固定宣言検査まで完了した。
 
 ### 標準軸
 
@@ -171,8 +172,8 @@
 
 ### 残作業
 
-- 仕様軸・標準軸reviewの結果を反映し、指摘があれば修正後に影響検証を再実行する。
-- 成果物コミット後、source T-0006の検証表、evidence、完了条件、state/done_at、結果を更新する。
+- 設計側source T-0006へ検証表、evidence、完了条件、`state: done` / `done_at`、結果を反映する。
+- source更新後の記録commitを作り、T-0006の最終HEADとhead固定宣言を再確認する。
 
 ### 妨げ
 
@@ -187,8 +188,8 @@
 
 ## 次の一手
 
-レビュー結果を反映して対象版を再確認し、必要な修正がなければT-0006の成果物パスだけをコミットしてからsource T-0006の検証表・evidence・完了状態を更新する。並行T-0007変更はステージしない。
+T-0006成果物commit `f6e8c395eaa9bd69c0b3316c67892440dcc4e78a` をsource T-0006のevidenceへ記録し、設計側の検証表・完了状態を更新する。その後、対象worklogのsource反映結果を記録commitへ保存する。並行T-0007変更はステージしない。
 
 ## 完了 / 中断要約
 
-進行中。retro手順、台帳、既存フロー接続、実観測 `IMP-0001`〜`IMP-0003` を設置した。隔離11演習、参照/scope確認、既存テスト、T-0006範囲の変更宣言検査は成功。仕様/標準reviewの指摘修正、T-0006成果物commit、設計側T-0006完了更新は残作業であり、CI test/smokeは未実行として扱う。並行T-0007変更は保持してT-0006の対象外とする。
+進行中。retro手順、台帳、既存フロー接続、実観測 `IMP-0001`〜`IMP-0003` を設置し、T-0006成果物を `f6e8c395` にコミットした。隔離11演習、参照/scope確認、既存テスト、T-0006範囲の変更宣言検査、仕様/標準reviewは成功。設計側T-0006完了更新とsource反映記録commitは残作業であり、CI test/smokeは未実行として扱う。並行T-0007変更は保持してT-0006の対象外とする。
