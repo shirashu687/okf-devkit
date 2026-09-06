@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T-0008 Codex実施評価レポート</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: #d7dee8;
+      --paper: #ffffff;
+      --wash: #f5f7fb;
+      --blue: #2457a6;
+      --blue-wash: #eaf1ff;
+      --green: #176b45;
+      --green-wash: #e9f7ef;
+      --amber: #8a5a00;
+      --amber-wash: #fff5d9;
+      --red: #9d2d2d;
+      --red-wash: #ffeded;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--wash);
+      color: var(--ink);
+      font-family: "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 22px 64px;
+    }
+    header, section, footer {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px 26px;
+      margin: 0 0 18px;
+      box-shadow: 0 2px 8px rgba(31, 41, 55, .04);
+    }
+    h1, h2, h3 { line-height: 1.3; margin: 0 0 12px; }
+    h1 { font-size: clamp(1.65rem, 3vw, 2.35rem); letter-spacing: .01em; }
+    h2 { margin-top: 4px; font-size: 1.35rem; border-bottom: 2px solid var(--blue); padding-bottom: 7px; }
+    h3 { font-size: 1.05rem; color: var(--blue); margin-top: 22px; }
+    p { margin: 8px 0 12px; }
+    .subtitle { color: var(--muted); margin-top: -4px; }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin: 18px 0 4px;
+    }
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 12px 14px;
+      background: #fbfcfe;
+    }
+    .status span { display: block; color: var(--muted); font-size: .86rem; }
+    .status strong { display: block; margin-top: 3px; font-size: 1.08rem; }
+    .success { color: var(--green); background: var(--green-wash); border-color: #b7e0c8; }
+    .hold { color: var(--amber); background: var(--amber-wash); border-color: #efd98e; }
+    .partial { color: var(--blue); background: var(--blue-wash); border-color: #b8cdf4; }
+    .danger { color: var(--red); background: var(--red-wash); border-color: #efb9b9; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 15px; font-size: .93rem; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+    th { background: #eef2f7; font-weight: 700; }
+    code, .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: .9em; overflow-wrap: anywhere; }
+    .callout { border-left: 4px solid var(--blue); background: var(--blue-wash); padding: 12px 15px; margin: 12px 0; }
+    .callout.warning { border-left-color: var(--amber); background: var(--amber-wash); }
+    .callout.danger { border-left-color: var(--red); background: var(--red-wash); }
+    .small { color: var(--muted); font-size: .9rem; }
+    ul { margin: 7px 0 12px 1.35rem; padding: 0; }
+    li { margin: 3px 0; }
+    a { color: var(--blue); }
+    .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: .82rem; font-weight: 700; border: 1px solid currentColor; white-space: nowrap; }
+    .tag.ok { color: var(--green); background: var(--green-wash); }
+    .tag.fail { color: var(--red); background: var(--red-wash); }
+    .tag.na { color: var(--amber); background: var(--amber-wash); }
+    .tag.info { color: var(--blue); background: var(--blue-wash); }
+    footer { color: var(--muted); font-size: .9rem; }
+    @media (max-width: 760px) {
+      main { padding: 14px 10px 34px; }
+      header, section, footer { padding: 18px 15px; border-radius: 9px; }
+      table { display: block; overflow-x: auto; white-space: normal; }
+      th, td { min-width: 150px; }
+    }
+    @media print {
+      body { background: white; }
+      header, section, footer { box-shadow: none; break-inside: avoid; }
+      main { max-width: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>T-0008 Codex実施評価レポート</h1>
+    <p class="subtitle">pilot-two-products / 2026-09-06 Asia/Tokyo / 評価記録の正本から生成</p>
+    <div class="status-grid">
+      <div class="status partial"><span>このレポート</span><strong>部分結果</strong></div>
+      <div class="status success"><span>Codex実施分（C1 / C2 / B1 / C3）</span><strong>完了</strong></div>
+      <div class="status hold"><span>Claude Code分</span><strong>保留・未実行</strong></div>
+      <div class="status danger"><span>T-0008全体</span><strong>未完了</strong></div>
+    </div>
+    <div class="callout warning">
+      <strong>判定の注意：</strong>「成功」は実際に実装・検証・reviewまで完了した範囲だけに使う。未実行、実行不能、修正前の失敗、比較不能を成功へ読み替えていない。
+    </div>
+  </header>
+
+  <section>
+    <h2>1. 正本・範囲・開始状態</h2>
+    <p>このHTMLの内容上の正本は、同じディレクトリの <a href="T-0008-pilot-two-products.md">T-0008-pilot-two-products.md</a> である。ここではそのworklogに記録された実施内容、期待と実際、検証証拠、比較、介入、限界を自己完結する形で集計した。</p>
+    <table>
+      <tr><th>項目</th><th>記録</th></tr>
+      <tr><td>仕様の正本</td><td><code>harness</code> repoの <code>HARNESS_SPEC.md</code> と、同repoのT-0008 backlog。対象repoの入口・policy・procedureはworklogに記録した。</td></tr>
+      <tr><td>実作業先</td><td><code>C:/Users/rinta/Documents/1_projects/okf-devkit</code></td></tr>
+      <tr><td>対象branch / 開始SHA</td><td><code>codex/t0003-japanese-entry</code> / <code>1a646369621dcdf7c918c04493963784ff95a5cb</code></td></tr>
+      <tr><td>開始時の本流差分</td><td>対象repoはclean。設計repoには利用者由来の既存差分があり、保持して本作業の設計変更には使っていない。</td></tr>
+      <tr><td>本流への変更</td><td>実装・テスト・reviewは全て <code>C:/@git_repogitories/ab0f/t0008-runs/</code> 以下の隔離cloneで実施。target branchへmerge/pushしていない。target側には評価worklogとこのHTMLだけを追加する。</td></tr>
+      <tr><td>対象外</td><td>Claude Codeの復旧・認証変更、恒久改善の採用、上流更新、権限変更、後続タスク詳細化・配布、本流統合。</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>2. 実行方式と実モデル</h2>
+    <p>進行管理担当が候補を着手直前に一件ずつ具体化し、Codex appの新規taskを隔離cloneで起動した。実装担当は履歴なしの <code>gpt-5.6-luna</code>、独立確認担当は別taskの <code>gpt-5.6-sol</code> とした。これらは独立デスクトップセッションではなく、Codexのサブエージェントtaskである。</p>
+    <table>
+      <tr><th>役割</th><th>実モデル</th><th>task / 記録</th><th>実行場所</th></tr>
+      <tr><td>進行管理・集計</td><td>GPT-5（deployment名は非公開）</td><td>本task。正本worklogとHTMLを更新</td><td>target worklog / 隔離結果の照合</td></tr>
+      <tr><td>C1実装</td><td><code>gpt-5.6-luna</code></td><td><code>01a0755c-7db5-7c23-a375-bd6194a8a676</code></td><td><code>t0008-runs/c1-luna</code></td></tr>
+      <tr><td>C1独立確認</td><td><code>gpt-5.6-sol</code></td><td><code>01a0755f-bbb0-71d2-99df-269605a54a5d</code></td><td>C1隔離clone</td></tr>
+      <tr><td>C2-A実装</td><td><code>gpt-5.6-luna</code></td><td><code>01a07579-14f8-7ed1-82fd-06a4416b3260</code></td><td><code>t0008-runs/c2-a-luna</code></td></tr>
+      <tr><td>B1実装</td><td><code>gpt-5.6-luna</code></td><td><code>01a07579-2d45-7703-aae6-c71acbbb1d24</code></td><td><code>t0008-runs/b1-luna</code></td></tr>
+      <tr><td>C2/A-B独立確認</td><td><code>gpt-5.6-sol</code></td><td><code>01a07588-a884-7671-aba7-3980b0431a00</code></td><td>A/B隔離clone</td></tr>
+      <tr><td>C3 front</td><td><code>gpt-5.6-luna</code></td><td><code>01a0759a-10b2-7410-a153-d93db618cb2f</code></td><td><code>t0008-runs/c3-front-luna</code></td></tr>
+      <tr><td>C3 backend</td><td><code>gpt-5.6-luna</code></td><td><code>01a075a4-fe8f-75e1-b999-8552de443867</code></td><td><code>t0008-runs/c3-back-luna</code></td></tr>
+      <tr><td>C3独立確認</td><td><code>gpt-5.6-sol</code></td><td><code>01a075af-a436-7c03-bab0-4a30c13d27a5</code></td><td>C3 front/backend隔離clone</td></tr>
+    </table>
+    <p class="small">相手の解答・会話・評価結果はB1実装担当とC3 backendへ渡していない。C3 backendへ渡したのはclone path、固定SHA、front worklogと現物状態だけである。</p>
+  </section>
+
+  <section>
+    <h2>3. 候補選定とC1</h2>
+    <h3>着手直前の選定</h3>
+    <p><strong>C1：</strong>clean worktree時に <code>sync --gate</code> が検証を省略して0を返す局所不具合を選定した。cleanな一時Git repoに、index整合済みだが語彙外の <code>type: Nope</code> をcommitした再現では、lintは非0なのにgateが0だった。期待は、cleanでもgate検証を行い、errorなら既存の初回exit 2を返すことだった。</p>
+    <h3>期待と実際</h3>
+    <table>
+      <tr><th>観点</th><th>期待</th><th>実際</th></tr>
+      <tr><td>production</td><td>clean時の早期returnを除去し、gateの既存契約を維持</td><td><code>src/okf_devkit/cli.py</code> の早期returnを除去。gate回数・TTL・lint規則は変更なし</td></tr>
+      <tr><td>回帰</td><td>valid cleanは0、committed errorは初回2、同一error集合の既存再試行0</td><td><code>tests/test_gate.py</code> にvalid/error fixtureと回帰を追加し、旧guard復元probeでも検出力を確認</td></tr>
+      <tr><td>review</td><td>仕様軸・標準軸・protected変更申告を確認</td><td>独立確認がclean fixture不足、declaration漏れ、古いコメントを検出し、同じ隔離clone内で修正後に再検証</td></tr>
+    </table>
+    <p><span class="tag ok">成功</span> C1 focused 16件、required full 164件、fixed-base checker、affected、diff checkを確認した。独立確認taskは利用上限で最終応答を返せなかったため、そのtaskの最終報告があるとは書かず、現物の修正とcoordinator再検証を証拠とした。</p>
+  </section>
+
+  <section>
+    <h2>4. C2 / B1 A-B比較</h2>
+    <h3>実装前に固定した条件</h3>
+    <p>C2は、既存内部データを公開CLIへ機械可読に出す <code>affected --format json</code> を選定した。AとBは同じ開始SHA、同じ製品要件、同じ完了条件、同じモデル、同じ検証・review契約で別cloneから開始した。</p>
+    <table>
+      <tr><th>条件</th><th>C2-A（接続あり）</th><th>B1（接続切断）</th></tr>
+      <tr><td>共有部分</td><td colspan="2"><code>1a646369…</code>、<code>gpt-5.6-luna</code>、<code>affected --format json</code>要件、text後方互換、base/paths/layer skip、全件検証、protected declaration、独立review</td></tr>
+      <tr><td>接続差分</td><td>target入口からpolicy/guide/config/procedure、worklog/変更宣言/retro、検証順の読む経路を明示</td><td>A固有の経路・worklog/retro作成案内・Aの結果/会話/解答を除外。現行repoから自分で経路を構成</td></tr>
+      <tr><td>事前独立確認</td><td colspan="2">成功。同じtree、関連ファイルhash、依頼の要件と完了条件を確認し、意図的接続差分以外がないことを確認</td></tr>
+    </table>
+    <p class="small">条件ファイルは <code>C:/@git_repogitories/ab0f/t0008-runs/c2-conditions/</code> に保存した。比較対象の実装前に固定・独立確認し、結果を見て依頼を変更していない。</p>
+    <h3>期待と実際</h3>
+    <table>
+      <tr><th>試行</th><th>期待</th><th>実際・修正</th><th>最終判定</th></tr>
+      <tr><td>C2-A</td><td>既定textを維持し、jsonで <code>mapping</code> / <code>uncovered</code> を安定出力</td><td>実装・テスト・README・worklog/declarationを追加。初回fallback fullでfixture 2件が失敗したが、実装担当がGit fixtureを修正後、focused 5/5、full 168/168</td><td><span class="tag ok">成功</span></td></tr>
+      <tr><td>B1</td><td>Aと同じ機能・検証契約を、接続なしの新規文脈で実装</td><td>現行repoから経路を組み立て、実装・テスト・README・worklog/declarationを追加。初回focused 2/6、full 2/169のGit fixture初期化漏れを保持し、独立reviewが最小修正後にfocused 6/6、full 169/169</td><td><span class="tag ok">成功</span></td></tr>
+      <tr><td>A/B比較</td><td>接続差分以外を固定して差を見る</td><td>A/Bとも最終CLI、parser、fixed-base、layer skip、text同値、JSON安定性、checker、diff checkを確認。Bはrouteを自力構成。隔離ledgerのIMP-0004観測は本流へ採用していない</td><td><span class="tag ok">比較可能</span></td></tr>
+    </table>
+    <p>比較から得られた観測は、Aでは明示された接続によりworklog/検証経路が早く揃い、Bでは接続がなくても現行repoから経路を構成できたが、初回fixture不備が独立reviewまで残った、というもの。これは単一試行の観測であり、別モデルの結果をlunaの実績へ混ぜていない。</p>
+  </section>
+
+  <section>
+    <h2>5. C3の中断・fresh再開</h2>
+    <h3>前半（front）</h3>
+    <p>通常 <code>sync</code> が <code>cmd_log</code> の書込みエラーを「スキップ」と診断しながら終了0で返す実在不具合を選定した。frontは本番コードを変更せず、<code>tests/test_log.py</code> の非0期待、worklog、変更宣言を作り、<code>785a9d0dbe6bc687b2c7d7b711b2f3311b1c2998</code> へcommitして停止した。</p>
+    <table>
+      <tr><th>frontの事実</th><th>値</th></tr>
+      <tr><td>clone-local focused test</td><td><span class="tag na">実行不能</span> 指定cloneにvenv/Pythonがなかった。赤結果へ読み替えていない。</td></tr>
+      <tr><td>handoff後の現物確認</td><td><span class="tag fail">失敗</span> coordinatorが許可されたshared project venvで1件を実行し、production未修正の戻り値0が非0期待に対して赤になったことを確認。</td></tr>
+      <tr><td>production</td><td>無変更。frontの成功とは判定していない。</td></tr>
+    </table>
+    <h3>後半（backend）</h3>
+    <p>frontの会話や解答は渡さず、handoffの現物とworklogだけを指定して新規 <code>gpt-5.6-luna</code> taskを起動した。handoff状態SHAは <code>8b58f08b76efcd1fba8572c04077838a546f6100</code>。backendは赤を再確認し、通常syncに <code>log_rc=1</code> を反映した。成功log/index/lint/stale経路の0と、<code>sync --gate</code> の契約は維持した。Git未初期化の既存fixtureは、成功log経路を明示するため <code>git_init()</code> を追加した。</p>
+    <table>
+      <tr><th>検証</th><th>結果</th><th>証拠</th></tr>
+      <tr><td>修正前 focused</td><td><span class="tag fail">失敗</span></td><td>1/1失敗。スキップ診断後に0を返す既存不具合を捉えた。</td></tr>
+      <tr><td>修正後 focused / relevant</td><td><span class="tag ok">成功</span></td><td>focused 1/1、<code>tests.test_log tests.test_gate</code> 30/30。</td></tr>
+      <tr><td>required full</td><td><span class="tag ok">成功</span></td><td><code>tests/run_all.py</code> 164件、失敗0・error0・skip0。</td></tr>
+      <tr><td>独立review</td><td><span class="tag ok">成功</span></td><td><code>gpt-5.6-sol</code> が仕様軸・標準軸とfresh再開を確認。backend worklogのfront/backend状態混在だけをdocs-only修正。最終HEAD <code>db45a55bbe33be0c6fdefbf036681c1f939a7747</code>。</td></tr>
+    </table>
+    <p><span class="tag ok">C3成功</span> frontの中断・実行不能・修正前失敗は成功数へ入れず、backendのfresh再開・実装・検証・独立reviewが揃った場合だけC3全体を成功とした。</p>
+  </section>
+
+  <section>
+    <h2>6. 検証証拠の集計</h2>
+    <p>結果値はworklogの契約どおり <code>成功 / 失敗 / 未実行 / 実行不能</code> を区別する。shared project venvはPython 3.14.3。clone-local指定venvとCI matrixは別の未実行・実行不能として扱った。</p>
+    <table>
+      <tr><th>対象</th><th>結果</th><th>証拠・期待</th><th>限界</th></tr>
+      <tr><td>開始時 baseline tests / CLI</td><td><span class="tag na">実行不能</span></td><td>既存指定venvの通常権限起動不能を記録</td><td>既存IMP-0003と照合し、成功と推定していない</td></tr>
+      <tr><td>C1 focused / full</td><td><span class="tag ok">成功</span></td><td>16件 / 164件、checker・affected・diff check</td><td>clone-local指定venvではなく許可されたproject venv</td></tr>
+      <tr><td>C2-A focused / full</td><td><span class="tag ok">成功</span></td><td>5/5、168/168。初回fixture失敗は修正前履歴として保持</td><td>CI 3.11/3.13 matrix未実行</td></tr>
+      <tr><td>B1 focused / full</td><td><span class="tag ok">成功</span></td><td>初回2/6・2/169失敗を保持、review修正後6/6・169/169</td><td>clone-local venv実行不能。IMP-0004は隔離観測</td></tr>
+      <tr><td>C3 front clone-local</td><td><span class="tag na">実行不能</span></td><td>指定cloneにPython/venvなし</td><td>coordinatorのhandoff後shared実測は別行の失敗</td></tr>
+      <tr><td>C3 front handoff focused</td><td><span class="tag fail">失敗</span></td><td>本番未修正の0が非0期待に対して赤、1/1失敗</td><td>frontの中断条件を満たす証拠。成功ではない</td></tr>
+      <tr><td>C3 backend focused / relevant / full</td><td><span class="tag ok">成功</span></td><td>修正後1/1、30/30、164/164。checker・affected・diff checkも成功</td><td>shared project venv、CI未実行</td></tr>
+      <tr><td>CI test / smoke（C1/C2/B1/C3）</td><td><span class="tag na">未実行</span></td><td>GitHub Actionsを起動していない</td><td>ローカル成功からCI成功を推定しない</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>7. 人とAIの介入</h2>
+    <table>
+      <tr><th>主体</th><th>介入・責務</th></tr>
+      <tr><td>人</td><td>本タスクの依頼と、必要な対象限定の許可実行の範囲を与えた。候補選定、各試行の開始、受入の回答を人へ待たせず、worklogの条件と証拠に基づき進行管理した。Claude Codeの復旧・認証変更は依頼範囲外として保留。</td></tr>
+      <tr><td>進行管理AI</td><td>両repoの入口・規約・HEAD・既存差分・先行成果物・未確認事項を確認し、候補を一件ずつ固定、条件を独立確認へ出し、隔離成果物を照合し、正本worklogと本HTMLを集計。</td></tr>
+      <tr><td>実装AI（luna）</td><td>C1、C2-A、B1、C3 front/backendをそれぞれ履歴なしtaskで実装。担当taskごとに実モデルとclone pathを記録。sol/coordinatorの検証結果はlunaの実績に混ぜていない。</td></tr>
+      <tr><td>確認AI（sol）</td><td>実装担当と別taskで仕様軸・標準軸・実差分・検証を確認。必要な最小修正（fixture、宣言、worklogの状態記述）を隔離cloneへ適用し、修正後の結果を明示。</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>8. 限界・未実行・採用しなかったもの</h2>
+    <ul>
+      <li>指定cloneにclone-local <code>.venv</code> がなく、通常権限でのPython起動もできなかった。許可された対象限定のshared project venv＋clone <code>PYTHONPATH</code> を使った再検証は、clone-local実行可能とは扱っていない。</li>
+      <li>Python 3.14.3でのローカル検証であり、CIの3.11/3.13 matrixとGitHub Actions test/smokeは未実行。ローカル結果からCI結果は推定しない。</li>
+      <li>Codex内ブラウザでローカル <code>file:///</code> URLを表示しようとしたが、browser URL policyに拒否された。ポリシー回避のローカルHTTP化、別ブラウザ、raw CDP等は行わず、静的な自己完結性だけを確認した。</li>
+      <li>C1独立確認taskは利用上限で最終応答が欠落した。現物の修正・検証とcoordinator再検証は記録したが、独立taskの最終報告が存在すると表現していない。</li>
+      <li>C2/B1の初回fixture失敗、C3 frontの実行不能と修正前失敗は履歴として残した。最終成功値だけで経路を隠していない。</li>
+      <li>Claude Codeは利用不能のため実行していない。復旧作業、認証・権限変更、別モデルによる代替を行っていない。</li>
+      <li>隔離cloneの実装・テスト・worklog・変更宣言は本流へ統合していない。改善台帳の恒久採用、後続タスクの詳細化・配布、権限変更も行っていない。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>9. 結論</h2>
+    <div class="callout">
+      <p><strong>Codex分：</strong>C1、C2-A、B1、C3（front中断からbackend fresh再開まで）は、実装・必要な修正・独立確認・集計を隔離場所で完了した。C2のA/B比較は、実装前に条件と接続切断差分を固定・独立確認したうえで比較可能と判定した。</p>
+      <p><strong>T-0008全体：</strong>未完了。Claude Code分は利用不能のため保留・未実行であり、Codex分の終了をT-0008全体完了とは扱わない。</p>
+      <p><strong>最終判断：</strong>このレポートは部分結果の提出である。恒久改善の採用、本流統合、Claude Code復旧は別判断として残す。</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>生成元：<a href="T-0008-pilot-two-products.md">T-0008-pilot-two-products.md</a>（対象repoの評価記録正本）。秘密情報、会話全文、巨大ログは含めていない。</p>
+    <p>証拠ディレクトリ：<code>C:/@git_repogitories/ab0f/t0008-runs/</code>。対象repoの本流HEADは開始SHAのままで、評価記録ファイル以外の本流実装変更は行っていない。</p>
+  </footer>
+</main>
+</body>
+</html>
