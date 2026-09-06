@@ -10,7 +10,7 @@
 | ブランチ | `codex/t0003-japanese-entry` |
 | 開始日時 / 最終更新日時 | `2026-09-06` / `2026-09-06` |
 | 開始SHA | `cfdbffe1a01e99432aa9d527c12192fb5a9e3669` |
-| 最新HEAD | `f414ce6ce4cafc37e9c32abbde066b15f7173258`（T-0006検証境界記録commit） |
+| T-0006検証HEAD | `f414ce6ce4cafc37e9c32abbde066b15f7173258`（T-0006検証境界記録commit。後続のT-0007別commitは含めない） |
 | 作業者 / 製品 / モデル | `Codex` / `Codex` / `GPT-5（正確なdeployment名は実行環境に未露出）` |
 | 証拠の保存先 | `target repository worklog、terminal output、隔離演習の要約。秘密情報なし` |
 
@@ -82,6 +82,8 @@
 - `harness/state/journal/T-0007-obsidian-okf.md`
 
 `okf.yml`、`tests/helpers.py`、`tests/test_index.py`、`tests/test_render.py` は変更検査上の保護対象でもある。混在した作業ツリー全体をT-0006の宣言成功とみなさず、T-0006の成果物だけを明示的にコミットし、完了境界では `--head <T-0006成果物commit>` の2コミット検査で宣言を確認する。並行変更は同じブランチ上で保持し、T-0007側の担当が別途扱う。
+
+その後、並行T-0007の差分はT-0007側で `e75a041` として別commit化された。T-0006の固定検証境界は `f414ce6` とし、後続T-0007 commitをT-0006の成果物・既存テスト・review範囲へ混ぜない。
 
 ## 判断と根拠
 
