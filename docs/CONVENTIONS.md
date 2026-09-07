@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: process:okf-devkit
-  at: 2026-09-05T05:14:59Z
+  at: 2026-09-07T11:39:02Z
 related:
   - /AGENTS.md
 ---
@@ -42,7 +42,7 @@ OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙�
 | `verified` | OKF 標準 | 任意 | `[{ by: <actor>, at: <ISO 8601> }]`。誰がいつ検証したか |
 | `sources` | OKF 標準 | 任意 | 出典（provenance）。外部仕様書の URL など**実体を一意に指す URI**。glob は書かない |
 | `code_globs` | 独自拡張 | **コード由来の文書は必須** | 根拠となるコードのパス/glob のリスト。§3 参照 |
-| `layer` | 独自拡張 | **必須** | （層なし） / `shared` |
+| `layer` | 独自拡張 | **必須** | cli、render、scaffold / `shared` |
 | `related` | 独自拡張 | 任意 | 関連ドキュメントのバンドル相対パスのリスト |
 | `state` 他 | 独自拡張 | backlog のみ | §5 参照 |
 
@@ -242,12 +242,20 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ### 配置
 
-| ファイル | 記録するもの |
-|---|---|
-| `docs/log.md` | リリース・大きな節目のみ |
-| （層を定義していません） | — |
+| ファイル | 記録するもの | 対応するコード |
+|---|---|---|
+| `docs/log.md` | リリース・大きな節目のみ（自動追記の対象外） | — |
+| `docs/cli/log.md` | CLI 本体とサブコマンドの変更 | `src/okf_devkit/cli.py` ほかパッケージ本体 / `tests/**` |
+| `docs/render/log.md` | 閲覧用 HTML 生成の変更 | `src/okf_devkit/renderer.py` / `src/okf_devkit/assets/**` / `tests/test_render.py` |
+| `docs/scaffold/log.md` | `okf init` が配る雛形と既定設定の変更 | `src/okf_devkit/scaffold/**` / `src/okf_devkit/defaults.yml` / `tests/test_init.py` |
 
-`docs/**` 自身の変更は記録しない（ノイズになるため）。
+振り分けの正は `okf.yml` の `layer_map`（上から順に最初にマッチした層を採用する）。
+この表を変えたら `layer_map` も必ず合わせること。
+
+`docs/**` / `.okf/**` / `.claude/**` の変更は記録しない（ノイズになるため）。
+`README.md` や `pyproject.toml` など層に属さないものは `shared` に落ちるが、`shared` は
+自動追記の対象外（`log.layers` に含めていない）なので、必要なときに手で書くか
+`okf log --layer shared --write` を明示的に実行する。
 
 ---
 
@@ -259,6 +267,8 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | ADR | `NNNN-<kebab>.md`（4桁連番） | `0001-use-postgres.md` |
 | Backlog | `T-NNNN-<kebab>.md`（4桁連番） | `T-0001-readme-update.md` |
 | 予約ファイル | `index.md` / `log.md` のみ | — |
+
+新規Backlogは `okf.yml` の `backlog.prefix: T` に従って採番する。導入前の `B-0001`〜`B-0009` は既存ID・ファイル名・相互参照・進捗を保持し、更新も同じファイルで行う。
 
 `_` で始まるディレクトリ（`_templates/`）は**バンドル対象外**として扱われ、index にも lint にも現れない。
 

@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: process:okf-devkit
-  at: 2026-09-05T05:14:59Z
+  at: 2026-09-07T11:39:02Z
 related:
   - /CONVENTIONS.md
 ---
@@ -34,7 +34,7 @@ related:
 | `CONVENTIONS.md` | 語彙・書式の唯一の基準 | 手書き |
 | `AGENTS.md` | 本ファイル | 手書き |
 | `project/` | 層をまたぐ知識（概要・用語集・ADR） | 手書き / LLM |
-| — | 層ごとの仕様・手順書 | 手書き / LLM |
+| `cli/` `render/` `scaffold/` | 層ごとの仕様・手順書 | 手書き / LLM |
 | `backlog/` | やること1件1ファイル | `okf new backlog` |
 | `_templates/` | テンプレート集。**バンドル対象外**（index にも lint にも出ない） | 手書き |
 | `_assets/` / `*.html` | `okf render` の閲覧用生成物。**バンドル対象外・Git管理外** | 手で編集しない |

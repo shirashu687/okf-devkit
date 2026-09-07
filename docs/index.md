@@ -8,7 +8,10 @@ okf_version: "0.2"
 ## ディレクトリ
 * [agents ドキュメント](./agents/index.md)
 * [backlog ドキュメント](./backlog/index.md)
+* [cli ドキュメント](./cli/index.md)
 * [project ドキュメント](./project/index.md)
+* [render ドキュメント](./render/index.md)
+* [scaffold ドキュメント](./scaffold/index.md)
 
 ## Convention
 * [docs ディレクトリの歩き方](./AGENTS.md) - このディレクトリが OKF v0.2 バンドルであることと、LLM が作業する際の手順を示す入口ドキュメント。

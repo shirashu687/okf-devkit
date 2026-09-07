@@ -13,7 +13,7 @@
 
 ### Issue tracker
 
-課題は `docs/backlog/T-NNNN-<kebab>.md` で管理する。作成・更新前に [課題管理規約](docs/agents/issue-tracker.md) と [執筆規約](docs/CONVENTIONS.md) を読む。GitHub Issues、外部tracker、PR、`.scratch/` は受付・管理先にしない。
+新規課題は `docs/backlog/T-NNNN-<kebab>.md` で管理する。作成・更新前に [課題管理規約](docs/agents/issue-tracker.md) と [執筆規約](docs/CONVENTIONS.md) を読む。GitHub Issues、外部tracker、PR、`.scratch/` は受付・管理先にしない。
 
 ### Triage labels
 

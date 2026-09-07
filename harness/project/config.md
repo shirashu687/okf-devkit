@@ -99,7 +99,7 @@ full retrospectiveの実行条件、トリガーなし・根拠不足・トリ�
 - 主要導線は次のとおりで、リンク先の現物を確認する。
   - [CONTEXT.md](../../CONTEXT.md)、[README.md](../../README.md)、[docs/CONVENTIONS.md](../../docs/CONVENTIONS.md) — 現行の用語・利用方法・OKF規約。
   - [docs/index.md](../../docs/index.md) → 子ディレクトリの索引 → 実在する文書。生成indexのリンクは `relative`。
-  - [docs/backlog/index.md](../../docs/backlog/index.md) → 対象側のbacklog索引。現時点でタスク本文はなく、空の索引であることを保持する。
+  - [docs/backlog/index.md](../../docs/backlog/index.md) → 対象側のbacklog索引。mainから取り込んだ既存Backlogを保持し、新規採番と既存IDの扱いは [執筆規約](../../docs/CONVENTIONS.md) に従う。
   - [docs/project/decisions/index.md](../../docs/project/decisions/index.md) — ADR索引。現時点では空で、実在しないADRを追加しない。
   - [T-0007 worklog](../state/journal/T-0007-obsidian-okf.md) — 現在の進行中作業の状態・検証・残存リスク。
   - [改善台帳](../ledger.md) — T-0006で設置された評価中の観測と根拠worklog。
