@@ -37,7 +37,7 @@ PR #2のCI失敗を修正し、既存4環境のtestと独立smokeを成功させ
 | pr-changes | 成功 | `check_changes.py --scope pull-request --base 85d4b0ef3a349198f03cbcfe71817e6451b6aff2`、exit 0。PR全対象164件（保護13/上流151）を `PR-0002-integration.changes.json` で宣言。`%TEMP%/pr2-ci-pr-green.txt` |
 | preservation | 成功 | 過去journal 28本が内容一致、ledger既存3件の本文・回数を保持しIMP-0004だけ追加。core 6本のSHA-256再一致、install/上流両コピー/lock/通知/profile/製品src/docs/入口/okf.ymlは開始SHAから差分なし。`%TEMP%/pr2-ci-preservation.json` |
 | affected / OKF | 成功 | `affected --base d06b428e8d110d70dd9399ac4fd499f22076590d` は対象文書0件、変更箇所は未カバー。ハーネスはバンドル外なのでconfigへ反映。OKF lintはexit 0、error 0/warn 0、index --checkは全索引最新。docs本文は変更なし。code_globsの新設や後続Backlogには着手しない |
-| CI test / smoke | 未実行 | push後の新headをGitHubで確認 |
+| CI test / smoke | 成功 | [run 34120564975](https://github.com/shirashu687/okf-devkit/actions/runs/34120564975)、head `f72b4a7c52042bee3b404dfd0a3e03d800ee4968`。Windows/Ubuntu × Python 3.11/3.13の4test jobと独立smokeの全5job成功。最終job完了2026-09-07T12:13:28Z。GitHub上もMERGEABLE |
 
 ## review
 
@@ -51,6 +51,10 @@ PR #2のCI失敗を修正し、既存4環境のtestと独立smokeを成功させ
 
 ## 残作業・次の一手
 
-修正、red/green・全suite・両比較点の変更検査・保持検証と二軸reviewを完了。最終差分をcommitしてPR #2へpushし、GitHubの新headで4環境のtestと独立smokeを確認する。
+CI修正は完了。実装commit `f72b4a7c52042bee3b404dfd0a3e03d800ee4968` をPR #2へpushし、4環境のtestと独立smokeの成功を確認した。この結果追補は作業記録だけの変更であり、検査対象コード・設定・宣言は同じ。記録追補の最終SHAとそのCI runはPR本文から参照する。PRのmainへのマージや後続タスクへの着手は行っていない。
 
 今回の変更はchecker/CI/config/回帰テストと、その宣言・worklog・実観測の追記。検査コードの自動宣言機能・通信・書込み機能は追加していない。作成補助と詳細出力は `%TEMP%/pr2-ci-*` に置き、リポジトリへ実行ログ全文や一時スクリプトを保存していない。
+
+## 完了要約
+
+失敗の原因は、異なるbaseを持つタスク宣言とPR全体の比較を混同し、PR全差分の宣言が欠けていたこと。明示的なscope選択と164対象のPR宣言により解消した。旧宣言を保持し、検査対象・必須テスト・CIの失敗伝播を維持。ローカル168件、仕様/標準review、実CI全5jobが成功。retroはIMP-0004の観測として記録し、改善採用や別プロジェクトへの適用へは進めていない。
