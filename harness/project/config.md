@@ -39,14 +39,15 @@
 
 ## 変更検査と宣言
 
-対象ルートで次を実行する。`--base` は必須で、Gitコミットへ解決できる比較点を渡す。省略形のrefを渡しても検査は完全SHAを出力するが、宣言の `base` はその完全SHAと一致させる。
+対象ルートで次を実行する。`--base` は必須で、Gitコミットへ解決できる比較点を渡す。省略形のrefを渡しても検査は完全SHAを出力するが、選択したscopeの宣言の `base` はその完全SHAと一致させる。
 
 ```text
 .venv/Scripts/python.exe harness/project/check_changes.py --base <BASE_SHA>
 .venv/Scripts/python.exe harness/project/check_changes.py --base <BASE_SHA> --head <HEAD_SHA>
+.venv/Scripts/python.exe harness/project/check_changes.py --scope pull-request --base <PR_BASE_SHA> --head <PR_HEAD_SHA>
 ```
 
-`--head` なしは staged / unstaged / 未追跡の非ignore対象を含む現在の作業ツリー、`--head` ありは指定した2コミット間だけを検査する。CIでは必ずPRイベントの `github.event.pull_request.base.sha` と `github.event.pull_request.head.sha` を環境変数経由で渡す。シェル文へGitHub式や外部文字列を直接展開せず、両SHAが解決できない場合・全ゼロの場合・履歴がshallowの場合・競合中の場合は成功へ置き換えない。
+`--head` なしは staged / unstaged / 未追跡の非ignore対象を含む現在の作業ツリー、`--head` ありは指定した2コミット間だけを検査する。CIでは `--scope pull-request` を明示し、必ずPRイベントの `github.event.pull_request.base.sha` と `github.event.pull_request.head.sha` を環境変数経由で渡す。シェル文へGitHub式や外部文字列を直接展開せず、両SHAが解決できない場合・全ゼロの場合・履歴がshallowの場合・競合中の場合は成功へ置き換えない。
 
 初期の分類対象は検査スクリプトが正とし、次の一覧はレビュー用の対応表である。
 
@@ -57,10 +58,21 @@
 
 変更が保護対象または上流管理に該当する場合、同じ比較差分内で追加・変更した `harness/state/journal/<task-id-or-slug>.changes.json` に対象パスを列挙する。宣言は次の条件を満たす必要がある。
 
-- `version: 1`、比較元の完全SHA、実在するリポジトリ相対Markdown worklog、空でない `changes` を持つ。
-- `path` は実際の差分にある保護対象または上流管理ファイルだけを、glob・絶対パス・`..`なしで列挙する。renameは旧名と新名の両方を列挙する。
+- `version: 1`、比較元の完全な非ゼロSHA、実在するリポジトリ相対Markdown worklog、空でない `changes` を持つ。
+- 選択したscopeの `path` は実際の差分にある保護対象または上流管理ファイルだけを、glob・絶対パス・`..`なしで列挙する。renameは旧名と新名の両方を列挙する。同じscopeの宣言間も含めて重複を拒否する。
 - 宣言ファイル自体が比較差分内で追加・変更された場合だけ読み取る。比較元に残っている古い宣言を、新しい変更の許可へ再利用しない。
 - 終了コードは `0`（宣言漏れなし）、`1`（未宣言または不正な宣言）、`2`（比較不能）である。出力はパス・分類・宣言状態・診断だけで、変更ファイルの本文を含めない。
+
+`scope` は比較の用途を表し、コマンドの `--scope` と宣言内の `scope` を一致させる。どちらも省略時は `task` で、既存version 1宣言を変更する必要はない。
+
+| scope | 比較点と必要な宣言 |
+| --- | --- |
+| `task`（既定） | 作業開始SHA。今回の作業差分を同じbaseのタスク宣言で覆う |
+| `pull-request` | PRイベントのbase/head。タスク履歴を含むPR差分全体を同じbaseのPR宣言で覆う |
+
+PR用は例えば `harness/state/journal/<pr-slug>.changes.json` に `"scope": "pull-request"` を加え、全変更パスを実差分から確認して理由を記入する。比較元が変わったら、そのscopeの差分を再確認して宣言を更新する。過去のタスク宣言をPRのbaseへ書き換えず保持し、PR全体の理由・検証・reviewは同じPR作業のworklogへ記録する。
+
+別scopeの宣言は変更を許可せず、そのbase一致・現在差分とのパス照合・宣言間の重複判定に使わない。JSON、version、scope、必須項目、パス形式、空の理由、宣言内の重複、worklogの実在は別scopeでも検査する。無効なscopeは拒否する。どのscopeでも保護/上流対象の分類と全差分の列挙は同じであり、一件でも対応する宣言がなければ失敗する。
 
 宣言は利用者の許可の証明ではない。review担当は、依頼、開始SHAからの正確なdiff、理由、検証結果を照合し、検査・CI・制約の同時変更による迂回可能性も記録する。上流変更がある場合は出所・対象・理由を `skill-profile.md` の更新手順と照合する。
 

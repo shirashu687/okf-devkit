@@ -59,10 +59,14 @@ class HarnessChangesTest(unittest.TestCase):
         self.write("ordinary.txt", "ordinary\n")
         return self.commit_all("initial repository")
 
-    def run_checker(self, base: str, head: str | None = None) -> subprocess.CompletedProcess[str]:
+    def run_checker(
+        self, base: str, head: str | None = None, *, scope: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
         command = [sys.executable, str(CHECKER), "--base", base]
         if head is not None:
             command.extend(["--head", head])
+        if scope is not None:
+            command.extend(["--scope", scope])
         return subprocess.run(
             command,
             cwd=self.repo,
@@ -79,6 +83,7 @@ class HarnessChangesTest(unittest.TestCase):
         *,
         filename: str = "T-0005.changes.json",
         worklog: str = "harness/state/journal/T-0005.md",
+        scope: str | None = None,
     ) -> None:
         self.write(worklog, "# T-0005\n")
         document = {
@@ -87,6 +92,8 @@ class HarnessChangesTest(unittest.TestCase):
             "worklog": worklog,
             "changes": changes,
         }
+        if scope is not None:
+            document["scope"] = scope
         self.write(f"harness/state/journal/{filename}", json.dumps(document, ensure_ascii=False) + "\n")
 
     @staticmethod
@@ -296,6 +303,105 @@ class HarnessChangesTest(unittest.TestCase):
         self.assertEqual(two_commits.returncode, 0, two_commits.stdout + two_commits.stderr)
         self.assertNotIn("dirty after head", two_commits.stdout)
         self.assertNotIn("tests/dirty.py", two_commits.stdout)
+
+    def test_task_history_and_pr_declaration_use_their_own_comparisons(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        config = "harness/project/config.md"
+        self.write(policy, "first task policy\n")
+        self.declaration(base, [self.change(policy)], filename="first.changes.json")
+        first = self.commit_all("first task")
+        history = (self.repo / "harness/state/journal/first.changes.json").read_bytes()
+
+        self.write(policy, "second task policy\n")
+        self.write(config, "second task config\n")
+        self.declaration(first, [self.change(policy), self.change(config)], filename="second.changes.json")
+        self.commit_all("second task")
+
+        # Reproduces the original CI failure: two valid task declarations are
+        # not one declaration of the complete pull-request comparison.
+        mixed = self.run_checker(base)
+        self.assertEqual(mixed.returncode, 1, mixed.stdout + mixed.stderr)
+        self.assertIn("base does not match", mixed.stdout)
+        self.assertIn("duplicate path", mixed.stdout)
+
+        self.declaration(
+            base, [self.change(policy), self.change(config)],
+            filename="integration.changes.json", scope="pull-request",
+        )
+        head = self.commit_all("declare complete pull request")
+        task = self.run_checker(first, head)
+        self.assertEqual(task.returncode, 0, task.stdout + task.stderr)
+        pull_request = self.run_checker(base, head, scope="pull-request")
+        self.assertEqual(pull_request.returncode, 0, pull_request.stdout + pull_request.stderr)
+        self.assertIn("scope=pull-request", pull_request.stdout)
+        self.assertEqual((self.repo / "harness/state/journal/first.changes.json").read_bytes(), history)
+
+    def test_other_scope_never_covers_missing_protected_changes(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        config = "harness/project/config.md"
+        self.write(policy, "changed policy\n")
+        self.write(config, "changed config\n")
+        self.declaration(base, [self.change(policy)], filename="task.changes.json")
+        self.declaration(base, [self.change(config)], filename="pr.changes.json", scope="pull-request")
+        for scope, missing in (("task", config), ("pull-request", policy)):
+            with self.subTest(scope=scope):
+                result = self.run_checker(base, scope=scope)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(f"undeclared protected or upstream change: {missing}", result.stdout)
+
+    def test_pull_request_declaration_keeps_strict_validation(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.write(policy, "changed policy\n")
+        self.declaration(base, [self.change(policy)], scope="pull-request")
+        path = self.repo / "harness/state/journal/T-0005.changes.json"
+        valid = json.loads(path.read_text(encoding="utf-8"))
+        invalid = [
+            {**valid, "base": "f" * 40},
+            {**valid, "scope": "pull-requset"},
+            {**valid, "scope": []},
+            {**valid, "version": 2},
+            {**valid, "changes": [self.change(policy), self.change(policy)]},
+            {**valid, "changes": [self.change(policy), self.change("tests/missing.py")]},
+            {**valid, "changes": [self.change("tests/*.py")]},
+            {**valid, "changes": [self.change("../outside.md")]},
+            {**valid, "changes": [self.change(policy, "")]},
+            {**valid, "worklog": "harness/state/journal/missing.md"},
+        ]
+        for document in invalid:
+            with self.subTest(document=document):
+                path.write_text(json.dumps(document), encoding="utf-8")
+                result = self.run_checker(base, scope="pull-request")
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_unchanged_pull_request_declaration_cannot_authorize_later_changes(self) -> None:
+        initial = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.write(policy, "first PR policy\n")
+        self.declaration(initial, [self.change(policy)], scope="pull-request")
+        base = self.commit_all("previous pull request")
+        self.write(policy, "later undeclared policy\n")
+        result = self.run_checker(base, scope="pull-request")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("undeclared", result.stdout)
+
+    def test_other_scope_still_rejects_malformed_evidence(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.write(policy, "changed policy\n")
+        self.declaration(base, [self.change(policy)])
+        self.declaration(base, [self.change(policy)], filename="pr.changes.json", scope="pull-request")
+        path = self.repo / "harness/state/journal/pr.changes.json"
+        valid = json.loads(path.read_text(encoding="utf-8"))
+        for document in ("bad json", {**valid, "version": 2}, {**valid, "changes": []},
+                         {**valid, "changes": [self.change(policy, "")]},
+                         {**valid, "changes": [self.change(policy), self.change(policy)]}):
+            with self.subTest(document=document):
+                path.write_text(json.dumps(document), encoding="utf-8")
+                result = self.run_checker(base)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
     def test_unavailable_base_head_shallow_and_conflict_are_not_success(self) -> None:
         base = self.base_repository()

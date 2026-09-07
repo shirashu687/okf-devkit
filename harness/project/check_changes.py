@@ -26,6 +26,7 @@ EXIT_UNAVAILABLE = 2
 FULL_SHA = re.compile(r"^[0-9a-fA-F]{40}$")
 ZERO_SHA = re.compile(r"^0+$")
 DECLARATION_DIRECTORY = "harness/state/journal"
+DECLARATION_SCOPES = ("task", "pull-request")
 
 PROTECTED_PATTERNS = (
     "AGENTS.md",
@@ -285,6 +286,7 @@ def load_declarations(
     changed_by_path: dict[str, ChangedPath],
     base: str,
     head: str | None,
+    scope: str = "task",
 ) -> tuple[dict[str, str], list[str]]:
     declarations = sorted({item.path for item in paths if is_declaration_path(item.path)})
     declared: dict[str, str] = {}
@@ -303,10 +305,19 @@ def load_declarations(
             continue
         if type(document.get("version")) is not int or document["version"] != 1:
             diagnostics.append(f"invalid declaration {declaration_path}: version must be 1")
+        declaration_scope = document.get("scope", "task")
+        if declaration_scope not in DECLARATION_SCOPES:
+            diagnostics.append(f"invalid declaration {declaration_path}: scope must be task or pull-request")
+            continue
+        selected = declaration_scope == scope
         declared_base = document.get("base")
-        if not isinstance(declared_base, str) or not FULL_SHA.fullmatch(declared_base):
-            diagnostics.append(f"invalid declaration {declaration_path}: base must be a complete SHA")
-        elif declared_base.lower() != base:
+        if (
+            not isinstance(declared_base, str)
+            or not FULL_SHA.fullmatch(declared_base)
+            or ZERO_SHA.fullmatch(declared_base)
+        ):
+            diagnostics.append(f"invalid declaration {declaration_path}: base must be a complete nonzero SHA")
+        elif selected and declared_base.lower() != base:
             diagnostics.append(f"invalid declaration {declaration_path}: base does not match comparison base")
         worklog = document.get("worklog")
         if not valid_relative_path(worklog) or not worklog.endswith(".md"):
@@ -318,6 +329,7 @@ def load_declarations(
         if not isinstance(entries, list) or not entries:
             diagnostics.append(f"invalid declaration {declaration_path}: changes must be a non-empty list")
             continue
+        entry_paths: set[str] = set()
         for entry in entries:
             if not isinstance(entry, dict):
                 diagnostics.append(f"invalid declaration {declaration_path}: each change must be an object")
@@ -329,6 +341,14 @@ def load_declarations(
                 continue
             if not isinstance(reason, str) or not reason.strip():
                 diagnostics.append(f"invalid declaration {declaration_path}: reason is empty for {path}")
+            if path in entry_paths:
+                diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
+                continue
+            entry_paths.add(path)
+            # Preserve evidence from other comparisons without treating it as
+            # permission for any path in the selected comparison.
+            if not selected:
+                continue
             changed = changed_by_path.get(path)
             if changed is None:
                 diagnostics.append(f"invalid declaration {declaration_path}: path is not in this comparison: {path}")
@@ -359,6 +379,10 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", required=True, help="comparison base commit or ref")
     parser.add_argument("--head", help="comparison head commit or ref; omit for the working tree")
+    parser.add_argument(
+        "--scope", choices=DECLARATION_SCOPES, default="task",
+        help="declaration scope; pull-request requires a declaration of the entire PR diff",
+    )
     return parser.parse_args(argv)
 
 
@@ -371,11 +395,12 @@ def main(argv: list[str] | None = None) -> int:
         head = resolve_commit(repo, args.head, "head") if args.head is not None else None
         paths = changed_paths(repo, base, head)
         changed_by_path = {item.path: item for item in paths}
-        declared, diagnostics = load_declarations(repo, paths, changed_by_path, base, head)
+        declared, diagnostics = load_declarations(repo, paths, changed_by_path, base, head, args.scope)
     except ComparisonUnavailable as exc:
         print(f"diagnostic: comparison unavailable: {exc}")
         return EXIT_UNAVAILABLE
 
+    print(f"scope={args.scope}")
     print(f"base={base}")
     print(f"head={head if head is not None else 'working-tree'}")
     report_paths(paths, declared, changed_by_path)
