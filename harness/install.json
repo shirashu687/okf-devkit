@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "hash_format": "sha256-canonical-text-v1",
+  "source": {
+    "repository": "https://github.com/shirashu687/ai-dev-harness.git",
+    "commit": "898d514f0594ff09f6c19292ef4df56f6cc4ac50",
+    "manifest": "distribution/manifest.json"
+  },
+  "manifest_sha256": "46d193e267973b8d3b3808f5d0c2fea3f953aff5b234ab3e97b8d2a4d8004a03",
+  "installed_at": "2026-09-06T11:25:36.534552Z",
+  "managed_files": [
+    {
+      "source": "distribution/core/guide.md",
+      "target": "harness/core/guide.md",
+      "sha256": "f39fdb8dd8f13ec0687e73335bd8b27fbee81c84017665a98aa70945f7690a0f"
+    },
+    {
+      "source": "distribution/core/policy/requirements.md",
+      "target": "harness/core/policy/requirements.md",
+      "sha256": "2eb68f759a080c36ce0997c21e01eaf7c530ec57bda9b8471c62b128a3c982a6"
+    },
+    {
+      "source": "distribution/core/procedures/handover.md",
+      "target": "harness/core/procedures/handover.md",
+      "sha256": "5ef45fec6f9c25c042f3e84b8e61e562523f6297a804554a174630b31991290b"
+    },
+    {
+      "source": "distribution/core/procedures/retrospective.md",
+      "target": "harness/core/procedures/retrospective.md",
+      "sha256": "2f0aad07e014f0d412e6c44c2a869a83ae78c4b10568c915607737b6735c537a"
+    },
+    {
+      "source": "distribution/core/procedures/verify-report.md",
+      "target": "harness/core/procedures/verify-report.md",
+      "sha256": "18577fc76ee2bc4848ab834113e151c2dba45a5c020745c5cfdb7cf8c0a94161"
+    },
+    {
+      "source": "distribution/core/templates/worklog.md",
+      "target": "harness/core/templates/worklog.md",
+      "sha256": "c4651eadd0a0effdaaeed9581a115e1eccec512245e8ca4d0881b4cce6a71333"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "base": "a37649cb01d73a5dc59801835b6e3e1e5eb5e3bd",
+  "worklog": "harness/state/journal/T-0005-requirements-and-enforcement.md",
+  "changes": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "T-0005の変更検査を既存test jobのPR実行へ接続する"
+    },
+    {
+      "path": "harness/core/policy/requirements.md",
+      "reason": "5制約の強制点、確認方法、限界を実装へ対応づける"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "検査コマンド、対象、宣言、人の確認、GitHub設定の限界を記録する"
+    },
+    {
+      "path": "harness/project/check_changes.py",
+      "reason": "保護対象と上流管理ファイルの変更を安全な比較点から検査する"
+    },
+    {
+      "path": "tests/test_harness_changes.py",
+      "reason": "一時GitリポジトリでT-0005の変更検査契約を振る舞い検証する"
+    }
+  ]
+}

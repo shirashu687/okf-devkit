@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
 import unittest
 
 from helpers import OkfTestCase, doc_text, ns
@@ -86,6 +90,184 @@ class IndexGoldenTest(OkfTestCase):
         okf.cmd_index(self.bundle(), ns(write=True, check=False, quiet=True))
         text = self.read("docs/index.md")
         self.assertIn(r"* [A \[b\] (c)](/alpha.md)", text)
+
+    def test_explicit_bundle_absolute_keeps_the_golden_output(self):
+        bundle = self.build()
+        config = self.make_config(index_link_style="bundle-absolute")
+        bundle = okf.Bundle(config)
+        self.assertEqual(0, okf.cmd_index(bundle, ns(write=True, check=False, quiet=True)))
+        self.assertEqual(GOLDEN_ROOT, self.read("docs/index.md"))
+        self.assertEqual(GOLDEN_CLIENT, self.read("docs/client/index.md"))
+
+    def test_explicit_bundle_absolute_keeps_backlog_links(self):
+        self.build()
+        self.write(
+            "docs/backlog/T-0001-task.md",
+            doc_text(
+                type_="Backlog Item",
+                title="作業",
+                description="作業の説明。",
+                layer="shared",
+                code_globs=None,
+                extra=(
+                    "state: done\n"
+                    "priority: medium\n"
+                    "effort: M\n"
+                    "created: 2026-01-01\n"
+                    "done_at: 2026-01-02"
+                ),
+            ),
+        )
+        config = self.make_config(index_link_style="bundle-absolute")
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(config), ns(write=True, check=False, quiet=True)))
+        self.assertIn("* [作業](/backlog/T-0001-task.md)", self.read("docs/backlog/index.md"))
+
+
+class RelativeIndexLinkTests(OkfTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.write(
+            "docs/special dir/foo (x) % 日本語.md",
+            doc_text(title="特殊文書", description="特殊文字。", layer="shared", code_globs=None),
+        )
+        self.write(
+            "docs/project/overview.md",
+            doc_text(type_="Project Overview", title="概要", description="概要。", code_globs=None),
+        )
+        self.write(
+            "docs/project/deprecated.md",
+            doc_text(title="廃止文書", description="廃止された文書。", status="deprecated", code_globs=None),
+        )
+        backlog_fields = {
+            "doing": ("high", "T-0001-doing.md"),
+            "todo": ("medium", "T-0002-todo.md"),
+            "done": ("low", "T-0003 (x) % 日本語.md"),
+            "dropped": ("low", "T-0004-dropped.md"),
+        }
+        for state, (priority, name) in backlog_fields.items():
+            done_at = "2026-01-02" if state == "done" else "null"
+            self.write(
+                f"docs/backlog/{name}",
+                doc_text(
+                    type_="Backlog Item",
+                    title=f"{state} task",
+                    description=f"{state} の説明。",
+                    layer="shared",
+                    code_globs=None,
+                    extra=(
+                        f"state: {state}\n"
+                        f"priority: {priority}\n"
+                        "effort: M\n"
+                        "created: 2026-01-01\n"
+                        f"done_at: {done_at}"
+                    ),
+                ),
+            )
+
+    def bundle(self) -> okf.Bundle:
+        return super().bundle(index_link_style="relative")
+
+    def assert_link_resolves(self, index_rel: str, href: str) -> None:
+        path = unquote(urlsplit(href).path)
+        target = (self.repo / "docs" / Path(index_rel).parent / path).resolve()
+        self.assertTrue(target.is_file(), f"{index_rel}: {href} -> {target}")
+
+    def test_relative_links_use_each_index_parent_and_keep_all_states(self):
+        bundle = self.bundle()
+        self.assertEqual(0, okf.cmd_index(bundle, ns(write=True, check=False, quiet=True)))
+
+        root = self.read("docs/index.md")
+        self.assertIn("* [special dir ドキュメント](./special%20dir/index.md)", root)
+        self.assertIn("* [project ドキュメント](./project/index.md)", root)
+
+        special = self.read("docs/special dir/index.md")
+        special_href = "./foo%20%28x%29%20%25%20日本語.md"
+        self.assertIn(f"]({special_href})", special)
+        self.assert_link_resolves("special dir/index.md", special_href)
+
+        project = self.read("docs/project/index.md")
+        self.assertIn("* [概要](./overview.md)", project)
+        self.assert_link_resolves("project/index.md", "./overview.md")
+        self.assertIn("## 非推奨", project)
+        self.assertIn("* [廃止文書](./deprecated.md)", project)
+        self.assert_link_resolves("project/index.md", "./deprecated.md")
+
+        backlog = self.read("docs/backlog/index.md")
+        for state in ("doing", "todo", "done", "dropped"):
+            self.assertIn(f"## {state}", backlog)
+        self.assertIn("./T-0003%20%28x%29%20%25%20日本語.md", backlog)
+        self.assert_link_resolves("backlog/index.md", "./T-0003%20%28x%29%20%25%20日本語.md")
+
+    def test_relative_regeneration_is_idempotent_and_checkable(self):
+        bundle = self.bundle()
+        self.assertEqual(0, okf.cmd_index(bundle, ns(write=True, check=False, quiet=True)))
+        first = {
+            path: self.read(path)
+            for path in (
+                "docs/index.md",
+                "docs/special dir/index.md",
+                "docs/project/index.md",
+                "docs/backlog/index.md",
+            )
+        }
+        self.assertEqual(0, okf.cmd_index(self.bundle(), ns(write=True, check=False, quiet=True)))
+        self.assertEqual(0, okf.cmd_index(self.bundle(), ns(write=False, check=True, quiet=True)))
+        self.assertEqual(first, {path: self.read(path) for path in first})
+
+        default_config = self.make_config()
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(default_config), ns(write=True, check=False, quiet=True)))
+        absolute_default = {
+            path: self.read(path)
+            for path in (
+                "docs/index.md",
+                "docs/project/index.md",
+                "docs/backlog/index.md",
+            )
+        }
+        self.assertIn("* [project ドキュメント](/project/index.md)", absolute_default["docs/index.md"])
+        self.assertIn("* [概要](/project/overview.md)", absolute_default["docs/project/index.md"])
+        self.assertIn("/backlog/T-0003%20%28x%29%20%25%20日本語.md", absolute_default["docs/backlog/index.md"])
+
+        explicit_config = self.make_config(index_link_style="bundle-absolute")
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(explicit_config), ns(write=True, check=False, quiet=True)))
+        self.assertEqual(0, okf.cmd_index(okf.Bundle(explicit_config), ns(write=False, check=True, quiet=True)))
+        self.assertEqual(absolute_default, {path: self.read(path) for path in absolute_default})
+
+    def test_lint_and_sync_use_the_same_relative_link_style(self):
+        bundle = self.bundle()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+            result = okf.cmd_sync(bundle, ns(gate=False))
+        self.assertEqual(0, result)
+        self.assertIn("./project/index.md", self.read("docs/index.md"))
+        self.assertIn("./overview.md", self.read("docs/project/index.md"))
+        findings = okf.run_lint(self.bundle())
+        self.assertFalse([f for f in findings if f.rule == "L13" and f.level == "error"])
+
+
+class InvalidIndexConfigTests(OkfTestCase):
+    def test_invalid_link_style_fails_without_writing_any_index(self):
+        config = self.make_config()
+        base_config = config.read_text(encoding="utf-8")
+        sentinel = "# keep this file\n"
+        self.write("docs/index.md", sentinel)
+        for raw in ("unknown", "null", "123", "[relative]"):
+            with self.subTest(raw=raw):
+                config.write_text(
+                    base_config.replace(
+                        '  okf_version: "0.2"\n',
+                        f'  okf_version: "0.2"\n  link_style: {raw}\n',
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                stdout = io.StringIO()
+                stderr = io.StringIO()
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    result = okf.main(["--config", str(config), "index", "--write"])
+                self.assertEqual(1, result)
+                self.assertIn("index.link_style", stderr.getvalue())
+                self.assertEqual(sentinel, self.read("docs/index.md"))
 
 
 START = "<!-- okf:auto:start -->"

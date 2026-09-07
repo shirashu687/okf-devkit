@@ -98,6 +98,7 @@ index:
   other_section: "その他"
   deprecated_section: "非推奨"
   okf_version: "0.2"
+{index_link_style_line}
 
 log:
   heading_prefix: "変更履歴 — "
@@ -153,14 +154,33 @@ class OkfTestCase(unittest.TestCase):
     def read(self, rel: str) -> str:
         return (self.repo / rel).read_text(encoding="utf-8").replace("\r\n", "\n")
 
-    def make_config(self, baseline: str | None = None, name: str = "okf-config.yml") -> Path:
+    def make_config(
+        self,
+        baseline: str | None = None,
+        name: str = "okf-config.yml",
+        index_link_style: str | None = None,
+    ) -> Path:
         line = f"  baseline: {baseline}\n" if baseline else ""
+        index_link_style_line = (
+            f"  link_style: {index_link_style}\n" if index_link_style is not None else ""
+        )
         path = self.repo / name
-        path.write_text(CONFIG_TEMPLATE.format(baseline_line=line), encoding="utf-8", newline="\n")
+        path.write_text(
+            CONFIG_TEMPLATE.format(
+                baseline_line=line,
+                index_link_style_line=index_link_style_line,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         return path
 
-    def bundle(self, baseline: str | None = None) -> okf.Bundle:
-        return okf.Bundle(self.make_config(baseline))
+    def bundle(
+        self,
+        baseline: str | None = None,
+        index_link_style: str | None = None,
+    ) -> okf.Bundle:
+        return okf.Bundle(self.make_config(baseline, index_link_style=index_link_style))
 
     def make_templates(self) -> None:
         """new コマンド用の最小テンプレート一式。"""

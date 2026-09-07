@@ -57,6 +57,9 @@ layer_map:
 # index.md の見出し
 index:
   root_heading: okf-devkit ドキュメント
+  # 生成 index.md のリンクを各 index.md の親ディレクトリ起点にする。
+  # 省略時はパッケージ既定の bundle-absolute（バンドルルート起点）。
+  link_style: relative
 
 log:
   # 自動追記の対象になる層。ここから外した層は `--layer <名前>` を
@@ -72,3 +75,7 @@ log:
   # 既存リポジトリに後から導入し、log.md に手書きの既存エントリがある場合は、
   # 移行済みの最後のコミット SHA をここに入れる（二重追記の防止）。
   baseline: ""
+
+# backlog の ID はハーネスのタスク規約に合わせる。
+backlog:
+  prefix: T

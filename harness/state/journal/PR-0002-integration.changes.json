@@ -1,0 +1,664 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "85d4b0ef3a349198f03cbcfe71817e6451b6aff2",
+  "worklog": "harness/state/journal/PR-0002-ci-declarations.md",
+  "changes": [
+    {
+      "path": ".agents/skills/ask-matt/PHASE-BOUNDARIES.md",
+      "reason": "T-0002で採用したask-mattのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/ask-matt/SKILL.md",
+      "reason": "T-0002で採用したask-mattのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/ask-matt/agents/openai.yaml",
+      "reason": "T-0002で採用したask-mattのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/code-review/SKILL.md",
+      "reason": "T-0002で採用したcode-reviewのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/code-review/agents/openai.yaml",
+      "reason": "T-0002で採用したcode-reviewのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/codebase-design/DEEPENING.md",
+      "reason": "T-0002で採用したcodebase-designのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/codebase-design/DESIGN-IT-TWICE.md",
+      "reason": "T-0002で採用したcodebase-designのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/codebase-design/SKILL.md",
+      "reason": "T-0002で採用したcodebase-designのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/codebase-design/agents/openai.yaml",
+      "reason": "T-0002で採用したcodebase-designのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/SKILL.md",
+      "reason": "T-0002で採用したdiagnosing-bugsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/agents/openai.yaml",
+      "reason": "T-0002で採用したdiagnosing-bugsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
+      "reason": "T-0002で採用したdiagnosing-bugsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/ADR-FORMAT.md",
+      "reason": "T-0002で採用したdomain-modelingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/CONTEXT-FORMAT.md",
+      "reason": "T-0002で採用したdomain-modelingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/SKILL.md",
+      "reason": "T-0002で採用したdomain-modelingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/domain-modeling/agents/openai.yaml",
+      "reason": "T-0002で採用したdomain-modelingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grill-me/SKILL.md",
+      "reason": "T-0002で採用したgrill-meのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grill-me/agents/openai.yaml",
+      "reason": "T-0002で採用したgrill-meのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grill-with-docs/SKILL.md",
+      "reason": "T-0002で採用したgrill-with-docsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grill-with-docs/agents/openai.yaml",
+      "reason": "T-0002で採用したgrill-with-docsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grilling/SKILL.md",
+      "reason": "T-0002で採用したgrillingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/grilling/agents/openai.yaml",
+      "reason": "T-0002で採用したgrillingのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/handoff/SKILL.md",
+      "reason": "T-0002で採用したhandoffのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/handoff/agents/openai.yaml",
+      "reason": "T-0002で採用したhandoffのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/implement/SKILL.md",
+      "reason": "T-0002で採用したimplementのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/implement/agents/openai.yaml",
+      "reason": "T-0002で採用したimplementのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/improve-codebase-architecture/HTML-REPORT.md",
+      "reason": "T-0002で採用したimprove-codebase-architectureのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/improve-codebase-architecture/SKILL.md",
+      "reason": "T-0002で採用したimprove-codebase-architectureのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/improve-codebase-architecture/agents/openai.yaml",
+      "reason": "T-0002で採用したimprove-codebase-architectureのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/prototype/LOGIC.md",
+      "reason": "T-0002で採用したprototypeのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/prototype/SKILL.md",
+      "reason": "T-0002で採用したprototypeのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/prototype/UI.md",
+      "reason": "T-0002で採用したprototypeのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/prototype/agents/openai.yaml",
+      "reason": "T-0002で採用したprototypeのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/research/SKILL.md",
+      "reason": "T-0002で採用したresearchのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/research/agents/openai.yaml",
+      "reason": "T-0002で採用したresearchのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/resolving-merge-conflicts/SKILL.md",
+      "reason": "T-0002で採用したresolving-merge-conflictsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/resolving-merge-conflicts/agents/openai.yaml",
+      "reason": "T-0002で採用したresolving-merge-conflictsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/SKILL.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/domain.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-github.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-gitlab.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-local.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/setup-matt-pocock-skills/triage-labels.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/tdd/SKILL.md",
+      "reason": "T-0002で採用したtddのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/tdd/agents/openai.yaml",
+      "reason": "T-0002で採用したtddのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/tdd/mocking.md",
+      "reason": "T-0002で採用したtddのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/tdd/tests.md",
+      "reason": "T-0002で採用したtddのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/GLOSSARY-FORMAT.md",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/LEARNING-RECORD-FORMAT.md",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/MISSION-FORMAT.md",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/RESOURCES-FORMAT.md",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/SKILL.md",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/teach/agents/openai.yaml",
+      "reason": "T-0002で採用したteachのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-questionnaire/SKILL.md",
+      "reason": "T-0002で採用したto-questionnaireのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-questionnaire/agents/openai.yaml",
+      "reason": "T-0002で採用したto-questionnaireのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-spec/SKILL.md",
+      "reason": "T-0002で採用したto-specのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-spec/agents/openai.yaml",
+      "reason": "T-0002で採用したto-specのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-tickets/SKILL.md",
+      "reason": "T-0002で採用したto-ticketsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/to-tickets/agents/openai.yaml",
+      "reason": "T-0002で採用したto-ticketsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/triage/AGENT-BRIEF.md",
+      "reason": "T-0002で採用したtriageのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/triage/OUT-OF-SCOPE.md",
+      "reason": "T-0002で採用したtriageのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/triage/SKILL.md",
+      "reason": "T-0002で採用したtriageのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/triage/agents/openai.yaml",
+      "reason": "T-0002で採用したtriageのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wait-what/SKILL.md",
+      "reason": "T-0002で採用したwait-whatのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wait-what/agents/openai.yaml",
+      "reason": "T-0002で採用したwait-whatのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wayfinder/SKILL.md",
+      "reason": "T-0002で採用したwayfinderのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wayfinder/agents/openai.yaml",
+      "reason": "T-0002で採用したwayfinderのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wizard/SKILL.md",
+      "reason": "T-0002で採用したwizardのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wizard/agents/openai.yaml",
+      "reason": "T-0002で採用したwizardのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/wizard/template.sh",
+      "reason": "T-0002で採用したwizardのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/SKILL-MECHANICS.md",
+      "reason": "T-0002で採用したwriting-for-agentsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/SKILL.md",
+      "reason": "T-0002で採用したwriting-for-agentsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/agents/openai.yaml",
+      "reason": "T-0002で採用したwriting-for-agentsのCodex用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/settings.json",
+      "reason": "T-0002で採用した直接コピーと上流プラグインの重複利用を対象プロジェクトで抑える設定を導入する。"
+    },
+    {
+      "path": ".claude/skills/ask-matt/PHASE-BOUNDARIES.md",
+      "reason": "T-0002で採用したask-mattのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/ask-matt/SKILL.md",
+      "reason": "T-0002で採用したask-mattのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/ask-matt/agents/openai.yaml",
+      "reason": "T-0002で採用したask-mattのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/code-review/SKILL.md",
+      "reason": "T-0002で採用したcode-reviewのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/code-review/agents/openai.yaml",
+      "reason": "T-0002で採用したcode-reviewのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/codebase-design/DEEPENING.md",
+      "reason": "T-0002で採用したcodebase-designのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/codebase-design/DESIGN-IT-TWICE.md",
+      "reason": "T-0002で採用したcodebase-designのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/codebase-design/SKILL.md",
+      "reason": "T-0002で採用したcodebase-designのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/codebase-design/agents/openai.yaml",
+      "reason": "T-0002で採用したcodebase-designのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/diagnosing-bugs/SKILL.md",
+      "reason": "T-0002で採用したdiagnosing-bugsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/diagnosing-bugs/agents/openai.yaml",
+      "reason": "T-0002で採用したdiagnosing-bugsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
+      "reason": "T-0002で採用したdiagnosing-bugsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/domain-modeling/ADR-FORMAT.md",
+      "reason": "T-0002で採用したdomain-modelingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/domain-modeling/CONTEXT-FORMAT.md",
+      "reason": "T-0002で採用したdomain-modelingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/domain-modeling/SKILL.md",
+      "reason": "T-0002で採用したdomain-modelingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/domain-modeling/agents/openai.yaml",
+      "reason": "T-0002で採用したdomain-modelingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grill-me/SKILL.md",
+      "reason": "T-0002で採用したgrill-meのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grill-me/agents/openai.yaml",
+      "reason": "T-0002で採用したgrill-meのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grill-with-docs/SKILL.md",
+      "reason": "T-0002で採用したgrill-with-docsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grill-with-docs/agents/openai.yaml",
+      "reason": "T-0002で採用したgrill-with-docsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grilling/SKILL.md",
+      "reason": "T-0002で採用したgrillingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/grilling/agents/openai.yaml",
+      "reason": "T-0002で採用したgrillingのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/handoff/SKILL.md",
+      "reason": "T-0002で採用したhandoffのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/handoff/agents/openai.yaml",
+      "reason": "T-0002で採用したhandoffのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/implement/SKILL.md",
+      "reason": "T-0002で採用したimplementのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/implement/agents/openai.yaml",
+      "reason": "T-0002で採用したimplementのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/improve-codebase-architecture/HTML-REPORT.md",
+      "reason": "T-0002で採用したimprove-codebase-architectureのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/improve-codebase-architecture/SKILL.md",
+      "reason": "T-0002で採用したimprove-codebase-architectureのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/improve-codebase-architecture/agents/openai.yaml",
+      "reason": "T-0002で採用したimprove-codebase-architectureのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/prototype/LOGIC.md",
+      "reason": "T-0002で採用したprototypeのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/prototype/SKILL.md",
+      "reason": "T-0002で採用したprototypeのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/prototype/UI.md",
+      "reason": "T-0002で採用したprototypeのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/prototype/agents/openai.yaml",
+      "reason": "T-0002で採用したprototypeのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/research/SKILL.md",
+      "reason": "T-0002で採用したresearchのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/research/agents/openai.yaml",
+      "reason": "T-0002で採用したresearchのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/resolving-merge-conflicts/SKILL.md",
+      "reason": "T-0002で採用したresolving-merge-conflictsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/resolving-merge-conflicts/agents/openai.yaml",
+      "reason": "T-0002で採用したresolving-merge-conflictsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/SKILL.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/agents/openai.yaml",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/domain.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/issue-tracker-github.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/issue-tracker-gitlab.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/issue-tracker-local.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/setup-matt-pocock-skills/triage-labels.md",
+      "reason": "T-0002で採用したsetup-matt-pocock-skillsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/tdd/SKILL.md",
+      "reason": "T-0002で採用したtddのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/tdd/agents/openai.yaml",
+      "reason": "T-0002で採用したtddのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/tdd/mocking.md",
+      "reason": "T-0002で採用したtddのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/tdd/tests.md",
+      "reason": "T-0002で採用したtddのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/GLOSSARY-FORMAT.md",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/LEARNING-RECORD-FORMAT.md",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/MISSION-FORMAT.md",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/RESOURCES-FORMAT.md",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/SKILL.md",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/teach/agents/openai.yaml",
+      "reason": "T-0002で採用したteachのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-questionnaire/SKILL.md",
+      "reason": "T-0002で採用したto-questionnaireのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-questionnaire/agents/openai.yaml",
+      "reason": "T-0002で採用したto-questionnaireのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-spec/SKILL.md",
+      "reason": "T-0002で採用したto-specのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-spec/agents/openai.yaml",
+      "reason": "T-0002で採用したto-specのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-tickets/SKILL.md",
+      "reason": "T-0002で採用したto-ticketsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/to-tickets/agents/openai.yaml",
+      "reason": "T-0002で採用したto-ticketsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/triage/AGENT-BRIEF.md",
+      "reason": "T-0002で採用したtriageのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/triage/OUT-OF-SCOPE.md",
+      "reason": "T-0002で採用したtriageのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/triage/SKILL.md",
+      "reason": "T-0002で採用したtriageのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/triage/agents/openai.yaml",
+      "reason": "T-0002で採用したtriageのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wait-what/SKILL.md",
+      "reason": "T-0002で採用したwait-whatのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wait-what/agents/openai.yaml",
+      "reason": "T-0002で採用したwait-whatのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wayfinder/SKILL.md",
+      "reason": "T-0002で採用したwayfinderのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wayfinder/agents/openai.yaml",
+      "reason": "T-0002で採用したwayfinderのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wizard/SKILL.md",
+      "reason": "T-0002で採用したwizardのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wizard/agents/openai.yaml",
+      "reason": "T-0002で採用したwizardのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/wizard/template.sh",
+      "reason": "T-0002で採用したwizardのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/writing-for-agents/SKILL-MECHANICS.md",
+      "reason": "T-0002で採用したwriting-for-agentsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/writing-for-agents/SKILL.md",
+      "reason": "T-0002で採用したwriting-for-agentsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".claude/skills/writing-for-agents/agents/openai.yaml",
+      "reason": "T-0002で採用したwriting-for-agentsのClaude Code用上流コピー・補助資産を導入する。出所と固定版はharness/project/skill-profile.mdとskills-lock.jsonに記録済み。"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "T-0005の保護/上流変更検査を既存test jobへ接続し、PR全差分をpull-request scopeで検査する。既存test/smoke・matrix・終了状態を保持する。"
+    },
+    {
+      "path": "AGENTS.md",
+      "reason": "T-0003の日本語入口と検証・課題管理への導線を導入し、既存B番号を保持したまま新規T番号を案内する。"
+    },
+    {
+      "path": "CLAUDE.md",
+      "reason": "Claude Codeを共通のAGENTS.md入口へ接続する。"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "reason": "T-0002で導入した上流スキルのMIT通知と固定出所を保持する。"
+    },
+    {
+      "path": "harness/core/policy/requirements.md",
+      "reason": "T-0005の制約契約を導入し、T-0013で固定配布版の共通制約へ移行する。対象固有の強制点はconfigへ保持する。"
+    },
+    {
+      "path": "harness/core/procedures/verify-report.md",
+      "reason": "T-0004の4値報告と二軸review契約を導入し、T-0013の固定配布版へ統一する。"
+    },
+    {
+      "path": "harness/project/check_changes.py",
+      "reason": "保護/上流の全差分と宣言を検査する対象専用checkerを導入し、保存済みタスク証拠とPR比較をscopeで分離する。"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "既存venv・必須検証・固有の強制点と限界を保持する設定を導入し、タスク/PRごとの宣言と固定比較点を明記する。"
+    },
+    {
+      "path": "harness/project/skill-profile.md",
+      "reason": "T-0002で採用した25スキルの出所・配置・運用と、T-0013で移設した採用索引を保持する。"
+    },
+    {
+      "path": "okf.yml",
+      "reason": "mainの層・log設定を保持し、T-0007の相対indexリンクと新規T番号採番を有効にする。"
+    },
+    {
+      "path": "skills-lock.json",
+      "reason": "T-0002で直接導入した25スキルの導入状態とハッシュをlockへ記録する。"
+    },
+    {
+      "path": "tests/helpers.py",
+      "reason": "T-0007のindex.link_styleを設定できる既存テスト用bundle補助を拡張する。"
+    },
+    {
+      "path": "tests/test_harness_changes.py",
+      "reason": "T-0005の変更検査と、複数タスクを1PRへ統合したときのscope・未宣言・不正宣言拒否を一時Gitで検証する。"
+    },
+    {
+      "path": "tests/test_index.py",
+      "reason": "T-0007の相対index設定、既定互換、lint/syncとの整合を回帰検証する。"
+    },
+    {
+      "path": "tests/test_render.py",
+      "reason": "T-0007の相対indexリンクをHTMLで参照でき、既定のリンク動作も保持されることを回帰検証する。"
+    }
+  ]
+}

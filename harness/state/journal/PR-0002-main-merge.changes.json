@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "base": "fd74b804f079610b7a46752c6afcb6ede44aa49c",
+  "worklog": "harness/state/journal/PR-0002-main-merge.md",
+  "changes": [
+    {
+      "path": "AGENTS.md",
+      "reason": "mainから既存B番号の課題を保持するため、T番号の入口案内を新規課題へ限定する。"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "mainの既存Backlog取り込みに合わせ、空索引という現状説明を訂正する。"
+    },
+    {
+      "path": "okf.yml",
+      "reason": "mainの3層とlog設定を統合し、PRの相対index設定・新規T番号採番を保持してadd/add競合を解消する。"
+    }
+  ]
+}

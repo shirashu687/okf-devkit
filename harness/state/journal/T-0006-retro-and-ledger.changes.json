@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "base": "cfdbffe1a01e99432aa9d527c12192fb5a9e3669",
+  "worklog": "harness/state/journal/T-0006-retro-and-ledger.md",
+  "changes": [
+    {
+      "path": "harness/core/procedures/verify-report.md",
+      "reason": "T-0006のretroゲートを完了・中断報告へ接続し、4値検証契約と台帳手順を分離して参照する"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "retro手順と改善台帳の実配置、開始・再開時の期限確認、完了・中断時のゲートを対象プロジェクトへ対応づける"
+    }
+  ]
+}

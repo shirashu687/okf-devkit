@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "base": "d06b428e8d110d70dd9399ac4fd499f22076590d",
+  "worklog": "harness/state/journal/PR-0002-ci-declarations.md",
+  "changes": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "PRイベントのbase/headは維持し、変更検査にpull-request scopeを明示してPR全体の宣言を使う。"
+    },
+    {
+      "path": "harness/project/check_changes.py",
+      "reason": "タスクとPRの比較用途を分離し、全保護/上流差分の宣言必須を維持したまま保存済みタスク宣言とのbase不一致を解消する。"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "scope選択、各固定比較点、全対象の宣言、過去証拠の保持と既存の限界を文書化する。"
+    },
+    {
+      "path": "tests/test_harness_changes.py",
+      "reason": "複数タスクの統合再現、別scopeでの未宣言隠し拒否、PR宣言の厳格検証と古い宣言の再利用拒否を追加検証する。"
+    }
+  ]
+}

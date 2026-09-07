@@ -111,15 +111,32 @@ okf sync
 
 設定は **「パッケージ同梱の `defaults.yml`」＋「プロジェクトルートの `okf.yml`」** のマージで決まる。
 
-- `types` / `statuses` / `kind_rules` / `backlog` の語彙、`index` のマーカーといった**普遍的な設定は同梱側**にある
-- `okf.yml` には**このリポジトリ固有の設定だけ**を書けばよい（`bundle_root` / `layers` / `layer_map` / `log.paths` / `log.baseline` / `site_name`）
+- `types` / `statuses` / `kind_rules` / `backlog` の語彙、`index` のマーカーとリンク形式といった**普遍的な設定は同梱側**にある
+- `okf.yml` には**このリポジトリ固有の設定だけ**を書けばよい（`bundle_root` / `layers` / `layer_map` / `index.link_style` / `log.paths` / `log.baseline` / `site_name`）
 - マージ規則: **dict は再帰的にマージし、リストとスカラーは丸ごと置換**する
+
+生成 `index.md` のリンク形式は `index.link_style` で選ぶ。既定は既存互換の `bundle-absolute`、このリポジトリはObsidianで階層をそのまま辿れる `relative` を明示している。
+
+```yaml
+index:
+  link_style: relative  # bundle-absolute（既定）または relative
+```
+
+`relative` は各 `index.md` の親ディレクトリから解決される（例: `docs/index.md` から `./project/index.md`）。`index --write`、`index --check`、`lint`、`sync` で同じ設定が使われ、不正値は索引を書き込まずにエラーになる。
 
 ### 既存リポジトリへの導入
 
 `log.md` に手書きの既存エントリがある状態で `okf log --write` を実行すると二重追記になる。
 `okf.yml` の `log.baseline` に**移行済みの最後のコミット SHA** を入れること
 （未設定かつハッシュ無しエントリがある場合、`okf` は書き込みを拒否する）。
+
+## Obsidianでの閲覧
+
+Obsidianでは、このリポジトリのルートフォルダをそのままVaultとして開く。Markdown、YAML frontmatter、生成 `index.md`、`harness/` のworklog・台帳を同じファイルとして検索・閲覧し、内容・差分・履歴の正本はGitに置く。別Vault、専用コピー、community plugin、自動同期・公開は作らない。
+
+主な入口と役割対応は [プロジェクト設定](harness/project/config.md) にまとめている。frontmatterのネストした値は平坦化せず、必要ならPropertiesのソース表示で確認する。リンクの自動更新で生成indexやMarkdownを変更せず、移動・改名は既存の編集手順と `okf index --write` で扱う。
+
+`.obsidian/` は個人の画面状態としてGit管理外にする。GitのignoreはObsidianの表示・検索を制御する機能ではない。OKFを採用しないリポジトリでは、同じハーネスのMarkdown + Git、役割対応表、検証契約を使い、OKF CLIの導入を必須にしない。
 
 ## エージェント連携
 

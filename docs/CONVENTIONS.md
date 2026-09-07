@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: process:okf-devkit
-  at: 2026-08-26T12:46:25Z
+  at: 2026-09-07T11:39:02Z
 related:
   - /AGENTS.md
 ---
@@ -156,6 +156,17 @@ OKF v0.2 §6 に従い、**バンドルルート起点の絶対パス**を推奨
 - **壊れたリンクはエラーにしない**（OKF v0.2 §11 が「壊れたリンクでバンドルを拒否してはならない」と規定）。`lint` は warn に留める
 - リポジトリ内のコードを指す場合は、バンドル外なのでリポジトリルートからの相対パスで書く（例: `src/app/main.ts`）
 
+### 4-1. 生成 index のリンク形式
+
+本文と `related` のリンク規約は維持したまま、自動生成される `index.md` のリンクだけを `okf.yml` の `index.link_style` で選べる。
+
+| 値 | 起点 | 例 |
+|---|---|---|
+| `bundle-absolute`（既定） | バンドルルート | `docs/index.md` → `/project/index.md` |
+| `relative` | その `index.md` の親ディレクトリ | `docs/index.md` → `./project/index.md`、`docs/backlog/index.md` → `./T-0001.md` |
+
+許容値以外は設定エラーになる。`index --write` / `index --check` / `lint` / `sync` は同じ設定を使う。`Doc.bundle_rel` と `related` のバンドル起点の意味、ラベル・説明・並び順・マーカーは変わらない。生成リンクの空白・括弧・`%` はMarkdown用にエスケープされるため、本文へ手で転記しない。
+
 ---
 
 ## 5. Backlog Item 専用フィールド
@@ -181,6 +192,7 @@ OKF v0.2 §8 に従う。**手で編集しない。**
 
 - `index.md` は **frontmatter を持たない**。唯一の例外はバンドルルート `docs/index.md` の `okf_version: "0.2"` のみ
 - エントリ形式は `* [Title](path) - description`
+- `path` は `index.link_style` に応じたバンドルルート起点または index 親ディレクトリ起点のリンクになる
 - `<!-- okf:auto:start -->` 〜 `<!-- okf:auto:end -->` の間だけがスクリプトの管理範囲。**その外側の前文は手書きしてよく、上書きされない**
 
 ```markdown
@@ -253,8 +265,10 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 |---|---|---|
 | 通常ドキュメント | kebab-case | `deployment-flow.md` |
 | ADR | `NNNN-<kebab>.md`（4桁連番） | `0001-use-postgres.md` |
-| Backlog | `B-NNNN-<kebab>.md`（4桁連番） | `B-0001-readme-update.md` |
+| Backlog | `T-NNNN-<kebab>.md`（4桁連番） | `T-0001-readme-update.md` |
 | 予約ファイル | `index.md` / `log.md` のみ | — |
+
+新規Backlogは `okf.yml` の `backlog.prefix: T` に従って採番する。導入前の `B-0001`〜`B-0009` は既存ID・ファイル名・相互参照・進捗を保持し、更新も同じファイルで行う。
 
 `_` で始まるディレクトリ（`_templates/`）は**バンドル対象外**として扱われ、index にも lint にも現れない。
 

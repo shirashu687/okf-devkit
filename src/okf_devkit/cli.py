@@ -101,6 +101,10 @@ def find_project_root(start: Path | None = None) -> Path:
 
 RESERVED_DEFAULT = ("index.md", "log.md")
 
+# ``index.link_style`` は index.md の出力形式だけを切り替える。
+# frontmatter の ``related`` や ``Doc.bundle_rel`` の意味は変えない。
+INDEX_LINK_STYLES = ("bundle-absolute", "relative")
+
 # `code_globs`（更新検知の起点）を必須とする type。
 # コードから導出されるドキュメントのみ対象で、Convention / Glossary /
 # Decision Record / Backlog Item は対象外。`status: deprecated` も除外される。
@@ -893,10 +897,21 @@ class Bundle:
         self.statuses = list(cfg.get("statuses") or ["draft", "stable", "deprecated"])
         self.site_name = str(cfg.get("site_name") or REPO_ROOT.name)
         self.layers = list(cfg.get("layers") or [])
-        self.index_cfg = dict(cfg.get("index") or {})
+        raw_index_cfg = cfg.get("index", {})
+        if not isinstance(raw_index_cfg, dict):
+            raise OkfError("設定 `index` はマップで指定してください")
+        self.index_cfg = dict(raw_index_cfg)
+        self.index_link_style = self._validate_index_link_style()
         self.backlog_cfg = dict(cfg.get("backlog") or {})
         self.log_cfg = dict(cfg.get("log") or {})
         self._docs: list[Doc] | None = None
+
+    def _validate_index_link_style(self) -> str:
+        value = self.index_cfg.get("link_style", "bundle-absolute")
+        if not isinstance(value, str) or value not in INDEX_LINK_STYLES:
+            allowed = " / ".join(f"`{item}`" for item in INDEX_LINK_STYLES)
+            raise OkfError(f"設定 `index.link_style` は {allowed} のいずれかの文字列で指定してください")
+        return value
 
     # -- パス判定 ----------------------------------------------------------
     def is_excluded(self, path: Path) -> bool:
@@ -1194,6 +1209,18 @@ def _entry_line(title: str, link: str, description: str, extra: str = "") -> str
     return f"{parts} - {tail}" if tail else parts
 
 
+def _index_link(bundle: Bundle, directory: Path, target: Path) -> str:
+    """index.md の場所を起点に、設定された形式のリンク先を返す。"""
+    if bundle.index_link_style == "bundle-absolute":
+        return "/" + rel_posix(target, bundle.root)
+
+    index_dir = (directory / "index.md").parent.resolve()
+    relative = Path(os.path.relpath(target.resolve(), index_dir)).as_posix()
+    if not relative.startswith((".", "/")):
+        relative = "./" + relative
+    return relative
+
+
 def _display_title(doc: Doc) -> str:
     title = doc.title
     if doc.status == "draft":
@@ -1220,7 +1247,7 @@ def build_index_block(bundle: Bundle, directory: Path) -> str:
         if idx.exists():
             doc = Doc(idx, bundle.root)
             title = doc.h1 or title
-        link = "/" + rel_posix(idx, bundle.root)
+        link = _index_link(bundle, directory, idx)
         subdir_lines.append(_entry_line(title, link, ""))
     if subdir_lines:
         sections.append((str(icfg.get("subdir_section", "ディレクトリ")), sorted(subdir_lines)))
@@ -1239,7 +1266,10 @@ def build_index_block(bundle: Bundle, directory: Path) -> str:
 
     def lines_for(items: list[Doc]) -> list[str]:
         items = sorted(items, key=lambda d: (d.title, d.bundle_rel))
-        return [_entry_line(_display_title(d), d.bundle_rel, d.description) for d in items]
+        return [
+            _entry_line(_display_title(d), _index_link(bundle, directory, d.path), d.description)
+            for d in items
+        ]
 
     for type_name in bundle.types:
         group = [d for d in active if d.type == type_name]
@@ -1307,7 +1337,7 @@ def build_backlog_block(bundle: Bundle, directory: Path) -> str:
             lines = [
                 _entry_line(
                     _display_title(d),
-                    d.bundle_rel,
+                    _index_link(bundle, directory, d.path),
                     d.description,
                     f"{extract_date(d.fm.get('done_at')) or '日付不明'} 完了",
                 )
@@ -1315,7 +1345,15 @@ def build_backlog_block(bundle: Bundle, directory: Path) -> str:
             ]
         else:
             items = sorted(items, key=prio_key)
-            lines = [_entry_line(_display_title(d), d.bundle_rel, d.description, meta(d)) for d in items]
+            lines = [
+                _entry_line(
+                    _display_title(d),
+                    _index_link(bundle, directory, d.path),
+                    d.description,
+                    meta(d),
+                )
+                for d in items
+            ]
         sections.append(f"## {state}\n" + "\n".join(lines))
 
     return "\n\n".join(sections) + "\n"
