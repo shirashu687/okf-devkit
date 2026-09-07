@@ -42,8 +42,10 @@
 | merge-changes | 成功 | `check_changes.py --base fd74b804f079610b7a46752c6afcb6ede44aa49c` | exit 0。保護対象3件（AGENTS、config、okf.yml）を同名changes.jsonで宣言 |
 | pr-changes | 失敗 | `check_changes.py --base 85d4b0ef3a349198f03cbcfe71817e6451b6aff2` | exit 1、165診断（base不一致6、パス重複7、未宣言152）。`%TEMP%/pr2-main-changes.txt`。今回の宣言も開始SHAを持つためPR全体の許可にはならない。checker・CI・過去宣言は保持 |
 | preservation | 成功 | main/開始SHAとのdiff、内容の正規化比較、coreのSHA-256再計算、YAML比較 | `%TEMP%/pr2-main-preservation.json`。既存journal 26ファイルとmainのB本文9本が一致（全件todo）、core 6本のハッシュ一致。core/install/ledger/両製品スキル/lock/通知/製品コード/テスト/CI/checker/profileは差分なし。main設定はPRのrelative/T追加以外一致。競合0 |
-| github-mergeability | 未実行 | PR #2のpush後headとmergeable | 実行待ち |
-| ci-test / ci-smoke | 未実行 | GitHub Actionsの対象head | ローカル成功から推定しない |
+| github-mergeability | 成功 | `gh pr view 2 --repo shirashu687/okf-devkit --json headRefOid,baseRefOid,mergeable,mergeStateStatus` | 2026-09-07T11:46Z確認。head `5ba598821c3c604622a1ebfc5cbaf706c162cb0c`、baseは固定main、`MERGEABLE` / `UNSTABLE`。push直後の旧headキャッシュは結果に用いず更新後を照合 |
+| ci-test-jobs | 失敗 | [CI run 34118289559](https://github.com/shirashu687/okf-devkit/actions/runs/34118289559)、head `5ba598821c3c604622a1ebfc5cbaf706c162cb0c` | Windows/Ubuntu・Python 3.11/3.13の4jobとも保護/上流変更検査stepでexit 1。base不一致・重複・未宣言をlogで確認 |
+| ci-test-suite | 未実行 | 同runの4jobの `Run tests` | 前段の変更検査失敗により全件skipped。テスト本体の失敗とは扱わない |
+| ci-smoke | 成功 | 同runの `End-to-end smoke` | 独立job成功。Ubuntu/Python 3.11のinit → index → lint → render → logとhook応答を実行 |
 
 ## review
 
@@ -56,9 +58,13 @@
 
 - 開始時: 台帳は評価中3/10、試行0/3、採用済み0。期限超過・採用見直し・巻戻し競合なし。
 - 確認範囲: 依頼、両親のコミットと5ファイルの競合、過去の検証と変更宣言、今回の検証・reviewを照合。
-- 完了時判定: トリガーなし。予定されたmain取込みと新規文書の軽微なreview修正であり、既決の導入要件・既存成果・記録の欠落は確認されなかった。既知のPR全体宣言不整合の再確認を新たな独立発生として数えない。full retrospectiveは不要。未確認範囲はGitHubの最終状態とCIであり、push後に照合する。
+- 完了時判定: トリガーなし。予定されたmain取込みと新規文書の軽微なreview修正であり、既決の導入要件・既存成果・記録の欠落は確認されなかった。既知のPR全体宣言不整合の再確認を新たな独立発生として数えない。full retrospectiveは不要。GitHubのmerge commit状態とCIは上表のとおり照合済み。宣言整合後のCIテスト本体・Claude Code実機は未確認。
 - 台帳: 既存観測を保持。再読を新たな発生回数へ加算しない。
 
 ## 残作業・次の一手
 
-ローカルの競合解消・保持検証と二軸reviewは終了。merge commitをPRブランチへpushしてGitHubの競合状態を確認する。PR全体の変更宣言は未解決のためDraftを維持する。PR全体の整合には、固定mainからの全保護/上流差分とタスク単位の証拠の扱いを整理する必要がある。これは既存の残作業であり、新たな後続タスクは作成・詳細化していない。
+競合解消・保持検証と二軸reviewを終え、merge commit `5ba598821c3c604622a1ebfc5cbaf706c162cb0c` をPRブランチへpush済み。GitHubの競合解消も確認済み。本追記は結果の記録だけで、検証対象の製品・設定を変更しない。PR全体の変更宣言は未解決のためDraftを維持する。PR全体の整合には、固定mainからの全保護/上流差分とタスク単位の証拠の扱いを整理する必要がある。これは既存の残作業であり、新たな後続タスクは作成・詳細化していない。
+
+## 完了要約
+
+依頼された競合解消を完了し、mainの既存成果とハーネスの移行結果を保持してPR #2へ反映した。最終の記録コミットとそのheadでの再確認はPR本文から辿れる。PR全体は既知の宣言不整合のためDraftを維持し、mainへのマージ・後続タスクへの着手はしていない。
