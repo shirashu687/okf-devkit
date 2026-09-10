@@ -105,3 +105,11 @@ Node.js 22+向けの独立CLIで既存10コマンドを提供し、Python不要�
 実装コミット `41f58f1` を作成し、`okf log --write` で3層へ実ハッシュ付きエントリを生成した。仮の作業メモを削除し、backlogの結果を更新した。ruleset詳細はincludeが空、mainの実効rules取得結果も空で、現時点でmainへ適用されるルールは返されなかった。これを設定変更やチェック省略の理由にはしない。
 
 履歴・backlog更新後の必須検証は成功: `.venv/Scripts/python.exe tests/run_all.py` 169件・失敗0・エラー0・skip0・終了0。index生成・lint・index確認はすべて終了0、lint error0/warn0。PR scopeの変更宣言と `git diff --check` も終了0。実装・共有資産・Nodeテストは先の最終検証から変更していない。次に本差分をcommit/pushし、PR CIを実行する。
+
+### 統合検証の結果
+
+`codex/node-runtime` のpushと [PR #3](https://github.com/shirashu687/okf-devkit/pull/3) の作成は成功した。PR baseは開始SHAと同じ、head `f2658d665edf785dea98e29bfc8f711cbd5d15d1`。同じ2コミットを指定したPR scope検査は終了0、全10保護パスの宣言を確認した。
+
+[CI run 34491146319](https://github.com/shirashu687/okf-devkit/actions/runs/34491146319) はcompleted/success。Windows/Ubuntu × Node22/24の4ジョブ、Windows/Ubuntu × Python3.11/3.13の4ジョブ、独立smokeの1ジョブ、計9ジョブがすべて成功した。実装時点のCI未実行という制限は、この対象版・matrixについて解消した。macOSと実利用先の既存カスタムhookは引き続き未確認。
+
+追加の成果物変更・review指摘・CI失敗・同じ手戻りの反復はなく、継続分のfull retro追加対象なし。既処理はIMP-0005のまま。本記録のcommit・push後はその最終headのCI成功を再確認してmergeし、PR状態とmainの実コミットを確認する。最終headのCIとmergeの結果は上記PRのChecks・merge記録および最終応答を正とし、ここで先取りして成功扱いにしない。npm公開は行っていない。
