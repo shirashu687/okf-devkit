@@ -101,3 +101,7 @@ Node.js 22+向けの独立CLIで既存10コマンドを提供し、Python不要�
 再開時の台帳は評価中5/10、試行0/3、採用0、期限・巻戻し競合なし。実装時のreview指摘は解消済み。継続時点では追加のfull retro対象はなく、CI結果・最終差分・マージ結果を続けて確認する。
 
 実装をcommitした後に各層の実ハッシュ付きlogを生成し、文書検証・必須テストを実施する。既存レビュー済み差分と統合記録をpushし、PRの全CI結果を確認してから通常のmerge commitで統合する。最終結果はPRと応答から参照できるようにする。
+
+実装コミット `41f58f1` を作成し、`okf log --write` で3層へ実ハッシュ付きエントリを生成した。仮の作業メモを削除し、backlogの結果を更新した。ruleset詳細はincludeが空、mainの実効rules取得結果も空で、現時点でmainへ適用されるルールは返されなかった。これを設定変更やチェック省略の理由にはしない。
+
+履歴・backlog更新後の必須検証は成功: `.venv/Scripts/python.exe tests/run_all.py` 169件・失敗0・エラー0・skip0・終了0。index生成・lint・index確認はすべて終了0、lint error0/warn0。PR scopeの変更宣言と `git diff --check` も終了0。実装・共有資産・Nodeテストは先の最終検証から変更していない。次に本差分をcommit/pushし、PR CIを実行する。
