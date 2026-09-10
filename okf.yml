@@ -42,14 +42,17 @@ layer_map:
   - { glob: ".claude/**", layer: skip }
   # render 層: 閲覧用 HTML の生成器と、そこに埋め込まれる静的アセット
   - { glob: "src/okf_devkit/renderer.py", layer: render }
+  - { glob: "node/renderer.mjs", layer: render }
   - { glob: "src/okf_devkit/assets/**", layer: render }
   - { glob: "tests/test_render.py", layer: render }
   # scaffold 層: `okf init` が利用者リポジトリへ配る雛形と、同梱の既定設定
   - { glob: "src/okf_devkit/scaffold/**", layer: scaffold }
+  - { glob: "node/scaffold.mjs", layer: scaffold }
   - { glob: "src/okf_devkit/defaults.yml", layer: scaffold }
   - { glob: "tests/test_init.py", layer: scaffold }
   # cli 層: 上記以外のパッケージ本体と、それを検証するテスト
   - { glob: "src/okf_devkit/**", layer: cli }
+  - { glob: "node/**", layer: cli }
   - { glob: "tests/**", layer: cli }
   # 残り（README / pyproject.toml / .github/** など）はリポジトリ全体の話題
   - { glob: "**", layer: shared }

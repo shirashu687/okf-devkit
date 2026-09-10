@@ -38,6 +38,8 @@ PROTECTED_PATTERNS = (
     ".github/workflows/**",
     "tests/**",
     "pyproject.toml",
+    "package.json",
+    "package-lock.json",
     "okf.yml",
     ".claude/settings*.json",
     ".codex/**",

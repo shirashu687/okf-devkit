@@ -11,6 +11,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  node:
+    name: Node (${{ matrix.os }} / node${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: ['22', '24']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e .
+      - name: Compare Node and Python outputs
+        run: >-
+          python -c "import os, subprocess, sys; env = dict(os.environ, OKF_TEST_PYTHON=sys.executable); raise SystemExit(subprocess.run(['node', '--test', 'tests/node/compatibility.test.mjs'], env=env).returncode)"
+      - name: Check npm distribution
+        run: npm pack --dry-run
+
   test:
     name: Test (${{ matrix.os }} / py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}

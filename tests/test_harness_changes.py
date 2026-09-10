@@ -127,6 +127,18 @@ class HarnessChangesTest(unittest.TestCase):
         self.assertIn("declaration=declared", succeeded.stdout)
         self.assertIn("declaration presence is not human approval", succeeded.stdout)
 
+    def test_node_test_scripts_and_lockfile_require_declarations(self) -> None:
+        base = self.base_repository()
+        self.write("package.json", '{"scripts": {"test": "node tests.mjs"}}\n')
+        self.write("package-lock.json", '{"lockfileVersion": 3}\n')
+        failed = self.run_checker(base)
+        self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+        for filename in ("package.json", "package-lock.json"):
+            self.assertIn(f"undeclared protected or upstream change: {filename}", failed.stdout)
+        self.declaration(base, [self.change("package.json"), self.change("package-lock.json")])
+        succeeded = self.run_checker(base)
+        self.assertEqual(succeeded.returncode, 0, succeeded.stdout + succeeded.stderr)
+
     def test_rename_requires_old_and_new_protected_paths(self) -> None:
         base = self.base_repository()
         self.git("mv", "harness/core/policy/requirements.md", "harness/core/policy/requirements-renamed.md")
