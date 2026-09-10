@@ -30,6 +30,7 @@
 | 検証・実行条件 | コマンド・参照 |
 | --- | --- |
 | 変更後の必須既存テスト | `.venv/Scripts/python.exe tests/run_all.py` |
+| Node.js実装・依存・共有資産・hook変更後の追加テスト | `npm ci` → `npm test` → `npm run test:compat`。Node.js 22+。比較テストは既存 `.venv` を使い、別パスの場合は `OKF_TEST_PYTHON` を明示する |
 | OKF文書更新後の索引生成 | `.venv/Scripts/python.exe -m okf_devkit.cli index --write` |
 | OKF文書更新後の規約検査 | `.venv/Scripts/python.exe -m okf_devkit.cli lint` |
 | OKF文書更新後の索引確認 | `.venv/Scripts/python.exe -m okf_devkit.cli index --check` |
@@ -53,7 +54,7 @@
 
 | 分類 | 対象 |
 | --- | --- |
-| 保護対象 | `AGENTS.md`、`CLAUDE.md`、`harness/core/policy/**`、`harness/core/procedures/verify-report.md`、`harness/project/config.md`、`harness/project/check_changes.py`、`.github/workflows/**`、`tests/**`、`pyproject.toml`、`okf.yml`、`.claude/settings*.json`、`.codex/**` |
+| 保護対象 | `AGENTS.md`、`CLAUDE.md`、`harness/core/policy/**`、`harness/core/procedures/verify-report.md`、`harness/project/config.md`、`harness/project/check_changes.py`、`.github/workflows/**`、`tests/**`、`pyproject.toml`、`package.json`、`package-lock.json`、`okf.yml`、`.claude/settings*.json`、`.codex/**` |
 | 上流管理 | `.agents/skills/**`、`.claude/skills/**`、`skills-lock.json`、`THIRD_PARTY_NOTICES.md`、`harness/project/skill-profile.md` |
 
 変更が保護対象または上流管理に該当する場合、同じ比較差分内で追加・変更した `harness/state/journal/<task-id-or-slug>.changes.json` に対象パスを列挙する。宣言は次の条件を満たす必要がある。
@@ -112,7 +113,7 @@ full retrospectiveの実行条件、トリガーなし・根拠不足・トリ�
   - [CONTEXT.md](../../CONTEXT.md)、[README.md](../../README.md)、[docs/CONVENTIONS.md](../../docs/CONVENTIONS.md) — 現行の用語・利用方法・OKF規約。
   - [docs/index.md](../../docs/index.md) → 子ディレクトリの索引 → 実在する文書。生成indexのリンクは `relative`。
   - [docs/backlog/index.md](../../docs/backlog/index.md) → 対象側のbacklog索引。mainから取り込んだ既存Backlogを保持し、新規採番と既存IDの扱いは [執筆規約](../../docs/CONVENTIONS.md) に従う。
-  - [docs/project/decisions/index.md](../../docs/project/decisions/index.md) — ADR索引。現時点では空で、実在しないADRを追加しない。
+  - [docs/project/decisions/index.md](../../docs/project/decisions/index.md) — ADR索引。Node.js実装の追加判断を記録する。
   - [T-0007 worklog](../state/journal/T-0007-obsidian-okf.md) — 現在の進行中作業の状態・検証・残存リスク。
   - [改善台帳](../ledger.md) — T-0006で設置された評価中の観測と根拠worklog。
 - Gitの `/.obsidian/` 除外は個人状態を履歴へ入れないためのもので、Obsidianの読込み・検索・グラフから隠すアクセス制御ではない。OKFを使わないリポジトリでは、Markdown + Git、入口/config、検証契約を使い、OKF CLIを必須依存にしない。

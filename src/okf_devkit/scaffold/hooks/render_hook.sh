@@ -18,6 +18,18 @@ primary_worktree=${common_git_dir%/*}
 
 cd "$repo_root"
 
+# Node.js のローカルインストール、主ワークツリー、開発チェックアウト。
+if command -v node >/dev/null 2>&1; then
+  for candidate in \
+    "$repo_root/node_modules/okf-devkit/node/cli.mjs" \
+    "$primary_worktree/node_modules/okf-devkit/node/cli.mjs"
+  do
+    if [ -f "$candidate" ]; then
+      if node "$candidate" --root "$repo_root" render --hook; then exit 0; else exit 1; fi
+    fi
+  done
+fi
+
 # 1. venv 内の okf コマンド
 for candidate in \
   "$repo_root/.venv/bin/okf" \
@@ -52,5 +64,14 @@ for candidate in python3 python; do
   fi
 done
 
-echo "okf-devkit が見つかりません。プロジェクトの .venv に 'pip install okf-devkit' を実行してください。" >&2
+# Development checkouts come after all installed runtimes.
+if command -v node >/dev/null 2>&1; then
+  for checkout in "$repo_root" "$primary_worktree"; do
+    if [ -f "$checkout/src/okf_devkit/defaults.yml" ] && [ -f "$checkout/node/cli.mjs" ]; then
+      if node "$checkout/node/cli.mjs" --root "$repo_root" render --hook; then exit 0; else exit 1; fi
+    fi
+  done
+fi
+
+echo "okf-devkit が見つかりません。Node.js 版をローカルインストールするか、.venv に 'pip install okf-devkit' を実行してください。" >&2
 exit 1

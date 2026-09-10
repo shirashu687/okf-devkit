@@ -7,17 +7,19 @@ status: stable
 layer: shared
 generated:
   by: "process:okf-cli"
-  at: "2026-08-26T13:09:11Z"
-state: todo
+  at: "2026-09-10T14:28:26Z"
+state: done
 priority: medium
 effort: L
 feasibility: C
 ai: assisted
 cost: false
 created: "2026-08-26"
-done_at: null
+done_at: "2026-09-10"
 related:
   - /backlog/B-0005-pypi-release.md
+  - /project/decisions/0001-node-runtime.md
+  - /cli/node-runtime.md
 ---
 
 # Python 以外の実行環境からも使えるようにする
@@ -27,7 +29,7 @@ related:
 Python 環境を前提にしないインストール手段を用意する。TypeScript / Node のリポジトリで、
 ドキュメントツールのためだけに Python を入れさせたくない。
 
-## 背景・現状
+## 背景・現状（起票時）
 
 - 実装は Python 専用。`pyproject.toml` は `requires-python = ">=3.11"`、依存は
   `markdown-it-py` と `pyyaml` の 2 つ。
@@ -41,7 +43,7 @@ Python 環境を前提にしないインストール手段を用意する。Type
   言語は問わない。JS / TS リポジトリでこそ使いたいのに、そこに Python 依存を持ち込むのは
   導入の障壁になる。
 
-## 進め方
+## 進め方（起票時の比較）
 
 まず配布方式を決める。**実装を 2 つ持つかどうか**が分かれ目。
 
@@ -65,15 +67,27 @@ Python 環境を前提にしないインストール手段を用意する。Type
    okf new doc --layer shared --type "Decision Record" --title "Python 以外の配布方式" --slug distribution
    ```
 
+## 2026-09-10の決定
+
+起票時のA案優先・B案回避は、利用者によるNode.js実装の追加選択で置き換えた。
+[決定記録](/project/decisions/0001-node-runtime.md)に従いJavaScriptの独立実装を追加し、
+設定・scaffold・HTMLアセットを共有して、Node単独テストとPython版との生成内容比較を行う。
+`okf`というコマンド名を維持し、既存hookを2ファイルだけ更新する手順も案内する。
+なお `render --check` は生成可能性の検査であり、HTMLの保存済みバイト列との比較ではない。
+
 ## 完了条件
 
-- [ ] 配布方式の決定が Decision Record として残っている
-- [ ] Python を入れていない環境で `okf lint` が実行できる
-- [ ] `.okf/hooks/` のラッパーが新しい実行経路を見つけられる
-- [ ] 影響ドキュメントを更新した（`okf affected` の出力）
-- [ ] 該当層の `log.md` に追記した
-- [ ] 本ファイルの `state` を `done` にし `done_at` を記入した
+- [x] 配布方式の決定が Decision Record として残っている
+- [x] Python を入れていない環境で `okf lint` が実行できる（PATHからPythonを除いたテスト）
+- [x] `.okf/hooks/` のラッパーが新しい実行経路を見つけられる
+- [x] 影響ドキュメントを更新した（`okf affected` の出力）
+- [x] 該当層の `log.md` に実コミットハッシュ付きエントリを生成した
+- [x] 本ファイルの `state` を `done` にし `done_at` を記入した
 
 ## 結果
 
-<完了時に記入する。PR / コミットへのリンク、実際に変更したファイル、想定と違った点。>
+`node/*.mjs`、`package.json`、`package-lock.json` と `tests/node/*.mjs` を追加し、共有hookを更新した。
+READMEと[利用手順](/cli/node-runtime.md)からチェックアウト・tgz導入・既存hook更新を辿れる。
+`npm pack` の配布物を別ディレクトリへオフラインインストールし、init → index → lint → renderを実行した。
+新実装はPythonを取得・起動しない。比較テストの開発環境にはPythonが必要。npmレジストリへの公開は未実施。
+実装コミット `41f58f1` の後に `okf log --write` を実行し、cli・render・scaffoldの3層へハッシュ付きエントリを生成した。

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "base": "c14025aea7e7f5e5c40bbe8ee25b37e00cf5d35c",
+  "worklog": "harness/state/journal/B-0007-node-runtime.md",
+  "changes": [
+    {"path": ".github/workflows/ci.yml", "reason": "既存Python jobを保持し、Windows/UbuntuとNode22/24の独立・比較テストを追加する。"},
+    {"path": "harness/project/config.md", "reason": "Node実装の検証コマンドとnpm設定の保護対象を追記し、既存Python必須検証を維持する。"},
+    {"path": "harness/project/check_changes.py", "reason": "Nodeテストを定義するpackage.jsonと依存lockを追加保護し、既存の分類と検証を維持する。"},
+    {"path": "okf.yml", "reason": "追加したNode実装を既存cli/render/scaffold層へ対応付ける。"},
+    {"path": "package.json", "reason": "Python不要CLIのbin、配布資産、Node検証スクリプト、依存を定義する。"},
+    {"path": "package-lock.json", "reason": "Node実装の依存バージョンとintegrityを固定する。"},
+    {"path": "tests/test_harness_changes.py", "reason": "npmスクリプトとlockが無宣言で変更できないことの回帰検証を追加する。"},
+    {"path": "tests/node/helpers.mjs", "reason": "実バンドルを変更しない一時Git・CLI実行と生成ファイル比較の補助を追加する。"},
+    {"path": "tests/node/native.test.mjs", "reason": "Python不要の10コマンド、書き込み境界、hook、冪等性、gateを検証する。"},
+    {"path": "tests/node/compatibility.test.mjs", "reason": "共通入力で既存Python CLIとNode CLIの生成ファイル・レポートを比較する。"}
+  ]
+}

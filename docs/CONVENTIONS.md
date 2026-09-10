@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: process:okf-devkit
-  at: 2026-09-07T11:39:02Z
+  at: 2026-09-10T14:28:26Z
 related:
   - /AGENTS.md
 ---
@@ -245,9 +245,9 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | ファイル | 記録するもの | 対応するコード |
 |---|---|---|
 | `docs/log.md` | リリース・大きな節目のみ（自動追記の対象外） | — |
-| `docs/cli/log.md` | CLI 本体とサブコマンドの変更 | `src/okf_devkit/cli.py` ほかパッケージ本体 / `tests/**` |
-| `docs/render/log.md` | 閲覧用 HTML 生成の変更 | `src/okf_devkit/renderer.py` / `src/okf_devkit/assets/**` / `tests/test_render.py` |
-| `docs/scaffold/log.md` | `okf init` が配る雛形と既定設定の変更 | `src/okf_devkit/scaffold/**` / `src/okf_devkit/defaults.yml` / `tests/test_init.py` |
+| `docs/cli/log.md` | CLI 本体とサブコマンドの変更 | `src/okf_devkit/cli.py` ほかパッケージ本体 / 下記以外の `node/**` / `tests/**` |
+| `docs/render/log.md` | 閲覧用 HTML 生成の変更 | `src/okf_devkit/renderer.py` / `node/renderer.mjs` / `src/okf_devkit/assets/**` / `tests/test_render.py` |
+| `docs/scaffold/log.md` | `okf init` が配る雛形と既定設定の変更 | `src/okf_devkit/scaffold/**` / `node/scaffold.mjs` / `src/okf_devkit/defaults.yml` / `tests/test_init.py` |
 
 振り分けの正は `okf.yml` の `layer_map`（上から順に最初にマッチした層を採用する）。
 この表を変えたら `layer_map` も必ず合わせること。
