@@ -13,11 +13,11 @@
 
 ### Issue tracker
 
-新規課題は `docs/backlog/T-NNNN-<kebab>.md` で管理する。作成・更新前に [課題管理規約](docs/agents/issue-tracker.md) と [執筆規約](docs/CONVENTIONS.md) を読む。GitHub Issues、外部tracker、PR、`.scratch/` は受付・管理先にしない。
+新規課題は [GitHub Issues](https://github.com/shirashu687/okf-devkit/issues) で管理する。作成・更新前に [課題管理規約](docs/agents/issue-tracker.md) を読む。`docs/backlog/`、外部tracker、PR、`.scratch/` は受付・管理先にしない。
 
 ### Triage labels
 
-課題の分類時は [triageラベル](docs/agents/triage-labels.md) を読み、`tags` にカテゴリ1つと状態ラベル1つを記録する。
+課題の分類時は [triageラベル](docs/agents/triage-labels.md) を読み、Issue にカテゴリ1つと状態ラベル1つを付ける。
 
 ### Domain docs
 

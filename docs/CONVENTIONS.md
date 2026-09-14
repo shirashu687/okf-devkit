@@ -6,10 +6,11 @@ tags: [docs, okf, convention]
 status: stable
 layer: shared
 generated:
-  by: process:okf-devkit
-  at: 2026-09-07T11:39:02Z
+  by: devin/swe-2-max
+  at: 2026-09-14T15:25:14Z
 related:
   - /AGENTS.md
+  - /agents/issue-tracker.md
 ---
 
 # ドキュメント執筆規約
@@ -268,7 +269,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | Backlog | `T-NNNN-<kebab>.md`（4桁連番） | `T-0001-readme-update.md` |
 | 予約ファイル | `index.md` / `log.md` のみ | — |
 
-新規Backlogは `okf.yml` の `backlog.prefix: T` に従って採番する。導入前の `B-0001`〜`B-0009` は既存ID・ファイル名・相互参照・進捗を保持し、更新も同じファイルで行う。
+新規Backlogは `okf.yml` の `backlog.prefix: T` に従って採番する。なおこのリポジトリの課題管理は GitHub Issues へ移管済みであり、旧 `B-0001`〜`B-0009` は Issue #4〜#12 へ移して削除した（[課題管理規約](/agents/issue-tracker.md)）。
 
 `_` で始まるディレクトリ（`_templates/`）は**バンドル対象外**として扱われ、index にも lint にも現れない。
 
