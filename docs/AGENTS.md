@@ -6,10 +6,11 @@ tags: [docs, okf, guide]
 status: stable
 layer: shared
 generated:
-  by: process:okf-devkit
-  at: 2026-09-07T11:39:02Z
+  by: devin/swe-2-max
+  at: 2026-09-14T15:25:14Z
 related:
   - /CONVENTIONS.md
+  - /agents/issue-tracker.md
 ---
 
 # docs ディレクトリの歩き方
@@ -35,7 +36,6 @@ related:
 | `AGENTS.md` | 本ファイル | 手書き |
 | `project/` | 層をまたぐ知識（概要・用語集・ADR） | 手書き / LLM |
 | `cli/` `render/` `scaffold/` | 層ごとの仕様・手順書 | 手書き / LLM |
-| `backlog/` | やること1件1ファイル | `okf new backlog` |
 | `_templates/` | テンプレート集。**バンドル対象外**（index にも lint にも出ない） | 手書き |
 | `_assets/` / `*.html` | `okf render` の閲覧用生成物。**バンドル対象外・Git管理外** | 手で編集しない |
 
@@ -54,7 +54,6 @@ related:
 | 一覧・仕様（API / コンポーネント / テーブル） | `Reference` | `_templates/reference.md` |
 | 手順書・使い方 | `How-To` | `_templates/how-to.md` |
 | 設計判断の記録（なぜそうしたか） | `Decision Record` | `_templates/decision-record.md` |
-| やりたいこと | `Backlog Item` | `_templates/backlog-item.md` |
 | 用語集 | `Glossary` | `_templates/glossary.md` |
 | プロジェクト全体像 | `Project Overview` | — |
 | 執筆規約 | `Convention` | — |
@@ -77,11 +76,13 @@ okf sync
 
 ### C. ユーザーが「やりたいこと」を言ったとき
 
+このリポジトリの作業項目は GitHub Issues で管理する（[課題管理規約](/agents/issue-tracker.md)）。
+
 ```bash
-okf new backlog --title "<やりたいこと>" --layer <layer>
+gh issue create --title "<やりたいこと>" --label needs-triage
 ```
 
-ID 採番と frontmatter はスクリプトが埋める。LLM は `## 背景・現状` `## 進め方` `## 完了条件` を調査して記入する。
+LLM は背景・進め方・完了条件を調査して Issue 本文に記入する。`docs/backlog/` には起票しない。
 
 ### D. 作業が完了したとき — 完了の定義
 
@@ -89,7 +90,7 @@ ID 採番と frontmatter はスクリプトが埋める。LLM は `## 背景・�
 
 1. 影響ドキュメントの本文更新（対象は `okf affected` が出力するもの）
 2. 該当層 `docs/<layer>/log.md` への追記（`okf log --write` で生成）
-3. 対応する `docs/backlog/*.md` の `state:` 更新（完了なら `state: done` + `done_at`）
+3. 対応する GitHub Issue の更新（完了ならクローズ）
 
 ## 4. やってはいけないこと
 
@@ -107,8 +108,6 @@ okf log --write              # git 履歴から log.md に追記
 okf lint                     # OKF 適合 + 語彙検証
 okf stale                    # 陳腐化レポート
 okf affected --base main     # 更新すべきドキュメントを列挙
-okf new backlog --title "..." --layer shared
-okf status                   # backlog 集計
 okf render                   # Markdown の隣に閲覧用 HTML を生成
 okf render --output _site    # 公開用の独立サイトを生成
 okf sync                     # index → log → lint → stale を一括

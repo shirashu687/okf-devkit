@@ -1,30 +1,29 @@
 ---
 type: Convention
 title: Issue tracker 運用
-description: docs/backlog をローカルの課題管理先として運用する規約。
-tags: [agents, backlog]
+description: GitHub Issues をこのリポジトリの課題管理先として運用する規約。
+tags: [agents, issues]
 status: stable
 layer: shared
 generated:
-  by: process:okf-devkit
-  at: 2026-09-07T11:39:02Z
+  by: devin/swe-2-max
+  at: 2026-09-14T15:25:14Z
 related:
   - /CONVENTIONS.md
   - /agents/triage-labels.md
 ---
 
-# Issue tracker: docs/backlog
+# Issue tracker: GitHub Issues
 
-このリポジトリでは、作業項目を docs/backlog/ の Markdown ファイルで管理する。
+このリポジトリでは、作業項目を [GitHub Issues](https://github.com/shirashu687/okf-devkit/issues) で管理する。
 
 ## 規約
 
-- 新しい作業項目は1タスク1ファイルとし、docs/backlog/T-NNNN-<kebab>.md に置く。既存IDの扱いは [執筆規約 §8](/CONVENTIONS.md#8-ファイル命名) に従う。
-- 新規作成には、既存の仮想環境の .venv/Scripts/python.exe -m okf_devkit.cli new backlog --title "..." --layer shared を使う。
-- state は todo / doing / done / dropped の進捗であり、triage ラベルとは別に扱う。
-- .scratch/、GitHub Issues、外部 Issue tracker は使わない。PR は受付対象にしない。
-- 詳細な frontmatter と完了条件は docs/CONVENTIONS.md に従う。
+- 新しい作業項目は1タスク1Issueとし、`gh issue create` で起票する。起票時は `needs-triage` ラベルを付ける。
+- Issue の open / closed が進捗であり、triage ラベルとは別に扱う。
+- `docs/backlog/`、`.scratch/`、外部 Issue tracker は使わない。PR は受付対象にしない。
+- 旧 `docs/backlog/` の B-0001〜B-0009 は 2026-09-15 に Issue #4〜#12 へ移管し、ファイルは削除した。移行前の本文は git 履歴を参照する。
 
 ## triage
 
-tags には既存タグを保持したうえで、カテゴリ1つと状態ラベル1つを追加する。対応表は triage-labels.md にある。
+Issue には既存ラベルを保持したうえで、カテゴリ1つと状態ラベル1つを付ける。対応表は [triage-labels.md](/agents/triage-labels.md) にある。

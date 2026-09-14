@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "base": "2139a799580a3da651bfcdc03d4fb44a4c9c3e2f",
+  "worklog": "harness/state/journal/migrate-to-github-issues.md",
+  "changes": [
+    {
+      "path": "AGENTS.md",
+      "reason": "課題管理先を docs/backlog から GitHub Issues へ移管する利用者依頼に従い、入口の Issue tracker / triage 記述を新しい管理先へ更新する。"
+    },
+    {
+      "path": "harness/project/config.md",
+      "reason": "同上。役割対応表の課題作成・更新先と主要導線の backlog 索引参照を GitHub Issues へ更新する。"
+    }
+  ]
+}

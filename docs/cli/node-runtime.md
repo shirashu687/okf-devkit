@@ -6,8 +6,8 @@ tags: [cli, node, distribution]
 status: stable
 layer: cli
 generated:
-  by: process:okf-devkit
-  at: "2026-09-10T12:00:00Z"
+  by: devin/swe-2-max
+  at: "2026-09-14T15:25:14Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -16,7 +16,6 @@ code_globs:
   - src/okf_devkit/scaffold/hooks/*
 related:
   - /project/decisions/0001-node-runtime.md
-  - /backlog/B-0007-non-python-runtime.md
 ---
 
 # Node.js版をPythonなしで使う

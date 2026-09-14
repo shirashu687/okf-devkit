@@ -6,14 +6,13 @@ tags: [decision, node, distribution]
 status: stable
 layer: shared
 generated:
-  by: process:okf-devkit
-  at: "2026-09-10T12:00:00Z"
+  by: devin/swe-2-max
+  at: "2026-09-14T15:25:14Z"
 code_globs:
   - node/*.mjs
   - package.json
   - tests/node/*.mjs
 related:
-  - /backlog/B-0007-non-python-runtime.md
   - /cli/node-runtime.md
 ---
 
@@ -25,7 +24,7 @@ related:
 ## 背景
 
 Pythonのない環境で同等のCLIを使いたいという依頼があり、利用者はNode.js版の追加を選択した。
-従来のB-0007ではバイナリ配布を本命とし、二重実装の維持費を理由に移植を避ける方向だった。
+[従来のB-0007](https://github.com/shirashu687/okf-devkit/issues/10)ではバイナリ配布を本命とし、二重実装の維持費を理由に移植を避ける方向だった。
 
 ## 選択肢
 

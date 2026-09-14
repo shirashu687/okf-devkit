@@ -16,7 +16,7 @@
 | 通常・大の作業記録 | [worklog.md](../core/templates/worklog.md) を `harness/state/journal/<task-id-or-slug>.md` に複製。小作業は省略可、中断時は必須 |
 | 保護対象・上流管理ファイルの変更検査 | [check_changes.py](check_changes.py)。開始SHAから作業ツリーまたはbase/headの2コミットを検査 |
 | 正当な変更の機械可読な宣言 | `harness/state/journal/<task-id-or-slug>.changes.json`。目的・確認の正本は対応するworklog |
-| 課題の作成・更新 | [課題管理規約](../../docs/agents/issue-tracker.md) と [backlog索引](../../docs/backlog/index.md) |
+| 課題の作成・更新 | [課題管理規約](../../docs/agents/issue-tracker.md) と [GitHub Issues](https://github.com/shirashu687/okf-devkit/issues) |
 | 受付課題の分類 | [triageラベル](../../docs/agents/triage-labels.md) |
 | ドメイン語・設計判断 | [配置規約](../../docs/agents/domain.md)、[CONTEXT.md](../../CONTEXT.md)、[Decision Record索引](../../docs/project/decisions/index.md)。ADR本文は必要になったときに作る |
 | OKF文書の編集 | [docs入口](../../docs/AGENTS.md) と [執筆規約](../../docs/CONVENTIONS.md) |
@@ -112,7 +112,7 @@ full retrospectiveの実行条件、トリガーなし・根拠不足・トリ�
 - 主要導線は次のとおりで、リンク先の現物を確認する。
   - [CONTEXT.md](../../CONTEXT.md)、[README.md](../../README.md)、[docs/CONVENTIONS.md](../../docs/CONVENTIONS.md) — 現行の用語・利用方法・OKF規約。
   - [docs/index.md](../../docs/index.md) → 子ディレクトリの索引 → 実在する文書。生成indexのリンクは `relative`。
-  - [docs/backlog/index.md](../../docs/backlog/index.md) → 対象側のbacklog索引。mainから取り込んだ既存Backlogを保持し、新規採番と既存IDの扱いは [執筆規約](../../docs/CONVENTIONS.md) に従う。
+  - [GitHub Issues](https://github.com/shirashu687/okf-devkit/issues) → 課題管理先。旧 `docs/backlog/` の B-0001〜B-0009 は Issue #4〜#12 へ移管済み。
   - [docs/project/decisions/index.md](../../docs/project/decisions/index.md) — ADR索引。Node.js実装の追加判断を記録する。
   - [T-0007 worklog](../state/journal/T-0007-obsidian-okf.md) — 現在の進行中作業の状態・検証・残存リスク。
   - [改善台帳](../ledger.md) — T-0006で設置された評価中の観測と根拠worklog。
