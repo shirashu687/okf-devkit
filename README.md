@@ -52,6 +52,40 @@ pip install okf-devkit
 
 Python 3.11+ / Windows・macOS・Linux 対応。依存は `markdown-it-py` と `PyYAML` のみ。
 
+### Python がない環境（Node.js 版）
+
+Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を扱う `log` / `affected --base` とhookにはGitも必要。
+Node.js版はこのリポジトリから利用できる。npmレジストリへの公開は未実施。
+
+```powershell
+# このリポジトリ内で実行（PowerShell / bash 共通）
+npm ci
+node node/cli.mjs --help
+node node/cli.mjs lint
+node node/cli.mjs index --check
+
+# 別プロジェクトを対象にする（--root のパスは置き換える）
+node node/cli.mjs --root "C:/path/to/project" init --layer "app=src/**"
+node node/cli.mjs --root "C:/path/to/project" index --write
+node node/cli.mjs --root "C:/path/to/project" render
+```
+
+別プロジェクトから通常の `okf` コマンドとして使う場合は、パッケージを作ってローカルインストールする。
+
+```powershell
+# okf-devkit のチェックアウトで実行
+npm pack
+
+# 導入先プロジェクトで実行（tgzのパスは置き換える）
+npm install --save-dev "C:/path/to/okf-devkit/okf-devkit-0.1.0.tgz"
+npm exec -- okf init --layer "app=src/**"
+npm exec -- okf index --write
+npm exec -- okf lint
+```
+
+Python本体の取得・起動は行わない。設定・テンプレート・HTMLアセットはPython版と共用し、生成物の比較テストを持つ。
+詳細な対応範囲と既存hookの更新方法は [Node.js版の利用手順](docs/cli/node-runtime.md) を参照する。
+
 ## クイックスタート
 
 ```bash
@@ -210,6 +244,9 @@ LLM に差し戻したい場合は別コマンドの `okf sync --gate` を使う
 python -m venv .venv
 .venv/Scripts/python -m pip install -e .   # POSIX: .venv/bin/python
 python tests/run_all.py                    # 標準ライブラリの unittest のみ
+npm ci
+npm test                                  # Python不要のNodeテスト
+npm run test:compat                       # .venv のPython版との生成結果比較
 ```
 
 テストは実バンドルに触れず、一時ディレクトリ上のバンドルと一時 git リポジトリで完結する。

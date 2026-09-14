@@ -1,0 +1,30 @@
+{
+  "name": "okf-devkit",
+  "version": "0.1.0",
+  "description": "Keep an OKF v0.2 documentation bundle in sync with code, without Python.",
+  "type": "module",
+  "bin": {
+    "okf": "node/cli.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "node/*.mjs",
+    "src/okf_devkit/defaults.yml",
+    "src/okf_devkit/scaffold/",
+    "src/okf_devkit/assets/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "okf": "node node/cli.mjs",
+    "test": "node --test tests/node/native.test.mjs",
+    "test:compat": "node --test tests/node/compatibility.test.mjs"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0",
+    "yaml": "^2.8.1"
+  },
+  "license": "MIT"
+}

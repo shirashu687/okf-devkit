@@ -1,4 +1,7 @@
 # Python
+node_modules/
+*.tgz
+.npm-cache/
 __pycache__/
 *.py[cod]
 *.egg-info/
