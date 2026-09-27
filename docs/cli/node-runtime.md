@@ -6,8 +6,8 @@ tags: [cli, node, distribution]
 status: stable
 layer: cli
 generated:
-  by: process:codex
-  at: "2026-09-27T03:40:00Z"
+  by: devin/swe-2-max
+  at: "2026-09-27T10:42:00Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -15,6 +15,7 @@ code_globs:
   - tests/node/*.mjs
   - src/okf_devkit/scaffold/hooks/*
   - src/okf_devkit/scaffold/*.tmpl
+  - src/okf_devkit/scaffold/templates/*
   - src/okf_devkit/cli.py
   - tests/test_init.py
 related:
@@ -48,7 +49,7 @@ npm run okf -- lint
 
 初回のinstallは `package.json` がないプロジェクトにも依存の記録を作成する。
 `package.json` と `package-lock.json` をGitに保存し、`node_modules/` を `.gitignore` に追加する。
-initは既存のpackage設定やlockfileを書き換えない。空でない文字列の `scripts.okf` があれば、生成するAGENTS・CONVENTIONS・logの例と完了メッセージを `npm run okf --` に揃える。設定がなければ従来の `okf` 表記を維持する。既存文書は通常のinitでは保持される。
+initは既存のpackage設定やlockfileを書き換えない。空でない文字列の `scripts.okf` があれば、生成するAGENTS・CONVENTIONS・log・`_templates` の呼出し例と完了メッセージを `npm run okf --` に揃える。設定がなければ従来の `okf` 表記を維持する。既存文書は通常のinitでは保持される。
 
 ### 新しいclone・worktreeと更新
 
