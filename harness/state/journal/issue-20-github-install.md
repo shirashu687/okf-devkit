@@ -1,4 +1,4 @@
-# 作業記録: Issue #20 統合した固定版をGitHubから導入し、再現できる検証結果と履歴を揃える（第1段階）
+# 作業記録: Issue #20 統合した固定版をGitHubから導入し、再現できる検証結果と履歴を揃える（第1・第2段階）
 
 このファイルは1作業1枚の状態記録であり、仕様・チケット・会話全文の複製ではない。配置は [config.md](../../project/config.md) の「作業記録と引継ぎ」に従う。
 
@@ -6,15 +6,15 @@
 
 | 項目 | 値 |
 | --- | --- |
-| 課題ID / 作業名 | `issue-20` / `issue-20-github-install`（GitHub Issue #20、第1段階: 変更履歴生成と統合版検証） |
-| 状態 | `完了`（第1段階のみ。第2段階の導入smoke・Issue更新は別工程） |
+| 課題ID / 作業名 | `issue-20` / `issue-20-github-install`（GitHub Issue #20。第1段階: 変更履歴生成と統合版検証、第2段階: push済み統合版のGitHub導入確認） |
+| 状態 | `完了`（第1・第2段階。Issue更新・クローズは別工程） |
 | 作業場所 | `C:/Users/rinta/orca/workspaces/okf-devkit/issue-20` |
 | ブランチ | `shirashu687/npm-issue-20` |
-| 開始日時 / 最終更新日時 | `2026-09-27T10:30:00Z` / `2026-09-27T10:55:00Z` |
+| 開始日時 / 最終更新日時 | `2026-09-27T10:30:00Z` / `2026-09-27T11:00:00Z` |
 | 開始SHA | `9d72e0e5798883d81789582d8879f139865d37b5`（依頼で固定された比較点。作業基盤は統合済みHEAD `4beaba6d2ae70c6ef935a556c888343849a7f5a2`） |
 | 最新HEAD | 本worklogを含むローカルコミット（`shirashu687/npm-issue-20` 先端） |
 | 作業者 / 製品 / モデル | Orca dispatched worker / Devin / SWE-2 Max |
-| 証拠の保存先 | 本worklogとコミット履歴のみ（smoke証拠なし。認証情報・ログ全文は保存しない） |
+| 証拠の保存先 | 第1段階は本worklogとコミット履歴のみ。第2段階smoke: `%LOCALAPPDATA%/Temp/okf i20 1790506313/`（gh-proj・fresh・fakebin・npmcache。認証情報・ログ全文は保存しない） |
 
 ## 目的・範囲
 
@@ -150,3 +150,39 @@ Issue #20 の受入条件「仕様軸・標準軸のレビュー結果を記録�
 ## 完了 / 中断要約
 
 統合済みHEAD `4beaba6` を対象に Issue #20 第1段階を完了した。`affected --base 9d72e0e` の影響文書を照合し、`node-runtime.md` への `_templates` 明記と `code_globs` 補完で整合させた。`log --range 9d72e0e..HEAD --write` で cli・scaffold 両層の `log.md` へ実在コミット（`2c3050d`・`3b32025`）を出典とする追記を行い、未コミット変更への架空出典はない。必須検証は全て成功: index --write/lint（error 0・warn 0）/index --check、Python 171件・Node 13件・互換8件、`check_changes.py` 終了0（新規宣言不要）。先行の失敗・実行不能履歴は保持したまま本段階の対象版と区別して記録した。繰越: `okf.yml.tmpl` の裸 `okf` 表記（監督者判断で対象外確定・説明的参照のため現状維持）、GitHub実導入smoke（第2段階）、CI・他OS未検証。retroトリガーなしで IMP-0009 は作らない。
+
+## 追記: 2026-09-27 第2段階 — push済み統合版のGitHub導入確認
+
+### 対象版と前提
+
+- 導入元SHA: `662023f57b4ed961ece76621ab208aaf6d190822`（`origin/shirashu687/npm` としてpush済みの統合版。本worktreeの第1段階コミット `6660722` を祖先に含むことを `git merge-base --is-ancestor` で確認）
+- 環境: Windows、Node v24.21.0、npm 11.19.0。グローバルの `okf` はPATH上に非存在（`which okf` で確認）
+- smoke配置: `%LOCALAPPDATA%/Temp/okf i20 1790506313/` 配下。パスに空白を含み、親ディレクトリに package.json・okf.yml がない独立ルート（IMP-0006 の対処案どおり）
+
+### 実施した操作と結果（4値）
+
+| 識別子 | 適用 | 結果 | 対象・確認 | 終了状態・証拠 | 理由・限界 / 再試行 |
+| --- | --- | --- | --- | --- | --- |
+| gh-install | はい | 成功 | 空の `gh-proj` で `npm install --save-dev "git+https://github.com/shirashu687/okf-devkit.git#662023f…"` | 終了0、added 9 packages。`package-lock.json` の resolved が対象SHA `662023f57b4ed961ece76621ab208aaf6d190822` と一致 | 公開済み統合版の取得のみ検証 |
+| scripts-check | はい | 成功 | `npm pkg get scripts.okf` → `{}`（未設定）→ `npm pkg set "scripts.okf=node node_modules/okf-devkit/node/cli.mjs"` | 既存用途の上書きなし | なし |
+| init-guidance | はい | 成功 | `npm run okf -- init --layer "app=src/**"` → 生成物確認 | 終了0。「次の手順」3-4 が `npm run okf --`。生成 `docs/` 全体（AGENTS・CONVENTIONS・`_templates`・各 log.md）に裸 `okf` 呼出し0件・未展開 `{{` 0件。AGENTS 20箇所・CONVENTIONS 9箇所が `npm run okf --` 表記 | IMP-0008 の教訓で列挙ファイルに限定せず生成ツリー全体を確認。生成 `okf.yml` のコメント内 `okf` 言及は監督者判断どおり説明的参照として対象外 |
+| index-lint | はい | 成功 | 生成案内どおり `npm run okf -- index --write` → `npm run okf -- lint` | 各終了0、index 3件生成、`lint: error 0 件 / warn 0 件` | 空白を含むパスで実行 |
+| path-independence | はい | 成功 | `fakebin` に終了93・`FAKE_OKF_USED` を出す偽 `okf`/`okf.cmd` をPATH先頭へ置き、Python系・元clone先のPATH要素を除去して `npm run okf -- lint` | 終了0、`error 0 / warn 0`、`FAKE_OKF_USED` 出力なし | 導入済みローカルCLI（`node node_modules/okf-devkit/…`）を使用。Python・グローバルokf・元cloneに非依存 |
+| missing-dependency | はい | 成功 | `node_modules/okf-devkit` を一時rename → `npm run okf -- lint` | 終了1、`MODULE_NOT_FOUND`、偽okfへの切替なし。復元後の再実行は終了0 | 期待した失敗を検証 |
+| fresh-lock | はい | 成功 | `package.json`+`package-lock.json` を独立 `fresh/` へコピー、新規 `--cache` で `npm ci` → init → `index --write` → `lint` | 各終了0、`lint error 0 / warn 0` | 親プロジェクト設定に依存しない再導入。同一マシン上の確認であり別PCではない |
+| CI・他OS・別PC | いいえ | — | — | — | ローカル Windows のみ。ローカル成功から他環境の成功を推定しない |
+
+### 再試行履歴（第2段階）
+
+- なし（全確認が初回成功。既存の失敗履歴: Issue #14の初回smoke配置ミス・venv実行不能、Issue #18の最終コミット再検証は保持）
+
+### 摩擦観測とretroゲート（第2段階）
+
+- 確認範囲: 依頼手順1-8、対象SHAの祖先関係、全smoke操作と終了状態、生成物の表記確認、第1段階の検証記録を照合。
+- 該当条件: トリガーなし。親探索失敗（IMP-0006）の再発なく、要件欠落・検証漏れ・手戻り反復なし。
+- 処理済み事象・台帳ID: なし（IMP-0009 以降の台帳更新なし）。
+- 未確認範囲と次の一手: CI・他OS・別PCは未検証。Issue #20 の受入条件チェック更新とクローズ判断は利用者の操作として残る。
+
+## 完了 / 中断要約（第2段階を含む最終版）
+
+第1段階で統合HEAD `4beaba6` の変更履歴生成（cli・scaffold両層へ実在コミット `2c3050d`・`3b32025` の追記）と影響文書の整合（`node-runtime.md` へ `_templates` 明記・`code_globs` 補完）を行い、コミット `6660722` として記録した。第2段階で、そのコミットを祖先に含むpush済み統合版 `662023f57b4ed961ece76621ab208aaf6d190822` を、空白を含む独立した空の利用先へGitHubから導入し、`scripts.okf` 設定→init→生成案内どおりの `index --write`・`lint` まで全て成功した。生成物は `npm run okf --` 表記に揃い、`_templates` を含め裸 `okf` 呼出し・未展開トークンは0件。PATH先頭の偽okf・Python非存在でもローカルCLIを使い、`node_modules/okf-devkit` 欠落時は終了1で失敗し復元を確認した。`package.json`+`package-lock.json` のみの独立フォルダで新規キャッシュの `npm ci` から同じ操作が再現した。必須検証（Python 171件・Node 13件・互換8件・文書検査・宣言検査）は第1段階の対象版で全て成功。繰越・限界: `okf.yml.tmpl` の裸 `okf` 表記は監督者判断で対象外（説明的参照）、CI・他OS・別PCは未検証、Issueのチェック更新・クローズは別工程。retroトリガーなし。
