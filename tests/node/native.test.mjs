@@ -95,6 +95,16 @@ test("init documents the project's npm command and preserves its package setup",
     assert.doesNotMatch(text, /(^|`)okf /m);
     assert.doesNotMatch(text, /\{\{/);
   }
+  for (const name of fs.readdirSync(path.join(root, "docs/_templates"))) {
+    const text = fs.readFileSync(path.join(root, "docs/_templates", name), "utf8");
+    assert.doesNotMatch(text, /(^|`)okf /m, name);
+    assert.doesNotMatch(text, /\{\{/, name);
+  }
+  for (const name of ["log.md", "backlog-item.md"])
+    assert.match(
+      fs.readFileSync(path.join(root, "docs/_templates", name), "utf8"),
+      /npm run okf --/,
+    );
   assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), pkg);
   assert.equal(fs.readFileSync(path.join(root, "package-lock.json"), "utf8"), "existing lock\n");
 });
@@ -105,6 +115,14 @@ test("init keeps the standalone command without a usable npm script", (t) => {
     put(root, "package.json", pkg);
     assert.match(ok(run(root, ["init", "--force"])), /3\. okf index --write/);
     assert.match(fs.readFileSync(path.join(root, "docs/AGENTS.md"), "utf8"), /^okf lint/m);
+    assert.match(
+      fs.readFileSync(path.join(root, "docs/_templates/log.md"), "utf8"),
+      /`okf log --write`/,
+    );
+    assert.match(
+      fs.readFileSync(path.join(root, "docs/_templates/backlog-item.md"), "utf8"),
+      /`okf affected`/,
+    );
     assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), pkg);
   }
 });

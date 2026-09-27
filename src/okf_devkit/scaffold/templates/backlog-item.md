@@ -36,7 +36,7 @@ related: []
 ## 完了条件
 
 - [ ] <満たすべき条件>
-- [ ] 影響ドキュメントを更新した（`okf affected` の出力）
+- [ ] 影響ドキュメントを更新した（`{{OKF_COMMAND}} affected` の出力）
 - [ ] 該当層の `log.md` に追記した
 - [ ] 本ファイルの `state` を `done` にし `done_at` を記入した
 

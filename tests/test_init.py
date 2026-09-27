@@ -76,6 +76,15 @@ class InitTests(OkfTestCase):
             self.assertIn("npm run okf --", text)
             self.assertNotIn("`okf ", text)
             self.assertNotIn("{{", text)
+        templates = self.repo / "docs" / "_templates"
+        for tmpl in sorted(templates.glob("*.md")):
+            text = tmpl.read_text(encoding="utf-8")
+            self.assertNotIn("`okf ", text, tmpl.name)
+            self.assertNotIn("{{", text, tmpl.name)
+        for name in ("log.md", "backlog-item.md"):
+            self.assertIn(
+                "npm run okf --", (templates / name).read_text(encoding="utf-8"), name
+            )
         self.assertEqual(pkg, (self.repo / "package.json").read_text(encoding="utf-8"))
 
     def test_unusable_package_script_keeps_standalone_command(self) -> None:
@@ -83,6 +92,20 @@ class InitTests(OkfTestCase):
             with self.subTest(pkg=pkg):
                 (self.repo / "package.json").write_text(pkg, encoding="utf-8")
                 self.assertIn("3. okf index --write", run_init(force=True))
+                self.assertIn(
+                    "`okf log --write`",
+                    (self.repo / "docs/_templates/log.md").read_text(encoding="utf-8"),
+                )
+                self.assertIn(
+                    "`okf affected`",
+                    (self.repo / "docs/_templates/backlog-item.md").read_text(
+                        encoding="utf-8"
+                    ),
+                )
+                self.assertNotIn(
+                    "{{",
+                    (self.repo / "docs/_templates/log.md").read_text(encoding="utf-8"),
+                )
                 self.assertEqual(pkg, (self.repo / "package.json").read_text(encoding="utf-8"))
 
     def test_creates_config_bundle_templates_and_hooks(self) -> None:
