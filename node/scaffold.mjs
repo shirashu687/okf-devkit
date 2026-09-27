@@ -162,7 +162,10 @@ export function cmdInit(repo, args) {
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/templates"))
     .sort(compare))
-    plan.push([`${bundle}/_templates/${file}`, scaffold(`templates/${file}`)]);
+    plan.push([
+      `${bundle}/_templates/${file}`,
+      expand(scaffold(`templates/${file}`)),
+    ]);
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/hooks"))
     .sort(compare))

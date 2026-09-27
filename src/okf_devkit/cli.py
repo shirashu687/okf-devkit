@@ -2765,7 +2765,7 @@ def cmd_init(args) -> int:
     emit(f"{bundle_root}/CONVENTIONS.md", expand(_scaffold_text("CONVENTIONS.md.tmpl")))
 
     for tmpl in sorted((SCAFFOLD_DIR / "templates").glob("*.md")):
-        emit(f"{bundle_root}/_templates/{tmpl.name}", _scaffold_text(f"templates/{tmpl.name}"))
+        emit(f"{bundle_root}/_templates/{tmpl.name}", expand(_scaffold_text(f"templates/{tmpl.name}")))
     for hook in sorted((SCAFFOLD_DIR / "hooks").iterdir()):
         emit(f".okf/hooks/{hook.name}", _scaffold_text(f"hooks/{hook.name}"))
 
