@@ -10,7 +10,7 @@
 | 状態 | `完了` |
 | 作業場所 | `C:/Users/rinta/orca/workspaces/okf-devkit/issue-18` |
 | ブランチ | `shirashu687/npm-issue-18` |
-| 開始日時 / 最終更新日時 | 2026-09-27 18:30 Asia/Tokyo / 2026-09-27 19:00 Asia/Tokyo |
+| 開始日時 / 最終更新日時 | 2026-09-27 18:30 Asia/Tokyo / 2026-09-27 19:20 Asia/Tokyo |
 | 開始SHA | `2c3050df98422cbf258b7bd093468e338bc10afc`（引継ぎコミット。検査の比較元baseは `9d72e0e5798883d81789582d8879f139865d37b5`） |
 | 最新HEAD | 本worklogを含む最終コミット（ブランチ `shirashu687/npm-issue-18` 先端） |
 | 作業者 / 製品 / モデル | Orca dispatched worker / Devin / SWE-2 Max |
@@ -77,6 +77,8 @@ Issue #18「固定版をプロジェクトへ導入し、ローカルCLIで実�
 
 開始時台帳確認: 評価中6/10、試行0/3、採用済み0。期限超過の試行・見直し対象なし（全件 期限未定）。IMP-0006の対処案（独立一時ルート）を今回のsmoke配置に適用。
 
+追記（最終コミット再検証時）: 標準軸reviewで「検証表の対象版と記録時点の最終コミットの対応が識別不能」との指摘を現物と照合し、最終対象版での必須検証が記録から識別できない状態（検証漏れトリガー該当）を確認した。観測を `IMP-0007` として [改善台帳](../../ledger.md) へ登録し、修正として最終コミット `28194f733350df5ee738f1306f248f929e1d573a` への必須検証再実行と「最終コミット再検証」節の追記を行った。この再検証の実施自体に新たな摩擦・失敗・再試行はない。
+
 ## 検証
 
 | 識別子 | 適用 | 結果 | 対象版・範囲 | コマンド / 確認方法 | 期待条件 | 証拠 | 理由・限界 / 再試行 |
@@ -98,6 +100,21 @@ Issue #18「固定版をプロジェクトへ導入し、ローカルCLIで実�
 ### 再試行履歴
 
 - なし（初回実行で全て期待条件を満たした）
+
+### 最終コミット再検証（28194f7）
+
+標準軸reviewの指摘（上表の対象版「開始SHA + README修正」と記録時点の最終コミットとの対応付けが不明確で、最終対象版での必須検証が識別できない）への対応として、ブランチ最終コミット `28194f733350df5ee738f1306f248f929e1d573a` のコミット済みツリー（検証時点で作業ツリー差分・未追跡の対象なし）に対し必須検証を再実行した。上表の各行は当時の作業ツリーに対する記録として履歴を保持する。
+
+| 識別子 | 適用 | 結果 | 対象版・範囲 | コマンド / 確認方法 | 期待条件 | 証拠 | 理由・限界 / 再試行 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| project-required-final | はい | 成功 | 最終コミット `28194f733350df5ee738f1306f248f929e1d573a` のコミット済みツリー、junctionした既存venv 3.14.3 | `PYTHONPATH=<worktree>/src .venv/Scripts/python.exe tests/run_all.py` | 終了0・失敗0・エラー0 | 実行171件、失敗0、エラー0、終了0 | このworktreeのsrcを参照。別worktree・site-packages非参照をPYTHONPATHで担保 |
+| node-install-final | はい | 成功 | このcheckout | `npm ci` | 終了0 | added 8 packages、終了0 | Node v24.21.0 / npm 11.19.0 |
+| node-native-final | はい | 成功 | 最終コミット `28194f733350df5ee738f1306f248f929e1d573a` | `npm test` | 終了0・fail 0 | 13件 pass、fail 0、終了0 | 最終コミットの差分はREADME.md・docs/cli/node-runtime.md・本記録のみで、Node実装・依存・共有資産は開始SHAと同一。任意検証として再実行 |
+| node-compat-final | はい | 成功 | 同上 | `OKF_TEST_PYTHON=<worktree>/.venv/Scripts/python.exe PYTHONPATH=<worktree>/src npm run test:compat` | 終了0・fail 0 | 8件 pass、fail 0、終了0 | 同上 |
+| docs-final | はい | 成功 | 最終コミット `28194f733350df5ee738f1306f248f929e1d573a` のOKF文書 | `index --write` / `lint` / `index --check`（指定venv+PYTHONPATH） | 索引最新・error 0/warn 0・各終了0 | index --write「すべて最新」終了0、lint error 0/warn 0、index --check 終了0 | node-runtime補完を含む最終版で確認 |
+| change-declarations-final | はい | 成功 | base `9d72e0e5798883d81789582d8879f139865d37b5` → 最終コミット `28194f733350df5ee738f1306f248f929e1d573a` のコミット済みツリー | `.venv/Scripts/python.exe harness/project/check_changes.py --base 9d72e0e…` | 終了0 | 終了0・result=ok。tests/3件は issue-14-distribution.changes.json が宣言済み | 宣言の存在は承認や意味上の安全の証明ではない |
+| smoke各識別子（github-install / packed-working-tree / fresh-lock / missing-dependency / existing-script-check） | はい | 未実行 | 各識別子の記録対象版は上表のとおり | — | — | — | 最終コミットの差分はREADME.md・docs/cli/node-runtime.md・本記録の文書のみで、導入動作の検証対象（package.json・node/・src/・hook）は開始SHAと同一のため再実行せず未実行として記録 |
+| CI | いいえ | — | ローカル作業のみ | — | — | — | push・PRを行わないため起動しない |
 
 ## review
 
@@ -129,7 +146,7 @@ Issue #18「固定版をプロジェクトへ導入し、ローカルCLIで実�
 | 5 | 設定+lockfileを新しい作業コピーへ渡し再導入後に同じ操作が成功 | 充足 | fresh-lock: 2ファイルコピー+新規cache `npm ci` → init→index→lint 終了0。親設定非依存の独立dir |
 | 6 | READMEと利用手順で実行場所・初回準備・Git管理設定・依存実体除外・新clone/worktree準備・固定SHA更新を説明。PyPIを公開済みにしない | 充足 | README§インストールに全項目。CI例の `pip install okf-devkit`（PyPI示唆）を固定SHA GitHub導入へ今回修正 |
 | 7 | 方式比較と採用理由・保守範囲・保守終了時の案内・npm非公開でも依存保守が残る | 充足 | node-runtime「配布方式の比較と採用理由」表・注記、README「定期リリースは約束しない」「保守終了時はREADMEに明記」 |
-| 8 | 公開CLIを使う検証と必須テスト・文書検査を実施し対象版と結果を記録。未公開を公開版と混同しない | 充足 | 検証表で github-install（公開SHA）と packed-working-tree（未公開tgz）を分離して記録 |
+| 8 | 公開CLIを使う検証と必須テスト・文書検査を実施し対象版と結果を記録。未公開を公開版と混同しない | 充足 | 検証表で github-install（公開SHA）と packed-working-tree（未公開tgz）を分離して記録。最終コミット `28194f733350df5ee738f1306f248f929e1d573a` への必須検証は「最終コミット再検証」節で完全SHAつきで記録 |
 
 ## 残作業・妨げ・再開前提
 
@@ -151,4 +168,4 @@ Issue #18「固定版をプロジェクトへ導入し、ローカルCLIで実�
 
 ## 完了 / 中断要約
 
-引継ぎコミット2c3050dの実装・文書をIssue #18受入条件8項目と照合し、全項目の充足を対象版で再検証した。不足3件を文書のみで補完: README CI例のPyPI示唆修正、READMEへのpackage.json自動作成注記、node-runtimeへの別名スクリプト案内。必須Python検証171件・Node単独13件・互換8件・文書検査・変更宣言検査すべて終了0。未公開変更は `npm pack` tgzで検証し公開版の結果と区別した。二軸reviewの所有範囲外の指摘（hookのpip案内・scripts.okf非検証・templateの裸okf表記）は監督者へ報告。retroトリガーなし。残存リスクはCI・他OS・別PC未検証と、公開後の統合確認（Issue #20）。
+引継ぎコミット2c3050dの実装・文書をIssue #18受入条件8項目と照合し、全項目の充足を対象版で再検証した。不足3件を文書のみで補完: README CI例のPyPI示唆修正、READMEへのpackage.json自動作成注記、node-runtimeへの別名スクリプト案内。必須Python検証171件・Node単独13件・互換8件・文書検査・変更宣言検査すべて終了0。未公開変更は `npm pack` tgzで検証し公開版の結果と区別した。二軸reviewの所有範囲外の指摘（hookのpip案内・scripts.okf非検証・templateの裸okf表記）は監督者へ報告。標準軸reviewの指摘（検証表の対象版と最終コミットの対応付け不明確）を受け、最終コミット `28194f7` のコミット済みツリーへ必須検証を再実行し「最終コミット再検証」節へ完全SHAつきで記録。当該事象は検証漏れトリガーとして IMP-0007 に登録。残存リスクはCI・他OS・別PC未検証と、公開後の統合確認（Issue #20）。
