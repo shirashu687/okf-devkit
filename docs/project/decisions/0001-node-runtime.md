@@ -6,8 +6,8 @@ tags: [decision, node, distribution]
 status: stable
 layer: shared
 generated:
-  by: devin/swe-2-max
-  at: "2026-09-14T15:25:14Z"
+  by: process:codex
+  at: "2026-09-27T03:40:00Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -51,3 +51,7 @@ YAML 1.1の解釈には `yaml`、HTML変換にはPython側と同系統の `markd
 全入力に対するバイト一致を保証するものではなく、診断文・厳格な入力拒否・コンソール改行に差がある。
 新しいhookはローカルnpmパッケージも探索する。既存hookは手順に従いコピーして更新する。
 npm公開は別作業であり、この変更の成果はチェックアウトと `npm pack` によるローカル配布である。
+
+2026-09-27のIssue #14では、配布の標準手順をGitHubの固定コミットからのローカル導入へ整理した。
+`init` はプロジェクトの `scripts.okf` に合わせて呼出し例を生成する。
+Node.js実装の採用判断は変更せず、方式比較・運用・移行方法は [利用手順](/cli/node-runtime.md) に記録する。

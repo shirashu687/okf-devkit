@@ -79,6 +79,36 @@ test("Node alone initializes, indexes, lints, creates docs, reports and renders"
   assert.deepEqual(snapshot(root), before);
   assert.equal(fs.statSync(path.join(root, "docs/index.html")).mtimeMs, mtime);
 });
+test("init documents the project's npm command and preserves its package setup", (t) => {
+  const root = temp(t);
+  const pkg = JSON.stringify({
+    scripts: { okf: "node node_modules/okf-devkit/node/cli.mjs", test: "existing" },
+    devDependencies: { "okf-devkit": "fixed-source" },
+  });
+  put(root, "package.json", pkg);
+  put(root, "package-lock.json", "existing lock\n");
+  const output = ok(run(root, ["init"]));
+  assert.match(output, /npm run okf -- lint/);
+  for (const name of ["AGENTS.md", "CONVENTIONS.md", "project/log.md"]) {
+    const text = fs.readFileSync(path.join(root, "docs", name), "utf8");
+    assert.match(text, /npm run okf --/);
+    assert.doesNotMatch(text, /(^|`)okf /m);
+    assert.doesNotMatch(text, /\{\{/);
+  }
+  assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), pkg);
+  assert.equal(fs.readFileSync(path.join(root, "package-lock.json"), "utf8"), "existing lock\n");
+});
+
+test("init keeps the standalone command without a usable npm script", (t) => {
+  const root = temp(t);
+  for (const pkg of ["{}", "null", '{"scripts":null}', '{"scripts":{"okf":" "}}', "invalid json"]) {
+    put(root, "package.json", pkg);
+    assert.match(ok(run(root, ["init", "--force"])), /3\. okf index --write/);
+    assert.match(fs.readFileSync(path.join(root, "docs/AGENTS.md"), "utf8"), /^okf lint/m);
+    assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), pkg);
+  }
+});
+
 test("index preflights every marker and never partially writes", (t) => {
   const root = temp(t);
   init(root);

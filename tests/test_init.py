@@ -66,6 +66,25 @@ class FindProjectRootTests(OkfTestCase):
 
 
 class InitTests(OkfTestCase):
+    def test_npm_script_is_used_in_generated_instructions_without_changing_package(self) -> None:
+        pkg = '{"scripts":{"okf":"node node_modules/okf-devkit/node/cli.mjs","test":"existing"}}'
+        (self.repo / "package.json").write_text(pkg, encoding="utf-8")
+        output = run_init()
+        self.assertIn("npm run okf -- lint", output)
+        for name in ("AGENTS.md", "CONVENTIONS.md", "project/log.md"):
+            text = (self.repo / "docs" / name).read_text(encoding="utf-8")
+            self.assertIn("npm run okf --", text)
+            self.assertNotIn("`okf ", text)
+            self.assertNotIn("{{", text)
+        self.assertEqual(pkg, (self.repo / "package.json").read_text(encoding="utf-8"))
+
+    def test_unusable_package_script_keeps_standalone_command(self) -> None:
+        for pkg in ('{}', 'null', '{"scripts":null}', '{"scripts":{"okf":" "}}', 'invalid json'):
+            with self.subTest(pkg=pkg):
+                (self.repo / "package.json").write_text(pkg, encoding="utf-8")
+                self.assertIn("3. okf index --write", run_init(force=True))
+                self.assertEqual(pkg, (self.repo / "package.json").read_text(encoding="utf-8"))
+
     def test_creates_config_bundle_templates_and_hooks(self) -> None:
         run_init(site_name="Demo", layer=["client=app/client/**"])
 

@@ -17,9 +17,9 @@ related:
 本リポジトリの `{{BUNDLE_ROOT}}/` は **OKF (Open Knowledge Format) v0.2** バンドルである。
 仕様本体: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
 
-OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`okf lint` が機械的に強制する。
+OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`{{OKF_COMMAND}} lint` が機械的に強制する。
 
-> このファイルは `okf init` が生成した雛形である。**プロジェクトに合わせて自由に書き換えてよい。**
+> このファイルは `{{OKF_COMMAND}} init` が生成した雛形である。**プロジェクトに合わせて自由に書き換えてよい。**
 > ただし語彙表（§2 / §5 / §1-1 の `layer`）を変えたら、`okf.yml` の対応するキーも必ず合わせること。
 > 食い違うと lint の判定と本ファイルの記述が矛盾する。
 
@@ -137,9 +137,9 @@ code_globs:
 
 | できること | コマンド |
 |---|---|
-| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base main` |
-| コードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
-| コードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
+| コード変更 → 更新すべきドキュメントの特定 | `{{OKF_COMMAND}} affected --base main` |
+| コードが消えた → 陳腐化の検出 | `{{OKF_COMMAND}} stale`（*orphan*） |
+| コードの方が新しい → 内容が古い候補の検出 | `{{OKF_COMMAND}} stale`（*outdated*） |
 
 ---
 
@@ -216,7 +216,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 > 「Fix」は OKF の慣例に無いため使わない。**不具合修正は `**Update**` に含める。**
 
 5. 粒度は **「1つの意味のある変更 = 1エントリ」**。既定では PR マージ単位（`git log --first-parent`）で生成する
-6. 出典としてコミットハッシュ（と PR 番号）を行末に添える。`okf log` はこれを既出判定に使うため、**削除しない**
+6. 出典としてコミットハッシュ（と PR 番号）を行末に添える。`{{OKF_COMMAND}} log` はこれを既出判定に使うため、**削除しない**
 
 ### 例
 
@@ -263,7 +263,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ## 10. lint ルール
 
-`okf lint` が検証する内容。
+`{{OKF_COMMAND}} lint` が検証する内容。
 
 | # | ルール | レベル | 根拠 |
 |---|---|---|---|
@@ -289,9 +289,9 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 ## 11. 閲覧用 HTML
 
 - OKF Bundle の正本は常に `.md`。生成された `.html` を手で編集しない
-- `okf render` は、除外対象を除く全 `.md` を同じ階層の `.html` に変換する
+- `{{OKF_COMMAND}} render` は、除外対象を除く全 `.md` を同じ階層の `.html` に変換する
 - 生成HTML内のBundle内リンクは `.html` に変換するが、元Markdownのリンクは変更しない
 - 共有アセットは `_assets/` に置く。`_` 始まりなのでBundle、index、lintの対象外
 - `*.html`、`_assets/`、公開用の `_site/` はGit管理外の派生物とする
-- 公開用にMarkdownと分離した構成が必要な場合だけ `okf render --output _site` を使う
+- 公開用にMarkdownと分離した構成が必要な場合だけ `{{OKF_COMMAND}} render --output _site` を使う
 - hookからのHTML生成はローカルコマンドだけで完結させ、モデル継続を指示する終了コード2や `decision: block` を返さない

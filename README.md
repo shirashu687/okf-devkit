@@ -6,8 +6,8 @@
 「ドキュメントを書く」ことではなく、**書いたドキュメントがコードから乖離しないようにする**ことに重心がある。
 
 ```bash
-pip install okf-devkit
-okf init --layer client=src/client/** --layer server=src/server/**
+# 下の「インストール」で準備したプロジェクトで実行
+npm run okf -- init --layer "client=src/client/**" --layer "server=src/server/**"
 ```
 
 ---
@@ -46,45 +46,50 @@ OKF v0.2 §5 は独自キーの追加を明示的に許可しており、consume
 
 ## インストール
 
-```bash
-pip install okf-devkit
+### 推奨: GitHubからプロジェクトに導入する（Python不要）
+
+Node.js 22+・npm・Gitを使う。npmレジストリとPyPIへの公開は未実施。
+npmにGitHubから取得させるため、okf-devkitを手でcloneして配置する必要はない。
+初回導入にはGitHubとnpmの依存パッケージ取得先への通信が必要。
+
+**利用先プロジェクトのルート**で実行する。`<COMMIT_SHA>` は、GitHubで選んだ利用版の完全な40桁コミットSHAに置き換える。`main` のような変動する名前は使わない。
+
+```sh
+npm install --save-dev "git+https://github.com/shirashu687/okf-devkit.git#<COMMIT_SHA>"
+npm pkg get scripts.okf
 ```
 
-Python 3.11+ / Windows・macOS・Linux 対応。依存は `markdown-it-py` と `PyYAML` のみ。
+`scripts.okf` が未設定の場合に、次を実行する。既にある場合は内容を確認し、既存用途を上書きせず統合する。
 
-### Python がない環境（Node.js 版）
-
-Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を扱う `log` / `affected --base` とhookにはGitも必要。
-Node.js版はこのリポジトリから利用できる。npmレジストリへの公開は未実施。
-
-```powershell
-# このリポジトリ内で実行（PowerShell / bash 共通）
-npm ci
-node node/cli.mjs --help
-node node/cli.mjs lint
-node node/cli.mjs index --check
-
-# 別プロジェクトを対象にする（--root のパスは置き換える）
-node node/cli.mjs --root "C:/path/to/project" init --layer "app=src/**"
-node node/cli.mjs --root "C:/path/to/project" index --write
-node node/cli.mjs --root "C:/path/to/project" render
+```sh
+npm pkg set "scripts.okf=node node_modules/okf-devkit/node/cli.mjs"
+npm run okf -- init --layer "app=src/**"
+npm run okf -- index --write
+npm run okf -- lint
 ```
 
-別プロジェクトから通常の `okf` コマンドとして使う場合は、パッケージを作ってローカルインストールする。
+この設定は導入済みのローカルCLIを直接呼ぶ。グローバルの `okf` や個人のclone先を探さず、実行時の自動ダウンロードも行わない。未導入で起動に失敗したら `npm ci` で準備する。
+`package.json` と `package-lock.json` はGitに保存し、`node_modules/` は `.gitignore` に追加する。
 
-```powershell
-# okf-devkit のチェックアウトで実行
-npm pack
+新しいclone・worktreeでは、同じプロジェクトルートで一度 `npm ci` を実行する。その後は `npm run okf -- lint` などを使う。更新するときだけ新しいSHAで上のinstallを再実行し、lockfileの差分と動作を確認する。
 
-# 導入先プロジェクトで実行（tgzのパスは置き換える）
-npm install --save-dev "C:/path/to/okf-devkit/okf-devkit-0.1.0.tgz"
-npm exec -- okf init --layer "app=src/**"
-npm exec -- okf index --write
-npm exec -- okf lint
+`init` は設定済みの `scripts.okf` に合わせてAI向け説明と次の手順を生成する。既存の説明は自動更新しないため、移行方法は [Node.js版の利用手順](docs/cli/node-runtime.md) を参照する。同ページにローカルtgz配布・開発用clone・hook更新も記載している。
+
+### Python版をソースから導入する
+
+Python 3.11+ / Windows・macOS・Linux 対応。PyPI未公開のため、ソースを取得して導入する。
+
+```sh
+git clone https://github.com/shirashu687/okf-devkit.git
+cd okf-devkit
+git checkout <COMMIT_SHA>
+python -m pip install .
 ```
 
-Python本体の取得・起動は行わない。設定・テンプレート・HTMLアセットはPython版と共用し、生成物の比較テストを持つ。
-詳細な対応範囲と既存hookの更新方法は [Node.js版の利用手順](docs/cli/node-runtime.md) を参照する。
+仮想環境など、利用先のPython環境で導入する。依存は `markdown-it-py` と `PyYAML`。
+以下の機能説明の `okf …` はPython版の表記。Node.js版では利用先ルートで `npm run okf -- …` と読み替える。
+
+当面は本人・少人数向けに固定版を利用し、定期リリースは約束しない。保守終了時はこのREADMEに状態を明記する。
 
 ## クイックスタート
 

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "worklog": "harness/state/journal/issue-14-distribution.md",
+  "changes": [
+    {"path": "tests/test_init.py", "reason": "プロジェクトの起動設定に合わせた説明生成と既存package設定の保持を検証する。"},
+    {"path": "tests/node/native.test.mjs", "reason": "npm起動設定の反映と設定がない場合の従来動作をNode単独で検証する。"},
+    {"path": "tests/node/compatibility.test.mjs", "reason": "npm導入プロジェクトでもPython/Nodeの生成説明が一致することを追加検証する。"}
+  ]
+}

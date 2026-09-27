@@ -56,6 +56,16 @@ test("existing Python install wins over a development checkout without npm depen
   assert.equal(hook.stdout.trim(), "{}");
 });
 
+test("npm-configured projects receive identical invocation instructions", (t) => {
+  const py = temp(t), js = temp(t);
+  for (const root of [py, js])
+    put(root, "package.json", JSON.stringify({ scripts: { okf: "node node_modules/okf-devkit/node/cli.mjs" } }));
+  init(py, "python");
+  init(js);
+  assert.deepEqual(normalized(snapshot(js)), normalized(snapshot(py)));
+  assert.match(fs.readFileSync(path.join(js, "docs/AGENTS.md"), "utf8"), /npm run okf -- lint/);
+});
+
 test("init and new produce the same scaffold bytes (except generation time)", (t) => {
   const py = temp(t),
     js = temp(t);

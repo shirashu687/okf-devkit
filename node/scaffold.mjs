@@ -79,6 +79,14 @@ export function setField(text, key, value, parent = null) {
   return lines.join("\n");
 }
 export function cmdInit(repo, args) {
+  let command = "okf";
+  try {
+    const pkg = JSON.parse(read(path.join(repo, "package.json")));
+    if (typeof pkg?.scripts?.okf === "string" && pkg.scripts.okf.trim())
+      command = "npm run okf --";
+  } catch {
+    // package.json is optional; init never rewrites the project's npm setup.
+  }
   const layers = [],
     seen = new Set();
   for (const spec of args.layer || []) {
@@ -127,6 +135,7 @@ export function cmdInit(repo, args) {
     ].join("\n"),
   };
   const tokens = {
+    OKF_COMMAND: command,
     GENERATED_AT: now(),
     BUNDLE_ROOT: bundle,
     SITE_NAME: site,
@@ -159,7 +168,7 @@ export function cmdInit(repo, args) {
     .sort(compare))
     plan.push([`.okf/hooks/${file}`, scaffold(`hooks/${file}`)]);
   const emptyLog = (name) =>
-    `# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
+    `# 変更履歴 — ${name}\n\n<!-- \`${command} log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
   for (const l of layers)
     plan.push([`${bundle}/${l.dir}/log.md`, emptyLog(l.name)]);
   plan.push([`${bundle}/project/log.md`, emptyLog("shared")]);
@@ -179,7 +188,7 @@ export function cmdInit(repo, args) {
     skipped.forEach((p) => console.log(`  ${p}`));
   }
   console.log(
-    `\n次の手順:\n  1. ${bundle}/CONVENTIONS.md の語彙を確認・調整する\n  2. okf.yml の layer_map が実際のコード配置と合っているか確認する\n  3. okf index --write で目次を生成する\n  4. okf lint で規約違反が無いか確認する`,
+    `\n次の手順:\n  1. ${bundle}/CONVENTIONS.md の語彙を確認・調整する\n  2. okf.yml の layer_map が実際のコード配置と合っているか確認する\n  3. ${command} index --write で目次を生成する\n  4. ${command} lint で規約違反が無いか確認する`,
   );
   return 0;
 }

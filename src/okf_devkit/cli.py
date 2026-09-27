@@ -2709,6 +2709,16 @@ def _render_okf_yml(
 
 def cmd_init(args) -> int:
     """リポジトリに OKF バンドルと設定一式を生成する。"""
+    command = "okf"
+    try:
+        pkg = json.loads((REPO_ROOT / "package.json").read_text(encoding="utf-8"))
+        scripts = pkg.get("scripts") if isinstance(pkg, dict) else None
+        script = scripts.get("okf") if isinstance(scripts, dict) else None
+        if isinstance(script, str) and script.strip():
+            command = "npm run okf --"
+    except (OSError, ValueError):
+        # package.json is optional; preserve the project's npm setup unchanged.
+        pass
     layers = _parse_layer_specs(args.layer)
     raw = args.bundle_root if args.bundle_root is not None else "docs"
     bundle_root = raw.strip().replace("\\", "/")
@@ -2736,6 +2746,7 @@ def cmd_init(args) -> int:
         f"| `{bundle_root}/{d}/log.md` | `{g}` の変更 |" for _n, g, d in layers
     ) or "| （層を定義していません） | — |"
     tokens = {
+        "OKF_COMMAND": command,
         "GENERATED_AT": now_iso(),
         "BUNDLE_ROOT": bundle_root,
         "SITE_NAME": site_name,
@@ -2762,7 +2773,7 @@ def cmd_init(args) -> int:
         return (
             f"# 変更履歴 — {layer_name}\n"
             "\n"
-            "<!-- `okf log --write` が git 履歴からここに追記する。"
+            f"<!-- `{command} log --write` が git 履歴からここに追記する。"
             "書式は /CONVENTIONS.md §7 を参照。 -->\n"
         )
 
@@ -2780,8 +2791,8 @@ def cmd_init(args) -> int:
     print("次の手順:")
     print(f"  1. {bundle_root}/CONVENTIONS.md の語彙を確認・調整する")
     print(f"  2. {CONFIG_FILENAME} の layer_map が実際のコード配置と合っているか確認する")
-    print("  3. okf index --write で目次を生成する")
-    print("  4. okf lint で規約違反が無いか確認する")
+    print(f"  3. {command} index --write で目次を生成する")
+    print(f"  4. {command} lint で規約違反が無いか確認する")
     return 0
 
 
