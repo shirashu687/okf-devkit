@@ -12,7 +12,8 @@
 | ブランチ | `shirashu687/npm-issue-20` |
 | 開始日時 / 最終更新日時 | `2026-09-27T10:30:00Z` / `2026-09-27T11:00:00Z` |
 | 開始SHA | `9d72e0e5798883d81789582d8879f139865d37b5`（依頼で固定された比較点。作業基盤は統合済みHEAD `4beaba6d2ae70c6ef935a556c888343849a7f5a2`） |
-| 最新HEAD | 本worklogを含むローカルコミット（`shirashu687/npm-issue-20` 先端） |
+| 導入確認対象SHA | `662023f57b4ed961ece76621ab208aaf6d190822`（push済み統合版。第2段階のGitHub導入・再導入確認の対象） |
+| 統合確定SHA | `3e77481a3425e5189ae630c070da23374758385c`（変更履歴生成までを含むpush済み版。導入確認対象 `662023f` との差分は本worklog追記とマージコミットのみ） |
 | 作業者 / 製品 / モデル | Orca dispatched worker / Devin / SWE-2 Max |
 | 証拠の保存先 | 第1段階は本worklogとコミット履歴のみ。第2段階smoke: `%LOCALAPPDATA%/Temp/okf i20 1790506313/`（gh-proj・fresh・fakebin・npmcache。認証情報・ログ全文は保存しない） |
 
@@ -186,3 +187,5 @@ Issue #20 の受入条件「仕様軸・標準軸のレビュー結果を記録�
 ## 完了 / 中断要約（第2段階を含む最終版）
 
 第1段階で統合HEAD `4beaba6` の変更履歴生成（cli・scaffold両層へ実在コミット `2c3050d`・`3b32025` の追記）と影響文書の整合（`node-runtime.md` へ `_templates` 明記・`code_globs` 補完）を行い、コミット `6660722` として記録した。第2段階で、そのコミットを祖先に含むpush済み統合版 `662023f57b4ed961ece76621ab208aaf6d190822` を、空白を含む独立した空の利用先へGitHubから導入し、`scripts.okf` 設定→init→生成案内どおりの `index --write`・`lint` まで全て成功した。生成物は `npm run okf --` 表記に揃い、`_templates` を含め裸 `okf` 呼出し・未展開トークンは0件。PATH先頭の偽okf・Python非存在でもローカルCLIを使い、`node_modules/okf-devkit` 欠落時は終了1で失敗し復元を確認した。`package.json`+`package-lock.json` のみの独立フォルダで新規キャッシュの `npm ci` から同じ操作が再現した。必須検証（Python 171件・Node 13件・互換8件・文書検査・宣言検査）は第1段階の対象版で全て成功。繰越・限界: `okf.yml.tmpl` の裸 `okf` 表記は監督者判断で対象外（説明的参照）、CI・他OS・別PCは未検証、Issueのチェック更新・クローズは別工程。retroトリガーなし。
+
+対象版対応: GitHub導入確認の対象は `662023f57b4ed961ece76621ab208aaf6d190822`、変更履歴生成までを含む統合版は `3e77481a3425e5189ae630c070da23374758385c` で、両者の差分は本worklog追記とマージコミットのみ（コード・文書・テンプレート差分なし）。これ以降のコミットは本worklogの記録精度の修正に限定する。レビュー助言（P3）を受けてSHAを明記した。
