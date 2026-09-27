@@ -37,6 +37,7 @@ npm pkg get scripts.okf
 ```
 
 既存の `scripts.okf` がなければ次を実行する。既にある場合は既存用途を確認して統合し、無条件に置き換えない。
+別用途の `scripts.okf` を保持する場合は `scripts."okf:dev"` のような別名へ設定する。initが読むのは `scripts.okf` のみのため、別名を使うときは生成案内とinit出力内の `npm run okf --` 表記を同じ名前へ手で揃える。
 
 ```sh
 npm pkg set "scripts.okf=node node_modules/okf-devkit/node/cli.mjs"

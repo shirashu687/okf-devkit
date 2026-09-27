@@ -59,6 +59,8 @@ npm install --save-dev "git+https://github.com/shirashu687/okf-devkit.git#<COMMI
 npm pkg get scripts.okf
 ```
 
+`npm install` は `package.json` がないプロジェクトにも依存の記録を作成する。
+
 `scripts.okf` が未設定の場合に、次を実行する。既にある場合は内容を確認し、既存用途を上書きせず統合する。
 
 ```sh
@@ -236,8 +238,10 @@ LLM に差し戻したい場合は別コマンドの `okf sync --gate` を使う
 
 ## CI
 
+PyPI未公開のため、pipでは固定SHAのGitHubから導入する。
+
 ```yaml
-- run: pip install okf-devkit
+- run: pip install "git+https://github.com/shirashu687/okf-devkit.git@<COMMIT_SHA>"
 - run: okf lint
 - run: okf index --check
 - run: okf render --check
