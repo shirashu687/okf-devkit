@@ -6,7 +6,7 @@
 
 ## 運用状態
 
-- 評価中件数: 6 / 10
+- 評価中件数: 7 / 10
 - 試行中件数: 0 / 3
 - 採用済み件数: 0
 - 最終確認日: 2026-09-10
@@ -17,6 +17,7 @@
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | IMP-0011 | 観測 | 2026-10-03 | 1 | automated checks | 低 | 自リポジトリdocs追加の手書きログで日付順warnとhashなしによるlog追記拒否を検出した。 | 最終確認にlintと対象範囲log実行を含める候補 | docs/ の変更履歴更新 | lint warn0とlog --writeの終了値・対象版を照合 | 未定（試行未開始） | [Issues 4 / 5 worklog](state/journal/issues-4-5-self-docs.md)。修正済み、恒久採用なし。 |
+| IMP-0008 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #6の新規回帰テストが既存API引数とhelperのbundle固定に合わず初回検証で失敗した。 | 追加テストの呼出引数とcustom bundle対応を既存helperと照合する候補 | init shared log回帰テスト | default/custom bundleをPython/Nodeで検証 | 未定（試行未開始） | [Issue #6 worklog](state/journal/issue-6-shared-log.md)。テスト修正後Python170/Node12/互換7成功、恒久採用なし。 |
 | IMP-0005 | 観測 | 2026-09-10 | 1 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
@@ -115,3 +116,10 @@
 - 原因仮説: 手書きログ作成時にlint規則とlogの二重追記防止契約を一緒に確認しなかった可能性。
 - 候補: automated checks / 低。文書履歴に限定、通常検査で検出し修正済み。対象範囲のlog実行とlint確認を併用する候補で、恒久ルールは採用しない。
 - 未確認: CIと独立reviewはworklogで別に記録する。試行なし、採用判断待ちなし。
+### IMP-0008
+
+- 初回2026-10-03、回数1。同一作業のPython/Node追加テストを一つのAPI前提照合漏れとして記録する。
+- 症状・根拠: [Issue #6 worklog](state/journal/issue-6-shared-log.md)の初回テスト失敗、修正、再試行。
+- 原因: range引数とsnapshotのdocs固定を新規テストへ反映しなかった。
+- 対処候補: helperと呼出契約を照合しdefault/custom bundle両方を実行。分類automated checks、重要度低（製品実装の回帰ではない）。
+- 結果: 今回の不備修正後に既存suite成功。改善試行・恒久採用・効果は未判定。番号6/7は未統合npm作業の観測番号との衝突を避け予約扱いで飛ばした。

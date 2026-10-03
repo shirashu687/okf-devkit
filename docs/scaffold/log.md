@@ -4,8 +4,10 @@
 
 ## 2026-10-03
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
+- **Update** fix: align init shared log with configured path。 ([#6](https://github.com/shirashu687/okf-devkit/issues/6), `4c951ec`)
 
 ## 2026-09-10
+- **Update** Merge pull request #3 from shirashu687/codex/node-runtime。 (`2139a79`)
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 
 ## 2026-09-07

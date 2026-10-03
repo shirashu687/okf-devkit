@@ -58,3 +58,10 @@ Issue #4 の4本文と #5 の self-check CI を追加する。既存 npm 未統�
 - 最新コード・文書検証対象: 1f3df50（git rev-parse HEADで確認した実装・ログ版）＋このworklogの証拠追記のみ。新規runtime変更なし。必須テストを再実行し最終結果を下記へ追記する。
 
 - 最終ローカル: 対象1f3df5064b81451d0abc03b3a08ad71d9dcf5cf5、worktreeは本証拠追記のみ。Python全169件成功、lint0/0、index最新、render23ページ書込0/warn0、task/PR宣言検査exit0。この後はworklogのみcommitし、最新SHAのCIを別途確認する。
+
+## PR #24 main integration (2026-10-03)
+
+- Merged origin/main 98373cc without rewriting history. Preserved both log entries and ledger observations; evaluation count is 7/10. PR-scope declaration base now matches the complete main SHA; historical task declarations remain intact.
+- Local validation: Python 170/170, Node 12/12, compatibility 7/7 successful; docs index --write/--check successful, lint error0/warn0. Compatibility was retried after setting absolute worktree PYTHONPATH and PYTHONUTF8=1; PR24 also required npm ci before Node tests.
+- Start-SHA task-scope check cannot accept imported historical declarations with different bases; those declarations were preserved rather than rewritten. PR-scope comparison is the integration gate.
+- Claude actual session event remains outside the requested scope. Independent review and final remote CI are separate pending observations; no merge/publish performed. Retro: existing observations preserved, no new trial or adopted rule.
