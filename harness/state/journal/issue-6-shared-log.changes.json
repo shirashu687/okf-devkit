@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "task",
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "worklog": "harness/state/journal/issue-6-shared-log.md",
+  "changes": [
+    {
+      "path": "tests/test_init.py",
+      "reason": "shared log生成先が設定と一致し、書込みでlogが増えないことを回帰検証する。"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "shared log生成先が設定と一致し、書込みでlogが増えないことを回帰検証する。"
+    }
+  ]
+}

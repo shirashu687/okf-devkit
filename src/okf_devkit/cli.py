@@ -2768,7 +2768,7 @@ def cmd_init(args) -> int:
 
     for name, _glob, directory in layers:
         emit(f"{bundle_root}/{directory}/log.md", empty_log(name))
-    emit(f"{bundle_root}/project/log.md", empty_log("shared"))
+    emit(f"{bundle_root}/log.md", empty_log("shared"))
 
     for rel in created:
         print(f"作成: {rel}")

@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: devin/swe-2-max
-  at: "2026-10-03T00:00:00Z"
+  at: "2026-10-03T00:04:52Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -88,3 +88,5 @@ YAMLは1.1として読み、日付を文字列に正規化する。Node.js版で
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
 
 HTML の Backlog 進捗一覧は Python 版と同じ読み取り専用表示で、設定ディレクトリ・状態別件数・本文リンクを扱う。手順は [Backlog の進捗表示](/render/backlog-progress.md) を参照。
+
+`init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。

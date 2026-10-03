@@ -75,11 +75,29 @@ class InitTests(OkfTestCase):
             "docs/CONVENTIONS.md",
             "docs/_templates/reference.md",
             "docs/client/log.md",
-            "docs/project/log.md",
+            "docs/log.md",
             ".okf/hooks/render_hook.sh",
             ".okf/hooks/render_hook.ps1",
         ):
             self.assertTrue((self.repo / rel).exists(), rel)
+
+    def test_shared_log_matches_config_and_write_does_not_create_another(self) -> None:
+        for bundle_root in ("docs", "knowledge"):
+            with self.subTest(bundle_root=bundle_root):
+                self.git_init()
+                run_init(bundle_root=bundle_root, layer=["client=app/client/**"], force=True)
+                bundle = okf.Bundle(self.repo / "okf.yml")
+                shared_log = bundle.log_path("shared")
+                self.assertEqual(self.repo / bundle_root / "log.md", shared_log)
+                self.assertTrue(shared_log.is_file())
+                self.assertFalse((bundle.root / "project/log.md").exists())
+                self.commit("Update shared source", {"README.md": bundle_root + "\n"})
+                before = set(bundle.root.rglob("log.md"))
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = okf.cmd_log(bundle, ns(write=True, dry_run=False, layer="shared", range=None))
+                self.assertEqual(0, code)
+                self.assertEqual(before, set(bundle.root.rglob("log.md")))
+                self.assertIn("Update shared source", shared_log.read_text(encoding="utf-8"))
 
     def test_generated_config_parses_and_keeps_defaults(self) -> None:
         run_init(site_name="Demo", layer=["client=app/client/**", "server=app/server/**"])
