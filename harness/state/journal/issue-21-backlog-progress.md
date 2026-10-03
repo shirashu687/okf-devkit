@@ -58,3 +58,9 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 標準軸: docs_ci、同じ比較点と規約/宣言/テスト/escaping/共有assets。blocking0。変更履歴Issue21リンクがPR URLだったP2をissues URLに修正。WIP検証表を最終履歴への参照に更新。
 追加visual QA成功: Chrome headless1280x1000、混在4state fixtureの件数・表・sidebar・本文リンクが表示され重なりなし。画像workspace親issue21-preview.png。最初のpreviewスクリプトがREPO_ROOT設定なしで本repo bundleを選んだため修正して再撮影；実装/テスト結果とは分離する。
 最終ローカル検証: Python171/Node12/compat8成功、OKF error0/warn0、index最新、task/PR宣言成功。CIはpush後に観測し未確認を成功扱いしない。
+
+## PR conflict adjustment 2026-10-03
+
+- Start: 7186566009452616d29938cc70435ab15f010698. Merge origin/main 98373cc2231c90248c2301a726aa1607bf1f073e without rewriting history. Preserve both shared-log and backlog documentation, both native tests, and ledger IMP-0008 / IMP-0012 observations. Historical task declaration remains unchanged; PR declaration uses current main.
+- Local verification: Python 172 passed; Node native 13 passed; compatibility 8 passed with worktree src explicitly in PYTHONPATH. Initial compatibility attempt used installed Python source and failed; corrected environment rerun passed. npm ci successful. index --write / lint (error 0, warn 0) / index --check and PR-scope change check successful. CI and independent review pending parent verification.
+- Retro: existing observation rows preserved; no new permanent policy. No global hook, release, merge, Issue close or npm branch changes.
