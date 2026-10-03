@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "worklog": "harness/state/journal/issue-8-package-preparation.md",
+  "changes": [
+    {
+      "path": "pyproject.toml",
+      "reason": "公開操作を伴わずproject URLsを実際のoriginに修正する。配布名・version・権限・workflowは変更しない。"
+    }
+  ]
+}

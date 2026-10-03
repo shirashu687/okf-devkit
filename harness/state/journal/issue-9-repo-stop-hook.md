@@ -68,3 +68,10 @@ Python/Node/hook実行機能はこのHEADと同一。
 | 最新SHA CI | 未実行 | Draft PR作成後確認 |
 
 shared logには実装コミットhashを付け、baseline空でも後続log --writeが拒否しないことを確認した。
+
+## PR #25 main integration (2026-10-03)
+
+- Merged origin/main 98373cc without rewriting history. Preserved both log entries and ledger observations; evaluation count is 7/10. PR-scope declaration base now matches the complete main SHA; historical task declarations remain intact.
+- Local validation: Python 170/170, Node 12/12, compatibility 7/7 successful; docs index --write/--check successful, lint error0/warn0. Compatibility was retried after setting absolute worktree PYTHONPATH and PYTHONUTF8=1; PR24 also required npm ci before Node tests.
+- Start-SHA task-scope check cannot accept imported historical declarations with different bases; those declarations were preserved rather than rewritten. PR-scope comparison is the integration gate.
+- Claude actual session event remains outside the requested scope. Independent review and final remote CI are separate pending observations; no merge/publish performed. Retro: existing observations preserved, no new trial or adopted rule.
