@@ -71,3 +71,8 @@ Issue #4 の4本文と #5 の self-check CI を追加する。既存 npm 未統�
 - Remote PR was OPEN and matched the previous local reviewed SHA before changes. Merged main a16842f02e71a26849f5c094a32653c23af22640 without history rewrite. Preserved both log entries; node-runtime generated timestamp, where conflicted, uses the later main value. Ledger observations are unchanged and counts match the retained rows. Historical task declarations remain intact.
 - Local validation on the integrated tree: Python173/173, Node13/13, compatibility7/7 successful; docs index --write/--check successful, lint error0/warn0. npm ci completed in the design worktree before Node tests. PR-scope change check and conflict/diff checks run after commit; independent review and final remote CI remain separate pending observations.
 - Retro: no new trial or adopted rule. No merge/publish/Issue close; Claude actual session remains excluded.
+
+## New doc reference follow-up (2026-10-03)
+
+- Reviewed remote PR24 OPEN/head ce410dc, then corrected commands.md to match merged Issue7: four exact required types, multiple --code-globs, optional types may omit, body completion followed by index --write then lint. generated.at uses actual UTC. Documentation commit189eae4 is referenced by the layer log. No code or Node assets changed.
+- Python full suite and docs index/lint/check rerun; final PR-scope change check after commit. Node/compat prior integrated results remain separately recorded; not rerun for this prose-only change. Independent review and final SHA CI pending.
