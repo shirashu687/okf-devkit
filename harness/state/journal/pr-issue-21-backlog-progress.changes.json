@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "98373cc2231c90248c2301a726aa1607bf1f073e",
+  "base": "a16842f02e71a26849f5c094a32653c23af22640",
   "worklog": "harness/state/journal/issue-21-backlog-progress.md",
   "changes": [
     {
