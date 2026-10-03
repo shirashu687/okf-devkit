@@ -74,3 +74,7 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 
 - Start 30dcce718216d8822e9e0e385ba8a2f7cf1c2365, exact adopted main 5ce845a4deb454919fdec92d5cdff2105dcbc7df. Merge f43ebbd3c5fa80b9758d9413da7c95f02a0bff75 keeps backlog and render-open descriptions/logs, all tests and ledger observations. Historical task declarations and screenshots unchanged; PR declaration tracks exact main.
 - npm ci / Python 178 / Node native 16 / compatibility 8 all succeeded. index --write / lint error0 warn0 / index --check / exact-base PR declaration check / diffcheck / marker scan succeeded. Independent review and remote CI not observed here; parent owns push and final-head CI.
+
+### Current ledger count reconciliation
+
+- Current merged ledger: 8 / 10 evaluating entries (IMP-0012, 0008, 0005, 0004, 0003, 0001, 0002, 0009); trial 0 / 3. Correct the stale summary after merging existing observations. No new occurrences or entries; historical dated counts retained. Python full rerun and final-base PR declaration check are verified separately. Node runtime/assets/hooks unchanged by this correction; prior Node16 / compatibility8 results retained.
