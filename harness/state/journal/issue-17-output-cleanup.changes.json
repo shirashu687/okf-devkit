@@ -1,25 +1,8 @@
 {
   "version": 1,
-  "scope": "pull-request",
-  "base": "5ce845a4deb454919fdec92d5cdff2105dcbc7df",
-  "worklog": "harness/state/journal/issue-17-site-default.md",
+  "base": "82adb7b1e65c071d54a67c2ff4b38050834a03f5",
+  "worklog": "harness/state/journal/issue-17-output-cleanup.md",
   "changes": [
-    {
-      "path": "tests/test_render.py",
-      "reason": "Issue #17の新CLI既定_site/明示旧配置/check dry-run/hook新配置を検証。既存suiteとCIを維持し境界確認を追加。"
-    },
-    {
-      "path": "tests/node/native.test.mjs",
-      "reason": "Issue #17の新CLI既定_site/明示旧配置/check dry-run/hook新配置を検証。既存suiteとCIを維持し境界確認を追加。"
-    },
-    {
-      "path": "tests/node/compatibility.test.mjs",
-      "reason": "Issue #17の新CLI既定_site/明示旧配置/check dry-run/hook新配置を検証。既存suiteとCIを維持し境界確認を追加。"
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "reason": "Issue #17の新CLI既定_site/明示旧配置/check dry-run/hook新配置を検証。既存suiteとCIを維持し境界確認を追加。"
-    },
     {
       "path": "package.json",
       "reason": "ユーザーの旧生成物整理依頼に対応するopt-in退避・dry-run・安全拒否・失敗復元・Python/Node互換の回帰を追加。既存suite/CIを保持し、追加テストをnpmの既存検証入口へ接続する。"

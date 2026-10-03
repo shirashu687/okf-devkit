@@ -64,3 +64,7 @@
 
 - 開始HEAD c93c82ea0fa98ce9d037342db65a47bed15be016、PR #22統合済みの最新main 5ce845a4deb454919fdec92d5cdff2105dcbc7dfをmerge。squash統合による同じ機能履歴の重複に由来する競合を解消し、既存CLI _site / --open / --code-globs、mainの追記、全テスト/文書/log/ledgerを保持。新cleanup機能は実装しない。
 - 過去task宣言は保持、PRscope baseのみ最新mainへ更新。PR base変更/push/CIは親担当、rewrite/force・npm枝/無関係作業の変更なし。検証/独立review/CIは未実行。開始retroは既存観測再読、独立回数加算なし。
+
+## 2026-10-03 旧出力の明示的整理
+
+ユーザーの追加依頼に従い同PRへopt-in退避を追加。詳細・task開始82adb7b・保護対象追加理由・検証/review/retroの正本は [cleanup worklog](issue-17-output-cleanup.md)。PRscopeはmain5ce845aから全差分を覆い、旧task履歴を保持する。

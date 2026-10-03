@@ -2401,20 +2401,41 @@ def cmd_render(bundle: Bundle, args) -> int:
     except ImportError as exc:  # pragma: no cover - 壊れたインストール向け
         raise OkfError(f"HTML レンダラーを読み込めません: {exc}") from exc
 
-    output_root = (REPO_ROOT / (args.output or "_site")).resolve()
+    cleanup_from = getattr(args, "cleanup_from", None)
+    if cleanup_from and args.hook:
+        raise OkfError("--cleanup-from cannot be combined with --hook")
+    output_root = REPO_ROOT / (args.output or "_site")
+    if not cleanup_from:
+        output_root = output_root.resolve()
     try:
         output_root.relative_to(REPO_ROOT.resolve())
     except ValueError as exc:
         raise OkfError("HTML の出力先はリポジトリ内に指定してください") from exc
 
     try:
+        from .render_cleanup import execute_cleanup, plan_cleanup, validate_roots, write_manifest
+        moves = []
+        if cleanup_from:
+            old_root, output_root = validate_roots(REPO_ROOT, REPO_ROOT / cleanup_from, output_root)
+            old_plan = render_bundle(bundle, Doc, old_root, write=False)
+            new_plan = render_bundle(bundle, Doc, output_root, write=False)
+            moves, lines = plan_cleanup(REPO_ROOT, old_root, output_root, old_plan.artifacts, new_plan.artifacts)
+            for line in lines:
+                print(line)
         report = render_bundle(
             bundle,
             Doc,
             output_root,
             write=not args.check,
+            remove_stale=not bool(cleanup_from),
         )
-    except RenderError as exc:
+        if not args.check:
+            write_manifest(REPO_ROOT, output_root, report.artifacts)
+            if cleanup_from:
+                backup = execute_cleanup(REPO_ROOT, old_root, output_root, moves)
+                if backup:
+                    print(f"cleanup backup: {backup.relative_to(REPO_ROOT.resolve()).as_posix()}")
+    except (RenderError, OSError) as exc:
         raise OkfError(str(exc)) from exc
 
     if args.hook:
@@ -2880,6 +2901,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_render.add_argument("--check", action="store_true", help="書き込まず、全ページを生成できるか検証する")
     p_render.add_argument("--hook", action="store_true", help="Stop hook 用。成功時は空の JSON だけを返す")
 
+    p_render.add_argument("--cleanup-from", metavar="OLD", help="Move verified old renderer artifacts to backups; --check prints the plan")
     p_sync = sub.add_parser("sync", help="index → log → lint → stale を一括実行する")
     p_sync.add_argument("--gate", action="store_true", help="hook 用。error があれば exit 2")
     p_sync.add_argument("--session-id", help="gate のセッション識別子（既定: 環境変数 / stdin JSON）")

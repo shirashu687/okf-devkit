@@ -6,8 +6,8 @@ tags: [decision, node, distribution]
 status: stable
 layer: shared
 generated:
-  by: devin/swe-2-max
-  at: "2026-10-03T08:43:41Z"
+  by: codex/gpt-6
+  at: 2026-10-03T10:19:54Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -55,6 +55,8 @@ npm公開は別作業であり、この変更の成果はチェックアウト�
 `render --open` も両実装で提供し、check / hook 時にはブラウザを起動しない。Node.js 版は標準の child_process でOSのブラウザ起動コマンドへfile URLを引数として渡し、shell評価を行わない。
 
 CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ変更する。--outputで従来配置を選べ、低レベルrender関数の隣接既定は保持する。
+
+旧出力先の整理は両CLIで `--cleanup-from` の明示指定に限定する。manifestのハッシュまたは同版の生成計画との完全一致で未編集の生成物を識別し、新出力成功後に退避する。手書き・編集済み・識別不能のHTMLを推測で削除せず、低水準APIへ自動移行を追加しない。
 
 `new doc` の必須型は両実装で `--code-globs`（複数指定可）を要求する。任意型の省略は維持し、プレースホルダのrelatedとcode_globsは空リストへ置換する。
 
