@@ -44,3 +44,5 @@
 - compat初回とUTF-8のみ再試行は失敗。PYTHONPATH指定がなく元checkoutのinstalled Pythonを比較したため、日本語scaffold差異を検出した。PYTHONUTF8=1・PYTHONPATH=このworktree/src・OKF_TEST_PYTHON=既存venvを全て指定した最終再試行は成功。ログは失敗も保持、元repo/venvは変更なし。
 - 今回の開始SHAからのtask scope検査はmain由来の歴史宣言baseと一致せず適用不能。過去宣言を書換えず、最新PR baseの全差分をpull-request scopeで検証した。merge完了後の追加作業はmerge SHAをtask比較点とする。
 - retro: 既存観測IMP-0008/0009の統合は再発として加算しない。開始時評価中7/10、試行0/3、採用0、期限なし。競合解消は予定作業で新たな恒久ルールや試行なし。
+
+- 独立review: 親の二軸reviewでblockingなし。Nodeテストの既存末尾空白1箇所指摘を削除した。変更は空白のみ、テスト内容不変。追加task比較点01f9eb2、task/PR検査とdiff --checkを再確認。CIは親のpush後に確認。

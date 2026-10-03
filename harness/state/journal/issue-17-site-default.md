@@ -50,3 +50,5 @@
 - 文書timestamp/ADR末尾/scaffold log/Node末尾テストを両側保持。CLI _site・低レベルAPI従来配置・--open check/hook抑止とshared log配置を維持。歴史task宣言は変更せずPRscopeのbaseのみ更新。npm未統合作業・元repo/venv・無関係worktreeに変更なし。
 - 競合解消後の検証: 既存venv・PYTHONPATH=本worktree/src・PYTHONUTF8=1でPython174件(失敗/エラー/skip0)、npm ci成功、Node native15件、compat8件成功。index --write / lint(error0/warn0) / index --check / PRscope / diff --check / marker検査成功。証拠: task/issue17-conflict-{python,node,compat}.log。独立レビューとCIは未実行、親へ依頼。開始SHAからのtask検査は取り込む歴史宣言baseが異なるため適用不能、PRscopeで修正済親からの全差分を検証。
 - retro: 既存観測の再読/統合は加算なし。台帳評価中7/10・試行0/3・採用0、期限未定。競合解消は予定作業で新しい恒久ルール/試行なし。
+
+- 親独立reviewの既存末尾空白指摘を解消した親SHA db8955dc63214ea16bc8de73ef3cacb990a4ae4cを追加merge。コード差は空白1行のみ、テスト内容・件数不変。PRscope baseを同SHAへ更新し再検査。最新SHA CIと本PR独立reviewは未実行、親へ引継ぎ。

@@ -373,7 +373,7 @@ test("render opens the generated homepage only on explicit non-hook writes", asy
   assert.deepEqual(opened, ["_site", "site 日本語 %"].map((dir) => pathToFileURL(path.join(root, dir, "index.html")).href));
   assert.equal(await cmdRender(bundle, { open: true }, async () => { throw new Error("missing browser"); }), 0);
   ok(run(root, ["render", "--open", "--check"]));
-  assert.deepEqual(JSON.parse(ok(run(root, ["render", "--open", "--hook"]))), {}); 
+  assert.deepEqual(JSON.parse(ok(run(root, ["render", "--open", "--hook"]))), {});
 });
 
 test("browser launch uses argument arrays on Windows, macOS and Linux", async () => {
