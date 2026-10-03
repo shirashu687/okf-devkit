@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "scope": "task",
+  "worklog": "harness/state/journal/issues-4-5-self-docs.md",
+  "changes": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "Issue #5: validate the actual repository docs bundle without writing generated HTML."
+    }
+  ]
+}
