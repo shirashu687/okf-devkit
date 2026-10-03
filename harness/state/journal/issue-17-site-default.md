@@ -43,3 +43,10 @@
 - 未確認: 最新SHA CI、#24含む将来統合時のドキュメント/宣言。次の一手はDraft PR base/head固定の9job確認。親が依存PR順序を維持。
 
 - 最終log/記録追記後のrelease全検証: 173/14/8件success、lint error0/warn0、index最新。親は最終3logと4値記録も独立再確認し標準指摘0。
+
+## 2026-10-03 修正済み親との競合解消
+
+- 再開HEAD: 47eafaac2d8b502ad03a34e88044e8401be0c31c、親PR #22統合SHA: 01f9eb2fa3daa1678083869b4f4003609ac8c408（main 98373ccを含む）。ユーザーの競合解消依頼に従いmerge commitで履歴を保持、pushは親担当。PRbaseは親ブランチ維持。
+- 文書timestamp/ADR末尾/scaffold log/Node末尾テストを両側保持。CLI _site・低レベルAPI従来配置・--open check/hook抑止とshared log配置を維持。歴史task宣言は変更せずPRscopeのbaseのみ更新。npm未統合作業・元repo/venv・無関係worktreeに変更なし。
+- 競合解消後の検証: 既存venv・PYTHONPATH=本worktree/src・PYTHONUTF8=1でPython174件(失敗/エラー/skip0)、npm ci成功、Node native15件、compat8件成功。index --write / lint(error0/warn0) / index --check / PRscope / diff --check / marker検査成功。証拠: task/issue17-conflict-{python,node,compat}.log。独立レビューとCIは未実行、親へ依頼。開始SHAからのtask検査は取り込む歴史宣言baseが異なるため適用不能、PRscopeで修正済親からの全差分を検証。
+- retro: 既存観測の再読/統合は加算なし。台帳評価中7/10・試行0/3・採用0、期限未定。競合解消は予定作業で新しい恒久ルール/試行なし。
