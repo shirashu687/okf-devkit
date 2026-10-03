@@ -40,3 +40,9 @@ ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21�
 - ローカルcode target9162553、最終full結果Python172/Node14/compat9成功。独立二軸blocking0、timestampP2修正とJS検索追加検証を再報告。
 - 保護変更はtests3pathsのみ、task/PRそれぞれのbase7186566009452616d29938cc70435ab15f010698を維持。最終HEADでも変更検査を再確認。
 - merge順は#26→本PR、PR baseはcodex/issue21-backlog-progress。#26をmain統合後のbase変更時はpull-request scope宣言を新base/全PR差分へ更新しCI再確認が必要。merge自体は行わない。
+
+## PR conflict adjustment 2026-10-03
+
+- Start: 666e9d729804ebcfec6dc77d85043aa6f2b509d9. Merge adjusted parent 066acc2f9b2e9554e4841edc691d76435a9e51e8 without rewriting history. Preserve hierarchical navigation, backlog progress and shared-log descriptions/tests, plus ledger IMP-0008 / IMP-0012 / IMP-0013. Historical task declaration preserved; PR base remains backlog parent and its declaration tracks the new exact SHA.
+- Local verification: Python 173 passed; Node native 15 passed; compatibility 9 passed with worktree src in PYTHONPATH; index --write / lint (error 0, warn 0) / index --check and PR-scope change check passed. git diff --check and conflict-marker scan clean. Independent review / final-SHA CI remain parent-owned and unverified here.
+- Retro: existing observations retained; no new policy adopted. No unrelated npm branch, global hook, release, merge or Issue-close operation.
