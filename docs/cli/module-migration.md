@@ -7,10 +7,12 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T00:11:38Z
+  at: 2026-10-03T11:53:15Z
 code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/renderer.py
+  - src/okf_devkit/render_cleanup.py
+  - tests/test_render_cleanup.py
   - tests/helpers.py
   - tests/test_yaml.py
 related:
@@ -65,6 +67,16 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 
 ## 先行変更との統合順
 
+以下の先行変更・npm差分の記述は調査対象 `9d72e0e5798883d81789582d8879f139865d37b5` のスナップショットであり、現在のmainの未統合状態を示すものではない。
+
 未統合 `origin/shirashu687/npm` はmainより14commit先でcli/initとscaffold、testsへ変更を持つ。#6/#7/#11/#17 のコマンド変更と #4 の実装本文も進行している。大きいcommands移動はこれらの統合順が確定した後に行う。純粋helpersの先行切出しでも、開始時に最新baseとnpm差分を再確認する。
 
 この設計段階では実行コード・配布設定・公開方針・hook設定を変更しない。Node移植は行わず、Python移動後も既存の `npm run test:compat` で対応出力を確認する。新ファイルは現行 `src/okf_devkit/**` → cli のlayer_mapで分類できる。分割ごとに `okf affected` の結果を更新し、#4の本文code_globsへ移動先を加え、層ログを残す。
+
+## main の出力整理 module との接続
+
+統合対象 `50380b3d3a22507b2bd2e329e1d206141ce2432e` はCLIの既定出力を `_site/` に変更し、`render --cleanup-from` と `src/okf_devkit/render_cleanup.py` を追加している。最初の調査の行数・参照数は再測定値へ上書きせず、上記固定SHAの根拠として保持する。
+
+既に分離されたcleanup moduleはstage5のcommands/renderへ戻して同居させない。renderの入口は既存moduleの計画、範囲検証、manifest記録、退避実行を呼ぶinterfaceとして扱う。cleanupのチェック非書込み、hookとの併用拒否、旧新範囲・曖昧Windowsパス・manifest重複の拒否、編集済み/手書き出力の保持、退避/復旧の安全条件を移動後も維持する。ライブラリrenderの既定とCLIの `_site` 既定も区別する。
+
+分割の検証には従来のPython全件に `tests/test_render_cleanup.py`、Nodeの `npm test` にrender-cleanup、`npm run test:compat` にcleanup-compatibilityが含まれる現行scriptを使う。commandsを移す直前に採用済みmainとまだ未統合の変更を再確認し、この文書の初回の先行Issue一覧だけを実装順の根拠にしない。
