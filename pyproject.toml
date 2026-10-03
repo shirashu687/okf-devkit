@@ -39,8 +39,8 @@ yaml = ["pyyaml>=6.0"]
 okf = "okf_devkit.cli:run"
 
 [project.urls]
-Homepage = "https://github.com/rintaro/okf-devkit"
-Repository = "https://github.com/rintaro/okf-devkit"
+Homepage = "https://github.com/shirashu687/okf-devkit"
+Repository = "https://github.com/shirashu687/okf-devkit"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

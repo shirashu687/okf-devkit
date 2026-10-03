@@ -445,3 +445,22 @@ test("sidebar search opens matching directories and restores current ancestors",
   search.value="";onInput();
   assert.equal(section.hidden,false);assert.equal(active.open,true);assert.equal(other.open,false);
 });
+
+test("init shared log matches config and log write reuses it", (t) => {
+  for (const bundleRoot of ["docs", "knowledge"]) {
+    const root = temp(t);
+    git(root, "init", "-q");
+    ok(run(root, ["init", "--bundle-root", bundleRoot, "--layer", "api=src/**"]));
+    const bundle = new Bundle(root);
+    assert.equal(bundle.logPath("shared"), path.join(root, bundleRoot, "log.md"));
+    assert.equal(fs.existsSync(bundle.logPath("shared")), true);
+    assert.equal(fs.existsSync(path.join(root, bundleRoot, "project/log.md")), false);
+    put(root, "README.md", "Shared source\n");
+    git(root, "add", ".");
+    git(root, "commit", "-qm", "Update shared source");
+    const before = fs.readdirSync(path.join(root, bundleRoot), { recursive: true }).filter((p) => p === "log.md" || p.endsWith(`${path.sep}log.md`));
+    ok(run(root, ["log", "--layer", "shared", "--write"]));
+    assert.deepEqual(fs.readdirSync(path.join(root, bundleRoot), { recursive: true }).filter((p) => p === "log.md" || p.endsWith(`${path.sep}log.md`)), before);
+    assert.match(fs.readFileSync(bundle.logPath("shared"), "utf8"), /Update shared source/);
+  }
+});
