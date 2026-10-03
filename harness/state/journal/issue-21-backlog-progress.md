@@ -78,3 +78,9 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 ### Current ledger count reconciliation
 
 - Current merged ledger: 8 / 10 evaluating entries (IMP-0012, 0008, 0005, 0004, 0003, 0001, 0002, 0009); trial 0 / 3. Correct the stale summary after merging existing observations. No new occurrences or entries; historical dated counts retained. Python full rerun and final-base PR declaration check are verified separately. Node runtime/assets/hooks unchanged by this correction; prior Node16 / compatibility8 results retained.
+
+### Isolated-output / cleanup main integration
+
+- Start ad0521e475ddf76a401b7714a73d73510fd20bfe, merge exact main 50380b3d3a22507b2bd2e329e1d206141ce2432e as 274bdbbe6fe808e121f53ea22d2bd98797558979. Preserve cleanup manifest/hash/receipt/rollback/raw Windows alias checks and backlog tests. Screenshots unchanged, historical task declarations unchanged, PR declaration follows exact main. Ledger now 10 evaluating observations / cap10, no added occurrence.
+- npm ci succeeded; Python full 198 run / failure0 / error0 / skipped1 (focused cleanup run confirmed symlink unavailable on this Windows environment); Node26 / compatibility12 passed including cleanup suites. Symlink test is unverified locally, not successful. Windows alias tests executed; remote Ubuntu CI not inferred.
+- affected reports existing updated node-runtime / ADR / backlog-progress / output-cleanup docs. index --write generated current render index; lint error0 warn0 / index --check / render --check (21 pages, write0, delete0, warn0) / exact-main PR changecheck / marker scan / diffcheck succeeded. Final change after tests is index/worklog only. Parent owns independent review, push, final-SHA CI.
