@@ -48,6 +48,8 @@ test("Node alone initializes, indexes, lints, creates docs, reports and renders"
         "api",
         "--type",
         "Reference",
+        "--code-globs",
+        "src/**",
         "--slug",
         "example",
       ],
@@ -177,6 +179,8 @@ test("new and init reject traversal and do not overwrite files", (t) => {
       "api",
       "--type",
       "Reference",
+      "--code-globs",
+      "src/**",
       "--dir",
       "../escape",
     ],
@@ -196,6 +200,8 @@ test("new and init reject traversal and do not overwrite files", (t) => {
       "api",
       "--type",
       "Reference",
+      "--code-globs",
+      "src/**",
     ]),
   );
   assert.equal(
@@ -208,6 +214,8 @@ test("new and init reject traversal and do not overwrite files", (t) => {
       "api",
       "--type",
       "Reference",
+      "--code-globs",
+      "src/**",
     ]).status,
     1,
   );
@@ -411,6 +419,24 @@ test("render default site is dry-run safe and supports explicit legacy output", 
   assert.equal(fs.existsSync(path.join(root, "docs/index.html")), false);
   ok(run(root, ["render", "--output", "docs"]));
   assert.equal(fs.existsSync(path.join(root, "docs/index.html")), true);
+});
+
+test("new doc requires code evidence and creates lint-clean frontmatter", (t) => {
+  const root = temp(t);
+  init(root);
+  put(root, "src/main.js", "export const n = 1;");
+  for (const type of ["Project Overview", "Architecture", "Reference", "How-To"])
+    assert.match(run(root, ["new", "doc", "--title", "Missing", "--layer", "api", "--type", type, "--slug", "missing"]).stderr, /--code-globs/);
+  assert.equal(fs.existsSync(path.join(root, "docs/api/missing.md")), false);
+  ok(run(root, ["new", "doc", "--title", "API \\1", "--layer", "api", "--type", "Reference", "--slug", "api", "--code-globs", "src/*.js", "src/main.js"]));
+  const text = fs.readFileSync(path.join(root, "docs/api/api.md"), "utf8");
+  const fm = parseYaml(text.split("---")[1]);
+  assert.deepEqual(fm.code_globs, ["src/*.js", "src/main.js"]);
+  assert.deepEqual(fm.related, []);
+  assert.match(text, /# API \\1\n\n/);
+  ok(run(root, ["new", "doc", "--title", "Terms", "--layer", "shared", "--type", "Glossary"]));
+  ok(run(root, ["index", "--write"]));
+  ok(run(root, ["lint", "--strict"]));
 });
 
 test("init shared log matches config and log write reuses it", (t) => {

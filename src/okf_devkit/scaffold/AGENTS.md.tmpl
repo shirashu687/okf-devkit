@@ -44,7 +44,7 @@ related:
 ### A. 新しいドキュメントを作る
 
 1. `_templates/` から該当するテンプレートを選ぶ（下表）
-2. `okf new doc --layer <layer> --type "<type>" --title "<title>"` で雛形を生成してもよい
+2. `okf new doc --layer <layer> --type "<type>" --title "<title>" --code-globs "<根拠コードのpath/glob>"` で雛形を生成してもよい
 3. 本文を書く。**frontmatter の `code_globs` に必ず根拠コードのパス/glob を書く**（これが更新検知の起点になる）
 4. `okf index --write` で目次を更新する
 

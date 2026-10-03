@@ -130,6 +130,10 @@ okf render --open   # 生成後にトップページをブラウザで開く
 共通オプション: `--root <dir>`（プロジェクトルート）、`--config <path>`（設定ファイル）。
 どちらも省略時は、CWD から上に遡って `okf.yml` を探し、無ければ git のトップレベルを使う。
 
+`okf new doc --layer cli --type Reference --title API --slug api --code-globs "src/**/*.py"` は根拠コードを指定して文書を生成する。
+`--code-globs` は複数のパス/globを受け取る。Project Overview / Architecture / Reference / How-To 型では必須で、既存の自動化もこの引数を追加する必要がある。
+それ以外の型は省略でき、空の code_globs / related リストを生成する。指定globが存在するコードに一致し、索引を更新した状態で lint --strict を確認する。
+
 ### 開発中の典型的な流れ
 
 ```bash

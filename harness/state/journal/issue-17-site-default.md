@@ -52,3 +52,10 @@
 - retro: 既存観測の再読/統合は加算なし。台帳評価中7/10・試行0/3・採用0、期限未定。競合解消は予定作業で新しい恒久ルール/試行なし。
 
 - 親独立reviewの既存末尾空白指摘を解消した親SHA db8955dc63214ea16bc8de73ef3cacb990a4ae4cを追加merge。コード差は空白1行のみ、テスト内容・件数不変。PRscope baseを同SHAへ更新し再検査。最新SHA CIと本PR独立reviewは未実行、親へ引継ぎ。
+
+## 2026-10-03 new doc統合後の親更新
+
+- 開始HEAD74a97e1ce9d0e523f421fe5f6eb4011967998d84、親PR #22最新96ebb240f84c6f04c605fe134e32950b5065e9c0（maina16842f含む）をmerge。new doc --code-globs、render --open、CLI _site、sharedlogの全仕様・両側テスト・文書・歴史宣言を保持。PRscopebaseを親最新へ更新、rewrite/forceなし。pushは親担当。
+- 文書timestamp3とADR/scaffoldlog/Node末尾append競合を解消。npm未統合枝・元repo/venv・無関係作業に変更なし。検証・独立review・CIは未実行。retroは既存観測の再読で加算なし、評価中7/10、試行0、採用0、期限なし。
+
+- 再解消後の検証成功: 既存venv・PYTHONPATH=本worktree/src・PYTHONUTF8=1でPython177件(失敗/エラー/skip0)、Node16件、compat8件。index --write / lint(error0/warn0) / index --check / 最新親PRscope / diff --check / 競合マーカー検査成功。証拠task/issue17-reconflict-{python,node,compat}.log。依存変更なし、前回npm ci済み。独立reviewと最新SHA CIは未実行、親担当へ引継ぎ。
