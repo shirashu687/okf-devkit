@@ -66,3 +66,6 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 - PRscope exactmain503→b6baac0は4ordinaryfiles、check_changes exit0。保護対象actualdiffなし、空宣言を追加せず履歴task/PR宣言をすべて保持。main ledgerは9観測rowでbyte-equivalent、試行0/採用0を保存。新規ledger行を作らない。
 - この証拠とhash付cli/log追記のみを最後にcommitする。追加runtime変更なし。今回の独立review・remoteCIは未実行、親へfinalSHAを返して確認を依頼する。local成功をCI成功と扱わない。push/PRedit/force/merge公開は実施せず、npm既存branchとIssue17worktreeを変更しない。
 - Retroゲート：予定されたmain競合統合を確認し、失敗・回帰・新規要件取りこぼしなし。既存観測を保存、追加試行/恒久規約なし。次の一手は親担当の独立reviewとpush/latestCI。
+
+- Skipの限界確認：cleanupだけをverboseで再実行（19件、失敗0、skip1、session70182 exit0）。test_symlink_rejected は 'symlink unavailable' でskip。Windows alias拒否テストは実行された。親へ全件196のskip1を通知した。証拠 ../issue27-cleanup-verbose.txt。
+- 記録訂正：初回の検証メモにskip0と転記したが、raw unittestのOK(skipped=1)確認後に訂正commit d7dc6c6を作成。未実行境界を成功として最終報告しない。retroの原因仮説は総件数行だけを先に確認したこと、候補は結果サマリーとverbose skip理由の照合（automated checks）。親指定のledger保存方針に従いmain9rowを改変せず、追加観測/試行/採用を確定しない。親へ事象を引継ぎ、最終の独立reviewは未実行と保持する。
