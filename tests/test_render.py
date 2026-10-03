@@ -7,6 +7,7 @@ import contextlib
 import io
 import json
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from urllib.parse import quote
 
@@ -128,6 +129,26 @@ class RenderBundleTests(OkfTestCase):
         self.assertEqual(3, report.pages)
         self.assertEqual(0, report.written)
         self.assertFalse((self.docs / "index.html").exists())
+
+    def test_open_uses_output_homepage_uri(self) -> None:
+        for output in (None, "site 日本語 %"):
+            with self.subTest(output=output), patch.object(okf.webbrowser, "open", return_value=True) as opened:
+                self.assertEqual(0, okf.cmd_render(self.bundle(), ns(output=output, check=False, hook=False, open=True)))
+                root = self.docs if output is None else self.repo / output
+                opened.assert_called_once_with((root / "index.html").resolve().as_uri())
+
+    def test_open_is_suppressed_for_check_hook_and_default(self) -> None:
+        for check, hook, requested in ((True, False, True), (False, True, True), (True, True, True), (False, False, False)):
+            with self.subTest(check=check, hook=hook), patch.object(okf.webbrowser, "open") as opened:
+                self.assertEqual(0, okf.cmd_render(self.bundle(), ns(output=None, check=check, hook=hook, open=requested)))
+                opened.assert_not_called()
+
+    def test_browser_failure_warns_without_failing_render(self) -> None:
+        for result in (False, OSError("no browser")):
+            kwargs = {"side_effect": result} if isinstance(result, Exception) else {"return_value": result}
+            with patch.object(okf.webbrowser, "open", **kwargs), contextlib.redirect_stderr(io.StringIO()) as stderr:
+                self.assertEqual(0, okf.cmd_render(self.bundle(), ns(output=None, check=False, hook=False, open=True)))
+                self.assertIn("ブラウザを開けません", stderr.getvalue())
 
     def test_hook_mode_outputs_empty_json_and_never_returns_two(self) -> None:
         args = argparse.Namespace(output=None, check=False, hook=True)
