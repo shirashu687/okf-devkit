@@ -6,7 +6,7 @@
 
 ## 運用状態
 
-- 評価中件数: 5 / 10
+- 評価中件数: 6 / 10
 - 試行中件数: 0 / 3
 - 採用済み件数: 0
 - 最終確認日: 2026-09-10
@@ -16,6 +16,7 @@
 
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| IMP-0012 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)。修正確認済み、恒久採用なし。 |
 | IMP-0005 | 観測 | 2026-09-10 | 1 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
@@ -106,3 +107,10 @@
 - 期限、見直し日、採用可否が未定のときは理由と次の確認を残す。無回答や定時処理の不在を承認・処理済みとみなさない。
 - 評価中10件または試行3件に達した場合、新規項目を黙って捨てず、重複統合・優先順位付け・根拠のある却下を行い、その履歴を残す。
 - 実際の作業観測と演習データを混ぜない。演習はworklogに入力・期待結果・実際の出力・対象版を要約し、採否の回答が演習用ならその旨を明記する。
+
+### IMP-0012
+
+- 症状・根拠: [Issue21 worklog](state/journal/issue-21-backlog-progress.md)の検証履歴。新規compat fixtureがroot indexなしでENOENT、Actor machine:codexでwarn1。既存native scriptが単一file指定のため新規testを既存fileへ統合した。
+- 原因仮説: initだけではroot indexを生成しない前提とActor表記をfixture/文書作成時に見落とした。成果物の回帰や誤った成功報告は確認されていない。
+- 分類・重要度: automated checks / 低。テスト自身の不足と文書警告を実装完了前に解消。
+- 対処案・確認方法: 必要なroot indexを明示しnpm test/compatで新規test名・pass数、lint error0/warn0を確認。恒久ルールの採用や試行は実施しない。期限未定（観測のみ）。

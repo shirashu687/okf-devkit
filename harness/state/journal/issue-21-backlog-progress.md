@@ -21,10 +21,10 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 開始時: ledger 評価中5、試行0、採用0、期限付き試行なし。既存環境のUTF-8出力差は読み取り方法で解消。終了時に差分/検証/review照合。
 
 ## 検証
-未実行: required Python, npm ci/test/compat, affected, index/lint/check, task/PR declarations, final SHA CI。
+最終ローカル検証は下記の履歴を参照。final SHA CIのみPR作成後に確認。
 
 ## review
-未実行: 固定開始SHAで仕様軸・標準軸の独立review。
+実施済み: 固定開始SHAで仕様軸 investigate、標準軸 docs_ci。詳細は末尾。
 
 ## 次の一手
 実装と混在/空/再生成/設定/readonlyの回帰テスト。
@@ -47,3 +47,14 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 
 ## full retrospective
 トリガー: 新規比較test fixtureがroot indexを作成せず失敗したこと、および初回Actor語彙不適合。症状/根拠は検証履歴。原因仮説: initのみではroot indexを作らない既存契約をfixtureで見落とした。対処は明示fixtureと既存native suiteへのテスト統合。候補分類automated checks/低: fixtureに必要な索引生成を明示し、test scriptの固定対象を確認する。確認方法: required npm test/compatで新test名とpass数を確認。恒久ルール/試行を自動採用しない。既存IMP-0001との契約同期観測の近さを親へ報告し台帳集約を依頼。独立review/CIまでのゲートは継続中。
+
+## 最終ローカル確認
+- 成功: 最終Python full171件/失敗0/error0/skip0。既存指定venv、PYTHONPATH worktree/src。
+- full retro台帳: IMP-0012、親から独立branchのID割当を受け観測追加。評価中6/10、試行0/3、採用0。恒久変更なし。
+- log --writeで関連render/cli層へcommit831bb59を記録。過去merge3の未記録自動追加は本件範囲外のため除き、Issue21番号をPR扱いした自動リンクはissues URLへ修正。scaffoldの既存ログは元と同一に復帰。
+
+## 独立review結果
+仕様軸: investigate、開始SHA9d72e0eとcommit831bb59+worktree比較、Issue21現文に対して不足/誤実装/scope追加0。直下限定は既存index/status範囲と一致。
+標準軸: docs_ci、同じ比較点と規約/宣言/テスト/escaping/共有assets。blocking0。変更履歴Issue21リンクがPR URLだったP2をissues URLに修正。WIP検証表を最終履歴への参照に更新。
+追加visual QA成功: Chrome headless1280x1000、混在4state fixtureの件数・表・sidebar・本文リンクが表示され重なりなし。画像workspace親issue21-preview.png。最初のpreviewスクリプトがREPO_ROOT設定なしで本repo bundleを選んだため修正して再撮影；実装/テスト結果とは分離する。
+最終ローカル検証: Python171/Node12/compat8成功、OKF error0/warn0、index最新、task/PR宣言成功。CIはpush後に観測し未確認を成功扱いしない。
