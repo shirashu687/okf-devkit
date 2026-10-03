@@ -76,3 +76,11 @@ Issue #4 の4本文と #5 の self-check CI を追加する。既存 npm 未統�
 
 - Reviewed remote PR24 OPEN/head ce410dc, then corrected commands.md to match merged Issue7: four exact required types, multiple --code-globs, optional types may omit, body completion followed by index --write then lint. generated.at uses actual UTC. Documentation commit189eae4 is referenced by the layer log. No code or Node assets changed.
 - Python full suite and docs index/lint/check rerun; final PR-scope change check after commit. Node/compat prior integrated results remain separately recorded; not rerun for this prose-only change. Independent review and final SHA CI pending.
+
+## PR #22 main integration (2026-10-03)
+
+- Confirmed PR24 OPEN at remote/local head0e0cbea and clean worktree, then merged exact main5ce845a4deb454919fdec92d5cdff2105dcbc7df. Preserved both cli/render log entries and IMP0011/IMP0009 observations; ledger count is8/10. Both runtimes, browser helper and all imported tests retained. PR-scope base updated; historical task declarations unchanged.
+- Updated commands.md to describe --open and browser suppression for check/hook, with actual UTC generated timestamp. No npm development branch edits, rebase or force update.
+- Local Python/Node/compat and docs verification results are recorded after completion below; independent review, push and final remote CI pending. Retro retains existing observations without new trial/adoption.
+
+- Verification completed: existing Python176/176, npm ci successful, Node15/15 and compatibility7/7 successful using existing venv, absolute worktree PYTHONPATH and PYTHONUTF8=1. Docs index --write/--check successful, lint error0/warn0. Final PR-scope declarations and diff/conflict checks run on the committed head. Remote CI remains unobserved for this new head.

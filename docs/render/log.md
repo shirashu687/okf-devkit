@@ -5,6 +5,9 @@
 ## 2026-10-03
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
 
+- **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
+
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 

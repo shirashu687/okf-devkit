@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T08:53:34Z
+  at: 2026-10-03T10:52:08Z
 code_globs:
   - src/okf_devkit/cli.py
   - .github/workflows/ci.yml
@@ -32,7 +32,7 @@ related:
 | new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。本文を補完し、`index --write` → `lint` を実行 |
 | new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
 | status | backlog の state を集計 | なし。text/json 出力 |
-| render | Markdown とアセットから HTML を作る | 通常は Markdown の隣。`--output` はリポジトリ内の別配置 |
+| render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 通常は Markdown の隣。`--output` はリポジトリ内の別配置。`--check` / hook 時はブラウザを起動しない |
 | sync | index → log → lint → stale をまとめて実行 | index/log 更新。`--gate` は hook 用の差戻し判定 |
 
 ## 新規文書の根拠コードと検査

@@ -5,6 +5,9 @@
 ## 2026-10-03
 - **Update** new doc の4必須型、複数の --code-globs、生成後の本文補完と index → lint の手順を現行仕様へ合わせた。 (`189eae4`)
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
+
+- **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
+
 - **Creation** new doc に根拠コードの --code-globs 指定を追加し、必須型の生成に要求。relatedを空で生成し、H1直後の空行を保持。 (`be22026`)
 
 
