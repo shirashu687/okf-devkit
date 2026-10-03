@@ -56,3 +56,7 @@ ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21�
 
 - Start ebb3f9c7375d20b68241ea3824d0baad1977ca36, merge adjusted parent including exact main 5ce845a4deb454919fdec92d5cdff2105dcbc7df. ADR, ledger and native conflicts keep both navigation/search and browser-open entries/tests. Implementation merge b8c507b; final parent 3e177b2ab5fc556238315c37a1507704054d2aa3 adds only verification worklog. Historical task declarations and screenshots preserved, PR declaration base updated.
 - npm ci / Python 179 / Node native 18 / compatibility 9 succeeded; index --write / lint error0 warn0 / index --check / diffcheck succeeded. Marker/evidence diff and exact-parent PR changecheck verified separately. Parent owns independent review, push and remote final-head CI; none claimed here.
+
+### Current ledger count reconciliation
+
+- Current merged ledger: 9 / 10 evaluating entries (IMP-0013, 0012, 0008, 0005, 0004, 0003, 0001, 0002, 0009); trial 0 / 3. Merge parent count reconciliation and account for existing navigation observation. No new entries/occurrences; historical counts retained. Exact PR base ad0521e475ddf76a401b7714a73d73510fd20bfe. Python full and PR check verified separately; this correction changes only ledger/worklogs/declaration, retains prior Node18 / compatibility9 checks.
