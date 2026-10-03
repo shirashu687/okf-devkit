@@ -4,6 +4,8 @@
 
 ## 2026-10-03
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
+- **Creation** new doc に根拠コードの --code-globs 指定を追加し、必須型の生成に要求。relatedを空で生成し、H1直後の空行を保持。 (`be22026`)
+
 
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
