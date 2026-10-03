@@ -1,6 +1,6 @@
 # Issue #9: リポジトリ Stop hook
 
-- 状態: review中
+- 状態: push前検証済み
 - 作業場所: task/issue9、ブランチ: codex/issue-9-repo-stop-hook
 - 開始SHA: 9d72e0e5798883d81789582d8879f139865d37b5
 - 開始時の変更: なし（独立worktree）。npm未統合ブランチは変更していない。
@@ -15,7 +15,8 @@ Node/Pythonを探索し、失敗時に1を返す既存仕様をそのまま利�
 
 ## 検証
 
-対象は開始SHA + 今回のhook/config/README/node-runtime差分。以下はすべて成功。
+対象は b57b9aa1c13f3f4591fd096c9bc95a09e870508c に対応するhook/config/README/node-runtime差分。
+実装コミット後の追加変更は shared logへの同コミットhash追加と本記録。以下はすべて成功。
 
 - 既存Python venvで `tests/run_all.py`: 169件、失敗0、エラー0、スキップ0。
 - `npm ci --ignore-scripts`、`npm test`: 11件成功。
@@ -30,12 +31,14 @@ Claude Codeの実イベント呼出しは未実行。設定・ラッパーの実
 
 ## review
 
-仕様軸 / 標準軸: 独立review待ち。
+仕様軸: docs_ci担当の独立review、blockerなし。
+標準軸: root担当の独立review、製品コード標準違反/smellなし。
+記録のretro矛盾と対象版固定を修正、generated.atを実UTCへ更新した。
 
 ## retroゲート
 
 開始時にledgerの試行中0/採用済み0を確認。既知の別workspace/既存venv前提で
-手順を実行し、要件欠落・反復・予期しない失敗などの新規トリガーなし。
+手順を実行した。以下の日付順の修正を新規retroトリガーとして記録する。
 shared log追記後のlintでL8 warn1を検出。新しい日付を先頭に移し再検証した。
 この再試行は成功履歴へ読み替えず保持する。full retrospectiveを実施し、症状/原因仮説/分類/対処候補/確認方法をledger IMP-0010に観測1件として記録した。
 恒久採用・試行は未開始。review完了後に差分・検証・依頼を最終照合する。
@@ -43,3 +46,25 @@ shared log追記後のlintでL8 warn1を検出。新しい日付を先頭に移�
 ## 次の一手
 
 独立二軸reviewを完了し、push/Draft PRと最新SHAのCIを確認する。
+
+最終doc追加後のPython再検証: 169件、失敗0、エラー0、スキップ0。
+
+## 最終検証対象・証拠
+
+HEAD b57b9aa1c13f3f4591fd096c9bc95a09e870508c + docs/log.md（実装hash追加）、
+docs/cli/node-runtime.md（generated.at実UTC）、本worklog更新。
+Python/Node/hook実行機能はこのHEADと同一。
+
+| 識別子 | 結果 | 証拠 |
+| --- | --- | --- |
+| Python suite | 成功 | exec session99519、169件/失敗0/エラー0/スキップ0 |
+| Node suite / 互換 | 成功 | exec session50287、11件/7件全成功、npm ci終了0 |
+| hook成功/繰返し | 成功 | session81637/38184、両wrapper stdout `{}`、exit0、HTML未追跡差分なし |
+| hook失敗契約 | 成功 | session68245、両wrapper exit1、stdout空、decisionなし |
+| OKF最終 | 成功 | log --layer shared --write --range main..HEAD 追記なし、lint error0/warn0、index --check最新 |
+| 保護変更宣言 | 成功 | task/pull-request両scopeで .claude/settings.json declared、終了0 |
+| Claude実イベント | 未実行 | ログイン済み実セッションを起動していない。設定とwrapperのみ検証 |
+| 独立review | 成功 | docs_ci仕様軸指摘0、root標準軸記録指摘修正済み |
+| 最新SHA CI | 未実行 | Draft PR作成後確認 |
+
+shared logには実装コミットhashを付け、baseline空でも後続log --writeが拒否しないことを確認した。

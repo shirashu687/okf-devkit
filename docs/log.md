@@ -4,7 +4,7 @@
 
 ## 2026-10-03
 
-- **Update** — リポジトリの Claude Code Stop hook を設定し、共有 scaffold の Node/Python 対応ラッパーに同期した（Issue #9）。
+- **Update** — リポジトリの Claude Code Stop hook を設定し、共有 scaffold の Node/Python 対応ラッパーに同期した（Issue #9、`b57b9aa`）。
 
 ## 2026-09-07
 - **Update** ハーネス導入PRにmainの3層構成と既存Backlog 9件を統合。生成索引の相対リンク、新規T番号、既存B番号を両立した。競合解消と検証の詳細はリポジトリの `harness/state/journal/PR-0002-main-merge.md` を参照。 (`fd74b80`, `85d4b0e`, [PR #2](https://github.com/shirashu687/okf-devkit/pull/2))
