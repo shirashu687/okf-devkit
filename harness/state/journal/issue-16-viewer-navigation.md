@@ -13,7 +13,7 @@ Issue21で読んだAGENTS/harness requirements/config/docs規約/implement/code-
 ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21既処理として重複観測しない。
 
 ## 検証・review
-未実行: Python全件、npm ci/test/compat、affected、index/lint/check、task/PR宣言、独立spec/standards review、finalSHA CI。
+実装commit9162553のローカル検証と独立review結果は以下を参照。最終SHA CIのみPR作成後に確認。
 
 ## 次の一手
 階層navとsourceメタ情報を実装してdeep/current/config/searchの回帰確認。
@@ -33,4 +33,10 @@ ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21�
 標準軸 docs_ci: blocking0、code smells指摘0。generated.at更新P2を実UTCへ修正。共有JS追加挙動はDOM境界回帰テストを追加して検証。完成worklogとhash付logは次commitで追加。
 
 ## full retrospective
-観測: 初回native verification実行中のsourceリンクURIエンコード追記によりtest開始版の期待値と実装完了版が混在し失敗。原因仮説はmutable worktreeで編集中の全件検証を開始したこと。改善候補coding standards/review、低、検証対象を編集完了後に固定する。確認方法は後続対象変更がある場合final full suite再実行。今回は最終Python/Node/compatで解消し回帰/成功誤報なし。恒久規約は変更せず台帳ID割当を親へ照会。
+観測: 初回native verification実行中のsourceリンクURIエンコード追記によりtest開始版の期待値と実装完了版が混在し失敗。原因仮説はmutable worktreeで編集中の全件検証を開始したこと。改善候補coding standards/review、低、検証対象を編集完了後に固定する。確認方法は後続対象変更がある場合final full suite再実行。今回は最終Python/Node/compatで解消し回帰/成功誤報なし。恒久規約は変更せず親から割当されたIMP-0013を観測として記録。評価7/10、試行0/3、採用0。
+
+## 完了前の記録
+- 変更履歴: log --write --range7186566..HEADでcli/render層へ9162553を追記、他層への変更なし。
+- ローカルcode target9162553、最終full結果Python172/Node14/compat9成功。独立二軸blocking0、timestampP2修正とJS検索追加検証を再報告。
+- 保護変更はtests3pathsのみ、task/PRそれぞれのbase7186566009452616d29938cc70435ab15f010698を維持。最終HEADでも変更検査を再確認。
+- merge順は#26→本PR、PR baseはcodex/issue21-backlog-progress。#26をmain統合後のbase変更時はpull-request scope宣言を新base/全PR差分へ更新しCI再確認が必要。merge自体は行わない。
