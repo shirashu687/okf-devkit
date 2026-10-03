@@ -2,6 +2,11 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-03
+
+- **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
+
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task",
+  "base": "01f9eb2fa3daa1678083869b4f4003609ac8c408",
+  "worklog": "harness/state/journal/issue-11-render-open.md",
+  "changes": [
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "競合解消の独立レビュー指摘に従い既存末尾空白を除去。テスト内容・件数・制約を変更しない。"
+    }
+  ]
+}
