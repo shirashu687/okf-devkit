@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: devin/swe-2-max
-  at: "2026-09-14T15:25:14Z"
+  at: "2026-10-03T00:00:00Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -86,3 +86,5 @@ npm run test:compat
 YAMLは1.1として読み、日付を文字列に正規化する。Node.js版では重複キー・循環aliasをエラーにする。
 全YAML構文・全Markdown・全カスタム正規表現の同値性を保証しない。`kind_rules.pattern` はJavaScriptのRegExpで評価するため、Python専用正規表現構文は移植が必要。
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
+
+HTML の Backlog 進捗一覧は Python 版と同じ読み取り専用表示で、設定ディレクトリ・状態別件数・本文リンクを扱う。手順は [Backlog の進捗表示](/render/backlog-progress.md) を参照。

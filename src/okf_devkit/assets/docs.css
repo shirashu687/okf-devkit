@@ -136,3 +136,7 @@ tr:last-child td { border-bottom: 0; }
   .document { padding: 0; border: 0; box-shadow: none; }
   a { color: inherit; }
 }
+
+.backlog-counts { display: flex; flex-wrap: wrap; gap: .5rem 1rem; list-style: none; padding: 0; }
+.backlog-progress { margin: 1.5rem 0; }
+.site-nav small { display: block; font-size: .75rem; overflow-wrap: anywhere; }

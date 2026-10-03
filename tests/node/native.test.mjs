@@ -354,3 +354,39 @@ test("local npm hook resolves Node with Python removed from PATH", (t) => {
   assert.equal(hook.status, 0, hook.stderr);
   assert.equal(hook.stdout.trim(), "{}");
 });
+
+function progressFixture(root) {
+  const config = fs.readFileSync(path.join(root, "okf.yml"), "utf8");
+  put(root, "okf.yml", config + "\nbacklog:\n  dir: work/tasks\n  states: [queued, doing, done, dropped]\n  state_order: [done, queued, doing, dropped]\n");
+  put(root, "docs/work/tasks/index.md", "# Tasks\n");
+  for (const [index, state] of ["queued", "doing", "done", "dropped", "unexpected", null].entries()) {
+    put(root, `docs/work/tasks/B-000${index + 1}-x #%.md`, document(state ? `state: ${state}\n` : "").replace("type: Reference", "type: Backlog Item").replace("title: Example", 'title: "Task <safe>"'));
+  }
+  put(root, "docs/work/tasks/reference.md", document());
+  put(root, "docs/work/tasks/nested/B-9999.md", document("state: queued\n").replace("type: Reference", "type: Backlog Item"));
+}
+const summary = html => html.split('<section class="backlog-progress"')[1].split('</section>')[0];
+
+test("backlog progress honors configuration, source links, empty and regeneration", t => {
+  const root = temp(t); init(root);
+  put(root, "docs/index.md", "# Docs\n");
+  ok(run(root, ["render", "--output", "_site"]));
+  assert.match(fs.readFileSync(path.join(root, "_site/index.html"), "utf8"), /Backlog Item はありません。/);
+  progressFixture(root);
+  const before = snapshot(root);
+  ok(run(root, ["render", "--output", "_site"]));
+  assert.deepEqual(snapshot(root), before);
+  const read = file => fs.readFileSync(path.join(root, file), "utf8");
+  let view = summary(read("_site/index.html"));
+  assert.match(view, /全 6 件/);
+  for (const state of ["queued", "doing", "done", "dropped", "unexpected", "未設定"]) assert.ok(view.includes(`>${state}</span> 1 件`));
+  assert.ok(view.indexOf(">done</span>") < view.indexOf(">queued</span>"));
+  assert.ok(view.includes('href="work/tasks/B-0001-x%20%23%25.html"'));
+  assert.ok(view.includes("Task &lt;safe&gt;"));
+  assert.ok(summary(read("_site/work/tasks/index.html")).includes('href="B-0001-x%20%23%25.html"'));
+  put(root, "docs/work/tasks/B-0001-x #%.md", read("docs/work/tasks/B-0001-x #%.md").replace("state: queued", "state: done"));
+  ok(run(root, ["render", "--output", "_site"]));
+  view = summary(read("_site/index.html"));
+  assert.ok(view.includes('>queued</span> 0 件'));
+  assert.ok(view.includes('>done</span> 2 件'));
+});

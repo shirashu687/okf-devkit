@@ -128,6 +128,32 @@ function prepare(doc, b, md) {
     outbound: new Set(),
   };
 }
+function backlogState(page) {
+  const value = page.doc.get("state");
+  return value !== null && String(value) ? String(value) : "未設定";
+}
+function backlogProgress(pages, current, b) {
+  const directory = rel(b.backlogDir(), b.root);
+  if (!["index.md", `${directory}/index.md`].includes(current.source)) return "";
+  const items = pages.filter(p => p.doc.type === "Backlog Item" && path.posix.dirname(p.source) === directory);
+  const states = [...new Set([...(b.backlog.state_order?.length ? b.backlog.state_order : ["doing", "todo", "done", "dropped"]), ...(b.backlog.states || [])].map(String))];
+  states.push(...[...new Set(items.map(backlogState))].filter(s => !states.includes(s)).sort(compare));
+  const chunks = ['<section class="backlog-progress" aria-label="Backlog 進捗"><h2>Backlog 進捗</h2>',
+    `<p>全 ${items.length} 件 · <code>${escape(directory)}/</code></p>`, '<ul class="backlog-counts">'];
+  for (const state of states) chunks.push(`<li><span class="badge state">${escape(state)}</span> ${items.filter(p => backlogState(p) === state).length} 件</li>`);
+  chunks.push('</ul>');
+  if (!items.length) chunks.push('<p>Backlog Item はありません。</p>');
+  else {
+    chunks.push('<div class="table-scroll"><table><caption>Backlog Item 一覧（読み取り専用）</caption><thead><tr><th scope="col">ID / 元ファイル</th><th scope="col">タイトル</th><th scope="col">state（進捗）</th></tr></thead><tbody>');
+    for (const p of items.sort((a,b) => states.indexOf(backlogState(a)) - states.indexOf(backlogState(b)) || compare(a.source,b.source))) {
+      const href = encodeURI(relativeHtml(current.output, p.source)).replaceAll("#", "%23").replaceAll("?", "%3F");
+      chunks.push(`<tr><td><code>${escape(p.source)}</code></td><td><a href="${escape(href)}">${escape(p.doc.title)}</a></td><td><span class="badge state">${escape(backlogState(p))}</span></td></tr>`);
+    }
+    chunks.push('</tbody></table></div>');
+  }
+  chunks.push('</section>');
+  return chunks.join('');
+}
 function navigation(pages, current) {
   const groups = new Map(),
     order = ["ルート", "project", "client", "server", "batch", "backlog"];
@@ -171,11 +197,14 @@ function navigation(pages, current) {
               p.doc.title,
               p.doc.description,
               p.doc.type,
+              p.source,
+              p.doc.type === "Backlog Item" ? backlogState(p) : "",
               Array.isArray(tags) ? tags.join(" ") : "",
             ]
               .join(" ")
               .toLowerCase();
-            return `<li data-search="${escape(search)}"><a href="${escape(relativeHtml(current.output, p.source))}"${active}>${escape(p.doc.title)}</a></li>`;
+            const progress = p.doc.type === "Backlog Item" ? `<small><code>${escape(path.posix.basename(p.source))}</code> · ${escape(backlogState(p))}</small>` : "";
+            return `<li data-search="${escape(search)}"><a href="${escape(relativeHtml(current.output, p.source))}"${active}>${escape(p.doc.title)}${progress}</a></li>`;
           })
           .join("") +
         "</ul></section>"
@@ -354,6 +383,7 @@ export function renderBundle(b, output = b.root, doWrite = true) {
       NAVIGATION: navigation(pages, p),
       TOC: toc(p.headings),
       CONTENT: p.body,
+      BACKLOG: backlogProgress(pages, p, b),
       RELATED: related(p, sources),
       BACKLINKS: backlinks(p, pages),
     };
