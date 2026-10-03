@@ -46,3 +46,8 @@ ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21�
 - Start: 666e9d729804ebcfec6dc77d85043aa6f2b509d9. Merge adjusted parent 066acc2f9b2e9554e4841edc691d76435a9e51e8 without rewriting history. Preserve hierarchical navigation, backlog progress and shared-log descriptions/tests, plus ledger IMP-0008 / IMP-0012 / IMP-0013. Historical task declaration preserved; PR base remains backlog parent and its declaration tracks the new exact SHA.
 - Local verification: Python 173 passed; Node native 15 passed; compatibility 9 passed with worktree src in PYTHONPATH; index --write / lint (error 0, warn 0) / index --check and PR-scope change check passed. git diff --check and conflict-marker scan clean. Independent review / final-SHA CI remain parent-owned and unverified here.
 - Retro: existing observations retained; no new policy adopted. No unrelated npm branch, global hook, release, merge or Issue-close operation.
+
+### Concurrent main update and image evidence
+
+- Merge updated backlog parent including main a16842f02e71a26849f5c094a32653c23af22640. Preserve new-doc/backlog/navigation tests and both documentation entries; screenshots and renderer/assets unchanged. Parent final 30dcce718216d8822e9e0e385ba8a2f7cf1c2365 contains subsequent worklog-only corrections; declaration follows that SHA.
+- Fixed implementation 910ed29254d57cb0603683e2718a9498105019f1: Python 176 / Node native 16 / compatibility 9 passed; lint error0/warn0, index --check, diffcheck passed. PR check first observed newer parent and rejected stale declaration; updated base and reran successfully separately. Image-only previous checks interrupted, not successful. Node/compat required by adopted runtime changes, performed above.
