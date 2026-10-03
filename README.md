@@ -108,7 +108,8 @@ okf init --site-name "My Project" --layer client=src/client/** --layer server=sr
 ```bash
 okf index --write   # 目次を生成
 okf lint            # 規約違反の確認（init 直後は 0 件）
-okf render          # 閲覧用 HTML を生成してブラウザで開く
+okf render          # _site/ に閲覧用 HTML を生成する
+okf render --open   # 生成後にトップページをブラウザで開く
 ```
 
 ## コマンド
@@ -225,6 +226,27 @@ Obsidianでは、このリポジトリのルートフォルダをそのままVau
   }
 }
 ```
+
+`render` の既定出力先はプロジェクトルートの `_site/`。`.gitignore` に `_site/` を追加する。
+`okf render --output docs` で従来のMarkdown隣接配置を使える（bundle_rootが異なる場合はそのディレクトリを指定）。
+出力先を変えるだけでは、旧出力先のHTMLを移動・削除しない。旧生成物を整理する場合は、先に計画を確認する。
+
+```bash
+okf render --output _site --cleanup-from docs --check
+okf render --output _site --cleanup-from docs
+```
+
+`--cleanup-from` は、新出力の成功後に未編集と確認できた旧生成物だけを `.okf/render-backups/<id>/` へ退避する。削除せず、旧リポジトリ相対パスと `receipt.json` を残す。手書きHTML・編集済み生成物・Markdownは移動しない。通常のrenderは出力先ごとに `.okf-render-manifest.json` を記録する。manifestのない旧版は、現在のレンダラーの生成内容と完全一致するものだけが対象になり、版違い・判別できない出力は残る。
+
+`--check` は計画表示のみで、HTML・manifest・退避先を作らない。`--cleanup-from` と `--hook` は併用できない。同一・入れ子の旧新出力先、リポジトリ外、リンク経路、退避領域との重複は拒否する。新出力先に手書き・編集済みファイルが衝突した場合も、旧出力を動かす前に失敗する。`.gitignore` には `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` を追加する。
+
+復元時はreceiptで旧パスと退避ファイルを確認し、旧パスにファイルがないことを確かめてから戻す。既存ファイルは上書きしない。途中失敗では移動済み旧ファイルの復元を試み、衝突で戻せないものは退避先に保持して報告する。新出力そのものの巻戻しは行わない。詳細は [生成済みHTMLの整理](docs/render/output-cleanup.md) を参照。
+Stop hookも `_site/` を更新し、`--check` は出力先にファイルを作らず生成可否を検証する。
+
+`render --open` は出力先の `index.html` を既定のブラウザで開く。`--output _site` も使用できる。
+`--check` / `--hook` と併用してもブラウザは開かない。起動APIが失敗を返した場合は警告を出し、HTML生成は成功のまま扱う。
+Node.js版はOSの起動コマンドを開始できたことまで確認し、起動後のブラウザ表示やコマンドの終了結果は確認しない。
+Mermaid が `file://` で描画されない場合は、出力先をローカルHTTPサーバで配信して閲覧する。
 
 `render --hook` は成功時に `{}`、失敗時に終了コード 1 を返す。**終了コード 2 や `decision: block` は返さない**ため、
 HTML 生成を理由にモデルの継続実行が発生することはない。

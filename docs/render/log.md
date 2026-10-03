@@ -2,6 +2,14 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-03
+- **Update** Windowsの旧新出力別名・曖昧パスとmanifest重複を整理前に拒否し、正規化前検査を追加。 (`8359662`)
+- **Update** hash/manifestで確認した未編集旧生成物を新出力成功後に退避し、receiptと非上書き復元で故障境界を保護。 (`59a0bb5`)
+- **Update** render CLI の既定出力を_siteへ変更し、--outputで従来配置を選べるようにした。check/hook/openとinitのignore案内を新既定に合わせた。 (`bde6d3e`)
+
+- **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
+
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 

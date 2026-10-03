@@ -63,6 +63,7 @@ class RenderReport:
     removed: int
     warnings: list[str]
     output_root: Path
+    artifacts: dict[str, str] = field(default_factory=dict)
 
 
 def _asset_text(name: str) -> str:
@@ -383,6 +384,7 @@ def render_bundle(
     output_root: Path | None = None,
     *,
     write: bool = True,
+    remove_stale: bool = True,
 ) -> RenderReport:
     """Bundle 全体を HTML 化し、結果を返す。"""
     md = _markdown()
@@ -461,7 +463,7 @@ def render_bundle(
         for path, content in [*planned, *assets.items()]:
             written += int(_write_atomic(path, content))
         expected = {path.resolve() for path, _content in planned}
-        for old_html in actual_output_root.rglob("*.html"):
+        for old_html in actual_output_root.rglob("*.html") if remove_stale else ():
             if old_html.resolve() in expected or not old_html.is_file():
                 continue
             try:
@@ -471,4 +473,6 @@ def render_bundle(
             if OWNERSHIP_MARKER in prefix:
                 old_html.unlink()
                 removed += 1
-    return RenderReport(len(pages), written, removed, sorted(set(warnings)), actual_output_root)
+    artifacts = {path.relative_to(actual_output_root).as_posix(): content
+                 for path, content in [*planned, *assets.items()]}
+    return RenderReport(len(pages), written, removed, sorted(set(warnings)), actual_output_root, artifacts)

@@ -109,7 +109,11 @@ okf stale                    # 陳腐化レポート
 okf affected --base main     # 更新すべきドキュメントを列挙
 okf new backlog --title "..." --layer shared
 okf status                   # backlog 集計
-okf render                   # Markdown の隣に閲覧用 HTML を生成
-okf render --output _site    # 公開用の独立サイトを生成
+okf render                   # _site/ に閲覧用 HTML を生成
+okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
 okf sync                     # index → log → lint → stale を一括
 ```
+
+生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はプロジェクトの `.gitignore` に追加する。
+出力先の変更だけでは旧HTMLを整理しない。整理するときは `okf render --output _site --cleanup-from docs --check` で計画を確認し、その後 `--check` を外す（旧出力先は実配置に合わせる）。新出力成功後、未編集と確認できた生成物だけを退避する。手書き・編集済み・版違いで識別不能なHTMLは残す。`--hook` と整理オプションは併用しない。
+退避先 `.okf/render-backups/<id>/` のreceiptと元パスを確認し、復元先に既存ファイルがある場合は上書きしない。実ユーザーの出力を整理する操作は、依頼・計画・対象を確認してから行う。

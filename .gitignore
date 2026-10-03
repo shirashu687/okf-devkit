@@ -18,6 +18,8 @@ docs/*.html
 docs/**/*.html
 docs/_assets/
 _site/
+.okf-render-manifest.json
+/.okf/render-backups/
 docs/**/.*.tmp
 docs/**/.*.okftmp
 _site/**/.*.tmp
