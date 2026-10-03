@@ -68,4 +68,4 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 ### Concurrent main update and image evidence
 
 - Merge main a16842f02e71a26849f5c094a32653c23af22640 (adopted new-doc evidence requirement); preserve both backlog/native and new-doc native tests plus both documentation/log entries. Image evidence unchanged. PR declaration base updated; no history rewrite.
-- Fixed merged implementation 6aaeea0436d40478b13e4cd811e7737c4fd7ea2d: Python 175 / Node native 14 / compatibility 9 passed; lint error0/warn0, index --check, PR changecheck and diffcheck passed. Previous image-only checks were interrupted on main update and are not reported successful. Runtime changes from main require Node/compat checks, performed above.
+- Fixed merged implementation 6aaeea0436d40478b13e4cd811e7737c4fd7ea2d: Python 175 / Node native 14 / compatibility 8 passed; lint error0/warn0, index --check, PR changecheck and diffcheck passed. Previous image-only checks were interrupted on main update and are not reported successful. Runtime changes from main require Node/compat checks, performed above.
