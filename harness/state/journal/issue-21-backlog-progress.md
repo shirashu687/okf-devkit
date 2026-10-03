@@ -69,3 +69,8 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 
 - Merge main a16842f02e71a26849f5c094a32653c23af22640 (adopted new-doc evidence requirement); preserve both backlog/native and new-doc native tests plus both documentation/log entries. Image evidence unchanged. PR declaration base updated; no history rewrite.
 - Fixed merged implementation 6aaeea0436d40478b13e4cd811e7737c4fd7ea2d: Python 175 / Node native 14 / compatibility 8 passed; lint error0/warn0, index --check, PR changecheck and diffcheck passed. Previous image-only checks were interrupted on main update and are not reported successful. Runtime changes from main require Node/compat checks, performed above.
+
+### Render-open main integration (remaining conflict followup)
+
+- Start 30dcce718216d8822e9e0e385ba8a2f7cf1c2365, exact adopted main 5ce845a4deb454919fdec92d5cdff2105dcbc7df. Merge f43ebbd3c5fa80b9758d9413da7c95f02a0bff75 keeps backlog and render-open descriptions/logs, all tests and ledger observations. Historical task declarations and screenshots unchanged; PR declaration tracks exact main.
+- npm ci / Python 178 / Node native 16 / compatibility 8 all succeeded. index --write / lint error0 warn0 / index --check / exact-base PR declaration check / diffcheck / marker scan succeeded. Independent review and remote CI not observed here; parent owns push and final-head CI.
