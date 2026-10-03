@@ -2214,8 +2214,13 @@ def set_fm_field(text: str, key: str, value: str, parent: str | None = None) -> 
     if parent is None:
         for i in range(1, end):
             if re.match(rf"^{re.escape(key)}\s*:", lines[i]):
-                lines[i] = f"{key}: {value}"
+                stop = i + 1
+                while stop < end and (lines[stop].startswith((" ", "\t")) or not lines[stop].strip()):
+                    stop += 1
+                lines[i:stop] = [f"{key}: {value}"]
                 break
+        else:
+            lines.insert(end, f"{key}: {value}")
     else:
         in_parent = False
         for i in range(1, end):
@@ -2293,6 +2298,9 @@ def cmd_new(bundle: Bundle, args) -> int:
         text = set_fm_field(text, "at", yaml_scalar(now_iso()), parent="generated")
     else:
         _validate_vocab(args.type, bundle.types, "--type")
+        code_globs = getattr(args, "code_globs", None) or []
+        if args.type in CODE_GLOBS_REQUIRED_TYPES and not code_globs:
+            raise OkfError("この型では `--code-globs` を指定してください")
         text = load_template(bundle, args.type)
         slug = validate_slug(args.slug) if args.slug else slugify(args.title)
         if not slug:
@@ -2307,6 +2315,8 @@ def cmd_new(bundle: Bundle, args) -> int:
             filename = f"{next_numbered_id(base):04d}-{slug}.md"
         out_path = base / filename
 
+        text = set_fm_field(text, "code_globs", yaml_flow_list(code_globs))
+        text = set_fm_field(text, "related", "[]")
         text = set_fm_field(text, "type", yaml_scalar(args.type))
         text = set_fm_field(text, "title", yaml_scalar(args.title))
         text = set_fm_field(text, "layer", yaml_scalar(args.layer))
@@ -2314,7 +2324,7 @@ def cmd_new(bundle: Bundle, args) -> int:
         text = set_fm_field(text, "at", yaml_scalar(now_iso()), parent="generated")
 
     out_path = ensure_inside_bundle(bundle, out_path)
-    text = re.sub(r"^#\s+<[^>\n]*>\s*$", f"# {args.title}", text, count=1, flags=re.MULTILINE)
+    text = re.sub(r"^#[ \t]+<[^>\r\n]*>[ \t]*$", lambda _m: f"# {args.title}", text, count=1, flags=re.MULTILINE)
 
     if out_path.exists():
         raise OkfError(f"既に存在します: {rel_posix(out_path, REPO_ROOT)}")
@@ -2859,6 +2869,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_doc.add_argument("--type", required=True)
     p_new_doc.add_argument("--title", required=True)
     p_new_doc.add_argument("--dir", help="層ディレクトリ配下のサブディレクトリ")
+    p_new_doc.add_argument("--code-globs", nargs="+", help="根拠コードのパス/glob（複数可、コード由来の型では必須）")
     p_new_doc.add_argument("--slug", help="ファイル名の slug")
 
     p_status = sub.add_parser("status", help="backlog の集計")

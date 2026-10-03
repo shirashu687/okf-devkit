@@ -24,7 +24,7 @@ const commands = {
   lint: "strict!",
   stale: "format",
   affected: "base paths+",
-  new: "title layer type dir slug priority effort",
+  new: "title layer type dir slug priority effort code-globs+",
   status: "format",
   render: "output check! hook! open!",
   sync: "gate! session-id",
@@ -243,7 +243,7 @@ export async function main(argv = process.argv.slice(2)) {
                 .join(" ")}`,
           )
           .join("\n") +
-        "\n\nnew doc: --title TITLE --layer LAYER --type TYPE\nnew backlog: --title TITLE [--layer shared]",
+        "\n\nnew doc: --title TITLE --layer LAYER --type TYPE [--code-globs GLOB ...]\nnew backlog: --title TITLE [--layer shared]",
     );
     return 0;
   }

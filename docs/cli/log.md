@@ -6,6 +6,8 @@
 
 - **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
 
+- **Creation** new doc に根拠コードの --code-globs 指定を追加し、必須型の生成に要求。relatedを空で生成し、H1直後の空行を保持。 (`be22026`)
+
 
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)

@@ -46,3 +46,11 @@
 - retro: 既存観測IMP-0008/0009の統合は再発として加算しない。開始時評価中7/10、試行0/3、採用0、期限なし。競合解消は予定作業で新たな恒久ルールや試行なし。
 
 - 独立review: 親の二軸reviewでblockingなし。Nodeテストの既存末尾空白1箇所指摘を削除した。変更は空白のみ、テスト内容不変。追加task比較点01f9eb2、task/PR検査とdiff --checkを再確認。CIは親のpush後に確認。
+
+## 2026-10-03 main更新後の再競合解消
+
+- 再開HEAD db8955dc63214ea16bc8de73ef3cacb990a4ae4c、最新main a16842f02e71a26849f5c094a32653c23af22640（PR #29統合済み）。利用者依頼に従いmainをmergeで取り込み、new doc --code-globsとrender --open両機能・追加テスト・文書追記を保持。履歴rewrite/forceなし、npm未統合枝・元venv・無関係作業に変更なし。push/CI確認は親担当。
+- 競合はdocs/cli/log、ADR、Node nativeの末尾追記。過去task宣言は保持しPRscope宣言のbaseを最新mainへ更新。検証・独立review・CIは未実行。
+- 開始retro: 台帳観測件数/期限を再確認。取り込む既存観測を独立再発として加算しない。歴史宣言を取り込むmerge全体のtask比較はbase契約不一致となるため、最新PRscopeの全差分を検査。
+
+- 再競合解消検証成功: 既存venv・PYTHONPATH=本worktree/src・PYTHONUTF8=1でPython176件（失敗/エラー/skip0）、Node15件、compat7件。index --write / lint(error0/warn0) / index --check / PRscope(a16842f) / diff --check / 競合マーカー検査成功。証拠task/issue11-reconflict-{python,node,compat}.log。依存変更なし、前回npm ci済み。台帳評価中7/10、試行0、採用0、既存観測再読で加算なし。独立review・最新SHA CIは未実行。
