@@ -41,3 +41,14 @@
 - 判定: トリガーなし。設計A案と計画済みcompletion記録の反映で、要件の修正・予期しない失敗・再探索は観測していない。full retro/台帳新行を作らない。
 - 処理済み事象/台帳ID: なし。
 - 未確認: 最新SHA CIのみ。次の一手はDraft PRの9jobとheadSHA照合。実在しないglobや不完全な本文のlint cleanは保証しない。
+
+## 2026-10-03 PR #29 競合解消
+
+- 開始HEAD: `89e054d53f071186a33962660049d8635b1eb5ac`。取り込みmain: `98373cc2231c90248c2301a726aa1607bf1f073e`（#23 / #28）。merge commitで履歴を保持し、未統合npmブランチは変更しない。
+- Node文書/ADRの日時競合はより新しい既存日時を保持。ADRはnew docとshared log両説明、scaffold logは両履歴、native suiteは両回帰テストを保持した。
+- PR用宣言だけbaseを更新。過去task宣言とmain由来の履歴・台帳は保持した。保護検査は新mainとheadを比較し成功。
+- 検証: Python173件、Node13件、互換7件成功。index生成/確認成功、lint error0/warn0、Node構文とdiff空白検査成功。
+- 初回競合解消スクリプトの正規表現が行末以降を過剰に一致させ、Node構文検査が失敗した。mergeをabortし同じHEAD/mainから再実行、行末限定に修正し両テスト保持を確認した。誤った解消内容はcommitしていない。
+- 互換初回はPYTHONPATH未指定で既存venvの別checkoutと比較して失敗。対象worktree/srcと既存venvを明示した再試行は成功。製品の互換成功へ初回失敗を読み替えない。
+- retro: 予期しない検証失敗を対象版・原因・回復と照合した。今回の解消処理と検証環境を修正済み。恒久手順の採用や未統合台帳観測の削除は行わない。
+- 独立レビューと最終SHAのCIはこの追記時点で未実行。完了報告で別途対象SHAと結果を示す。
