@@ -57,4 +57,4 @@
 
 ## 実装版と層別log
 
-実装commit 59a0bb515b5bb3ccfd12631c9b672c67fddf3109。cli/render/scaffold logへUpdateと実commit参照を記録。最終検証後、PR #31のbase変更と通常pushを行い最新SHA CIを確認する。PRは利用者側でready状態へ変更済みのため、その状態を勝手に変更せず保持する。
+実装commit 59a0bb515b5bb3ccfd12631c9b672c67fddf3109。cli/render/scaffold logへUpdateと実commit参照を記録。最終検証後、PR #31のbase変更と通常pushを行い最新SHA CIを確認する。PRは現在ready状態であるため、その状態を勝手に変更せず保持する。
