@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "96ebb240f84c6f04c605fe134e32950b5065e9c0",
+  "base": "5ce845a4deb454919fdec92d5cdff2105dcbc7df",
   "worklog": "harness/state/journal/issue-17-site-default.md",
   "changes": [
     {

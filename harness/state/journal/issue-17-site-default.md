@@ -59,3 +59,8 @@
 - 文書timestamp3とADR/scaffoldlog/Node末尾append競合を解消。npm未統合枝・元repo/venv・無関係作業に変更なし。検証・独立review・CIは未実行。retroは既存観測の再読で加算なし、評価中7/10、試行0、採用0、期限なし。
 
 - 再解消後の検証成功: 既存venv・PYTHONPATH=本worktree/src・PYTHONUTF8=1でPython177件(失敗/エラー/skip0)、Node16件、compat8件。index --write / lint(error0/warn0) / index --check / 最新親PRscope / diff --check / 競合マーカー検査成功。証拠task/issue17-reconflict-{python,node,compat}.log。依存変更なし、前回npm ci済み。独立reviewと最新SHA CIは未実行、親担当へ引継ぎ。
+
+## 2026-10-03 親PR統合後のbase調整
+
+- 開始HEAD c93c82ea0fa98ce9d037342db65a47bed15be016、PR #22統合済みの最新main 5ce845a4deb454919fdec92d5cdff2105dcbc7dfをmerge。squash統合による同じ機能履歴の重複に由来する競合を解消し、既存CLI _site / --open / --code-globs、mainの追記、全テスト/文書/log/ledgerを保持。新cleanup機能は実装しない。
+- 過去task宣言は保持、PRscope baseのみ最新mainへ更新。PR base変更/push/CIは親担当、rewrite/force・npm枝/無関係作業の変更なし。検証/独立review/CIは未実行。開始retroは既存観測再読、独立回数加算なし。
