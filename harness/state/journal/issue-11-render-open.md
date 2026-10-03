@@ -34,3 +34,13 @@
 - 未確認: 実ブラウザ表示、最新SHA CI。次の一手はpush/DraftPR後のCI全job照合。
 
 - 親による独立標準再確認: Node保証範囲とlog Creation/実装commit出典を現物確認し解消。生成日時は実際のUTC更新時刻へ修正。
+
+## 2026-10-03 mainとの競合解消
+
+- 再開HEAD: 44f7777166c575e14d32166efadc386f656b58ad、統合main: 98373cc2231c90248c2301a726aa1607bf1f073e。ユーザーの競合解消依頼によりmerge commitで履歴を保持し、pushは親担当。
+- 競合: 文書の生成日時、ADRのshared log配置とrender --open、Node追加テスト、台帳IMP-0008/0009の末尾追記。両機能・全テスト・観測を保持し、評価中件数7へ整合。過去task宣言は書換えず、PR宣言のbaseのみ最新mainに更新。
+- npm未統合ブランチ・他worktree・元venvには変更なし。新しい製品仕様・merge/publish/Issue closeなし。
+- 競合解消後の検証: 既存venv + 本worktreeのPYTHONPATHでPython173件・失敗/エラー/skip0、npm ci成功、Node native14件、compat7件成功。index --write / lint(error0/warn0) / index --check / PRscope最新main検査 / diff --check / 競合マーカー検査は成功。証拠: task/issue11-conflict-{python,node,compat-final}.log。独立レビューと最終SHA CIは未実行、親へ依頼。
+- compat初回とUTF-8のみ再試行は失敗。PYTHONPATH指定がなく元checkoutのinstalled Pythonを比較したため、日本語scaffold差異を検出した。PYTHONUTF8=1・PYTHONPATH=このworktree/src・OKF_TEST_PYTHON=既存venvを全て指定した最終再試行は成功。ログは失敗も保持、元repo/venvは変更なし。
+- 今回の開始SHAからのtask scope検査はmain由来の歴史宣言baseと一致せず適用不能。過去宣言を書換えず、最新PR baseの全差分をpull-request scopeで検証した。merge完了後の追加作業はmerge SHAをtask比較点とする。
+- retro: 既存観測IMP-0008/0009の統合は再発として加算しない。開始時評価中7/10、試行0/3、採用0、期限なし。競合解消は予定作業で新たな恒久ルールや試行なし。
