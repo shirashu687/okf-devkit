@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "98373cc2231c90248c2301a726aa1607bf1f073e",
+  "worklog": "harness/state/journal/issue-7-new-doc-clean.md",
+  "changes": [
+    {
+      "path": "tests/test_new.py",
+      "reason": "Issue #7の根拠glob必須型/任意型、生成物のlint cleanとH1空行、両実装の互換性を検証。既存検証を維持し生成プローブには必要引数追加。"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Issue #7の根拠glob必須型/任意型、生成物のlint cleanとH1空行、両実装の互換性を検証。既存検証を維持し生成プローブには必要引数追加。"
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "Issue #7の根拠glob必須型/任意型、生成物のlint cleanとH1空行、両実装の互換性を検証。既存検証を維持し生成プローブには必要引数追加。"
+    }
+  ]
+}

@@ -21,9 +21,35 @@ class NewDocTest(OkfTestCase):
         self.make_templates()
 
     def doc_args(self, **kw):
-        base = dict(kind="doc", layer="server", type="Reference", title="T", dir=None, slug=None)
+        base = dict(kind="doc", layer="server", type="Reference", title="T", dir=None, slug=None, code_globs=["code/**"])
         base.update(kw)
         return ns(**base)
+
+    def test_required_code_globs_fail_before_creating_file(self):
+        for type_ in okf.CODE_GLOBS_REQUIRED_TYPES:
+            with self.subTest(type=type_), self.assertRaisesRegex(okf.OkfError, "--code-globs"):
+                okf.cmd_new(self.bundle(), self.doc_args(type=type_, code_globs=None, slug="missing"))
+        self.assertFalse((self.docs / "server/missing.md").exists())
+
+    def test_generated_doc_passes_strict_lint_and_preserves_h1_spacing(self):
+        self.write("code/a.ts", "x")
+        template = okf._scaffold_text("templates/reference.md")
+        self.write("docs/_templates/reference.md", template)
+        quiet(okf.cmd_new, self.bundle(), self.doc_args(title=r"API \1", slug="api", code_globs=["code/*.ts", "code/a.ts"]))
+        self.reset_caches()
+        doc = okf.Doc(self.docs / "server/api.md", self.docs)
+        self.assertEqual(["code/*.ts", "code/a.ts"], doc.fm["code_globs"])
+        self.assertEqual([], doc.fm["related"])
+        self.assertIn("# API \\1\n\n", doc.body)
+        quiet(okf.cmd_index, self.bundle(), ns(write=True, check=False, quiet=True))
+        self.reset_caches()
+        self.assertEqual([], [str(f) for f in okf.run_lint(self.bundle())])
+
+    def test_optional_code_globs_default_to_empty_list(self):
+        quiet(okf.cmd_new, self.bundle(), self.doc_args(type="Glossary", slug="terms", code_globs=None))
+        doc = okf.Doc(self.docs / "server/terms.md", self.docs)
+        self.assertEqual([], doc.fm["code_globs"])
+        self.assertEqual([], doc.fm["related"])
 
     def test_title_with_colon_stays_valid_yaml(self):
         quiet(okf.cmd_new, self.bundle(), self.doc_args(title="API: 一覧", slug="api-list"))
