@@ -2,6 +2,10 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-03
+- **Update** render CLI の既定出力を_siteへ変更し、--outputで従来配置を選べるようにした。check/hook/openとinitのignore案内を新既定に合わせた。 (`bde6d3e`)
+
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 

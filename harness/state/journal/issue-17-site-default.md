@@ -11,3 +11,35 @@
 - 保護変更: tests/test_render.py / tests/node/native.test.mjs / tests/node/compatibility.test.mjs / .github/workflows/ci.yml。既存libraryテストを保持しCLI既定/明示旧配置とhook/checkの境界を追加。
 - 開始retro: 評価中/試行中期限・採用済み確認、今回へ自動適用する項目なし。
 - 検証/独立review: 実行中。
+
+## 検証記録
+
+対象: 実装commit bde6d3eとlog追加working tree。既存venv `C:/Users/rinta/Documents/1_projects/okf-devkit/.venv/Scripts/python.exe` を使用しPYTHONPATHは本worktree/src、元repo/venv未変更。
+
+| 検証 | 状態 | 実コマンド | 証拠 |
+| --- | --- | --- | --- |
+| Python全suite | 成功 | `<existing-venv-python> tests/run_all.py` | task/issue17-python-release.log、173件/失敗0/error0/skip0 |
+| Node依存 | 成功 | `npm ci` | 依存8取得/audit問題0 |
+| Node native | 成功 | `npm test` | task/issue17-node-release.log、14件/失敗0 |
+| Python/Node互換 | 成功 | `OKF_TEST_PYTHON=<existing-venv-python> npm run test:compat` | task/issue17-compat-release.log、8件/失敗0 |
+| affected | 成功 | `<existing-venv-python> -m okf_devkit.cli affected --base 44f7777` | Node手順/ADRを列挙、双方本文更新 |
+| OKF index | 成功 | `<existing-venv-python> -m okf_devkit.cli index --write` / `index --check` | 全index最新 |
+| OKF lint | 成功 | `<existing-venv-python> -m okf_devkit.cli lint` | error0/warn0 |
+| task/PR宣言 | 成功 | `<existing-venv-python> harness/project/check_changes.py --base 44f7777` / `--scope pull-request --base 44f7777` | task/issue17-task-declaration.log / issue17-pr-declaration.log、3tests＋workflow declared、exit0 |
+| 最新SHA CI | 未実行 | push/Draft PR後、headSHAと9job照合 | 現時点未実行を成功扱いしない |
+
+## 独立レビュー
+
+- 仕様軸: docs_ciがIssue #17とbase44f7777から全working/untrackedを独立照合、指摘0。CLI既定/明示旧配置/library保全/check/hook/open/ignore/移行案内一致。
+- 標準軸: 親が同じbaseからfull diffを独立照合、製品規約違反/smellなし。既存境界保護とCI強化、task/PR宣言対象一致。
+- 完了の最終項目: cli/render/scaffold logにUpdateと実commit bde6d3eを追加し、4値と対象版/実コマンド/証拠を記録。
+- 別PR #24 の未統合新文書4件はこのbaseに未存在で旧既定の記述あり。親へ統合時の_site更新必要を通知。
+
+## 摩擦観測とretroゲート
+
+- 確認範囲: 依頼、Issue、base/依存、製品差分、検証、二軸独立review、完成ログ/次のCI確認手順。
+- 判定: トリガーなし。合意済みのCLI既定変更と計画済みのcompletion記録で要件修正・予期しない失敗・探索反復なし。full retro/新台帳行は作らない。
+- 処理済み事象/台帳ID: なし。
+- 未確認: 最新SHA CI、#24含む将来統合時のドキュメント/宣言。次の一手はDraft PR base/head固定の9job確認。親が依存PR順序を維持。
+
+- 最終log/記録追記後のrelease全検証: 173/14/8件success、lint error0/warn0、index最新。親は最終3logと4値記録も独立再確認し標準指摘0。
