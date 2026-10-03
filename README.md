@@ -108,7 +108,8 @@ okf init --site-name "My Project" --layer client=src/client/** --layer server=sr
 ```bash
 okf index --write   # 目次を生成
 okf lint            # 規約違反の確認（init 直後は 0 件）
-okf render          # 閲覧用 HTML を生成してブラウザで開く
+okf render          # 閲覧用 HTML を生成する
+okf render --open   # 生成後にトップページをブラウザで開く
 ```
 
 ## コマンド
@@ -223,6 +224,11 @@ Obsidianでは、このリポジトリのルートフォルダをそのままVau
   }
 }
 ```
+
+`render --open` は出力先の `index.html` を既定のブラウザで開く。`--output _site` も使用できる。
+`--check` / `--hook` と併用してもブラウザは開かない。起動APIが失敗を返した場合は警告を出し、HTML生成は成功のまま扱う。
+Node.js版はOSの起動コマンドを開始できたことまで確認し、起動後のブラウザ表示やコマンドの終了結果は確認しない。
+Mermaid が `file://` で描画されない場合は、出力先をローカルHTTPサーバで配信して閲覧する。
 
 `render --hook` は成功時に `{}`、失敗時に終了コード 1 を返す。**終了コード 2 や `decision: block` は返さない**ため、
 HTML 生成を理由にモデルの継続実行が発生することはない。

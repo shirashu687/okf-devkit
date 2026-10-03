@@ -454,6 +454,49 @@ test("sidebar search opens matching directories and restores current ancestors",
   assert.equal(section.hidden,false);assert.equal(active.open,true);assert.equal(other.open,false);
 });
 
+test("render opens the generated homepage only on explicit non-hook writes", async (t) => {
+  const { cmdRender } = await import("../../node/renderer.mjs");
+  const { pathToFileURL } = await import("node:url");
+  const root = temp(t);
+  init(root);
+  ok(run(root, ["index", "--write"]));
+  const bundle = new Bundle(root);
+  const opened = [];
+  const open = async (url) => opened.push(url);
+  for (const args of [{}, { open: true, check: true }, { open: true, hook: true }, { open: true, hook: true, check: true }])
+    assert.equal(await cmdRender(bundle, args, open), 0);
+  assert.deepEqual(opened, []);
+  for (const output of [undefined, "site 日本語 %"])
+    assert.equal(await cmdRender(bundle, { open: true, output }, open), 0);
+  assert.deepEqual(opened, ["docs", "site 日本語 %"].map((dir) => pathToFileURL(path.join(root, dir, "index.html")).href));
+  assert.equal(await cmdRender(bundle, { open: true }, async () => { throw new Error("missing browser"); }), 0);
+  ok(run(root, ["render", "--open", "--check"]));
+  assert.deepEqual(JSON.parse(ok(run(root, ["render", "--open", "--hook"]))), {});
+});
+
+test("browser launch uses argument arrays on Windows, macOS and Linux", async () => {
+  const { EventEmitter } = await import("node:events");
+  const { openBrowser } = await import("../../node/browser.mjs");
+  const url = "file:///tmp/%25%20日本語/index.html";
+  for (const [platform, command, args] of [["win32", "rundll32.exe", ["url.dll,FileProtocolHandler", url]], ["darwin", "open", [url]], ["linux", "xdg-open", [url]]]) {
+    const launch = (actualCommand, actualArgs, options) => {
+      assert.equal(actualCommand, command);
+      assert.deepEqual(actualArgs, args);
+      assert.equal(options.shell, undefined);
+      const child = new EventEmitter();
+      child.unref = () => {};
+      queueMicrotask(() => child.emit("spawn"));
+      return child;
+    };
+    await openBrowser(url, platform, launch);
+  }
+  await assert.rejects(openBrowser(url, "linux", () => {
+    const child = new EventEmitter();
+    queueMicrotask(() => child.emit("error", new Error("missing")));
+    return child;
+  }), /missing/);
+});
+
 test("new doc requires code evidence and creates lint-clean frontmatter", (t) => {
   const root = temp(t);
   init(root);

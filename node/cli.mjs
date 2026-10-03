@@ -26,7 +26,7 @@ const commands = {
   affected: "base paths+",
   new: "title layer type dir slug priority effort code-globs+",
   status: "format",
-  render: "output check! hook!",
+  render: "output check! hook! open!",
   sync: "gate! session-id",
 };
 const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());

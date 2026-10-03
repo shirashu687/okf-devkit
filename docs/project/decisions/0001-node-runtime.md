@@ -56,6 +56,8 @@ Backlog の HTML 進捗表示も両実装で同じ設定・一覧・件数を扱
 
 HTML ナビのディレクトリ階層・設定層順・現在位置・元ファイル表示も両実装へ同時に反映し、生成セクションの互換性を比較する。
 
+`render --open` も両実装で提供し、check / hook 時にはブラウザを起動しない。Node.js 版は標準の child_process でOSのブラウザ起動コマンドへfile URLを引数として渡し、shell評価を行わない。
+
 `new doc` の必須型は両実装で `--code-globs`（複数指定可）を要求する。任意型の省略は維持し、プレースホルダのrelatedとcode_globsは空リストへ置換する。
 
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。

@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { openBrowser } from "./browser.mjs";
 import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import {
@@ -413,7 +415,7 @@ export function renderBundle(b, output = b.root, doWrite = true) {
     output,
   };
 }
-export function cmdRender(b, args) {
+export async function cmdRender(b, args, open = openBrowser) {
   const report = renderBundle(
     b,
     args.output ? path.resolve(b.repo, args.output) : b.root,
@@ -427,5 +429,14 @@ export function cmdRender(b, args) {
   console.log(
     `HTML ${args.check ? "検証" : "生成"}: ${report.pages} ページ / 書き込み ${report.written} 件 / 削除 ${report.removed} 件 / warn ${report.warnings.length} 件 -> ${report.output}`,
   );
+  if (args.open && !args.check) {
+    const homepage = path.join(report.output, "index.html");
+    if (!fs.existsSync(homepage)) console.error(`warn: トップページがありません: ${homepage}`);
+    else {
+      const url = pathToFileURL(homepage).href;
+      try { await open(url); }
+      catch { console.error(`warn: ブラウザを開けません: ${url}`); }
+    }
+  }
   return 0;
 }
