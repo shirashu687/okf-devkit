@@ -38,3 +38,21 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 - Remote PR was OPEN and matched the previous local reviewed SHA before changes. Merged main a16842f02e71a26849f5c094a32653c23af22640 without history rewrite. Preserved both log entries; node-runtime generated timestamp, where conflicted, uses the later main value. Ledger observations are unchanged and counts match the retained rows. Historical task declarations remain intact.
 - Local validation on the integrated tree: Python173/173, Node13/13, compatibility7/7 successful; docs index --write/--check successful, lint error0/warn0. npm ci completed in the design worktree before Node tests. PR-scope change check and conflict/diff checks run after commit; independent review and final remote CI remain separate pending observations.
 - Retro: no new trial or adopted rule. No merge/publish/Issue close; Claude actual session remains excluded.
+
+## PR #27 render-open main integration (2026-10-03)
+
+- 開始HEAD: a1ca954697618ff4297cb1395f457d5be222d006、開始working treeはclean。PR#27 remote head一致/OPEN/CONFLICTING、読取取得時のbaseはa16842f。指定した統合対象は5ce845a4deb454919fdec92d5cdff2105dcbc7df（mainのrender --open #22）。外部writeは行わない。
+- 3387010e7f8e7bee46c8736274b563f7727d1ac3でexact mainをmergeした。競合はdocs/cli/log.mdのみ。Issue12調査2c6eeeaとmainのrender-open a731462およびnew-doc be22026のログをすべて保持。mainのCLI/Node/README/テスト/ledgerは変更せず取込み、分割実装や機能削除はしない。
+- 履歴task/PR宣言はすべて保存。今回PR scopeはbase5ce845a4deb454919fdec92d5cdff2105dcbc7dfから実diff4ファイル（cli index/log/module-migrationと本journal）であり、保護対象差分なし。空changes宣言は追加せず、actualbase/headでcheckerのno-protected判定を確認した。
+
+| 識別子 | 結果 | 対象版・証拠 |
+|---|---|---|
+| Python required | 成功 | 3387010のclean tree、既存venv＋PYTHONPATH=worktree/src＋PYTHONUTF8=1、176件/fail0/error0/skip0、session98880 exit0、workspace ../issue27-main-python.txt |
+| Node install/native/compat | 成功 | 同じ対象版、npm ci --ignore-scripts exit0、native15/pass15/fail0、compat7/pass7/fail0。OKF_TEST_PYTHON既存venvを明示、session81545 exit0。../issue27-main-node.txt/issue27-main-compat.txt |
+| OKF index/lint/render | 成功 | index --write/--check最新、lint error0/warn0、render --check20pages書込0/削除0/warn0 |
+| PR declaration | 成功 | exactmain5ce845a4→3387010、4ordinarypaths、result=ok、宣言presenceを独立review成功とは扱わない |
+| Conflict/diff checks | 成功 | unmergedなし、diff --checkなし、git grep conflictmarkers一致なし（grep exit1は一致なし） |
+| 独立review | 未実行 | rootへ最終localSHAを引継ぎ、今回merge対象とPRscopeを独立確認予定 |
+| 最新SHA remote CI | 未実行 | push/PR更新は親担当。今回local成功をCI成功へ置換しない |
+
+今回の変更は既知のmain進行による予定された競合統合。指示取りこぼし・回帰・誤成功報告はなく、ledger新規観測/試行/恒久規約を追加しない。既存記録を保持。次の一手はrootの独立reviewと親担当によるpush/latestCI確認。Issue12分割実装は未完了のまま。
