@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-03
+- **Update** CLI分割の可変状態・互換interfaceと段階的移行を調査した。 ([Issue #12](https://github.com/shirashu687/okf-devkit/issues/12), `2c6eeea`)
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 
