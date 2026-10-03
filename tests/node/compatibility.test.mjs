@@ -99,6 +99,8 @@ test("init and new produce the same scaffold bytes (except generation time)", (t
       "api",
       "--type",
       "Reference",
+      "--code-globs",
+      "src/**",
     ],
   ]) {
     ok(run(py, args, { runtime: "python" }));

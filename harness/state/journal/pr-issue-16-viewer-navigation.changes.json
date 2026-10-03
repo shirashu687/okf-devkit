@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "9e33860d6a81da3cf4881025c022b1b938d28750",
+  "base": "6aaeea0436d40478b13e4cd811e7737c4fd7ea2d",
   "worklog": "harness/state/journal/issue-16-viewer-navigation.md",
   "changes": [
     {

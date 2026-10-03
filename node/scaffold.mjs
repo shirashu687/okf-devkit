@@ -61,8 +61,10 @@ export function setField(text, key, value, parent = null) {
   let inParent = false;
   for (let i = 1; i < end; i++) {
     if (!parent && lines[i].startsWith(`${key}:`)) {
-      lines[i] = `${key}: ${value}`;
-      break;
+      let stop = i + 1;
+      while (stop < end && (/^[ \t]/.test(lines[stop]) || !lines[stop].trim())) stop++;
+      lines.splice(i, stop - i, `${key}: ${value}`);
+      return lines.join("\n");
     }
     if (parent) {
       if (lines[i].startsWith(`${parent}:`)) {
@@ -76,6 +78,7 @@ export function setField(text, key, value, parent = null) {
       }
     }
   }
+  if (!parent) lines.splice(end, 0, `${key}: ${value}`);
   return lines.join("\n");
 }
 export function cmdInit(repo, args) {
@@ -194,6 +197,9 @@ export function cmdNew(b, args) {
     vocab(args.priority, b.backlog.priorities, "--priority");
     vocab(args.effort, b.backlog.efforts, "--effort");
   }
+  const codeGlobs = args.codeGlobs || [];
+  if (!backlog && ["Project Overview", "Architecture", "Reference", "How-To"].includes(type) && !codeGlobs.length)
+    throw new OkfError("この型では --code-globs を指定してください");
   const template = b.cfg.templates[type];
   if (!template)
     throw new OkfError(`type '${type}' に対応するテンプレートがありません`);
@@ -239,13 +245,17 @@ export function cmdNew(b, args) {
   for (const [k, v] of Object.entries(fields))
     text = setField(text, k, scalar(v));
   if (backlog) text = setField(text, "tags", flow([args.layer]));
+  else {
+    text = setField(text, "code_globs", flow(codeGlobs));
+    text = setField(text, "related", "[]");
+  }
   text = setField(
     setField(text, "by", scalar("process:okf-cli"), "generated"),
     "at",
     scalar(now()),
     "generated",
   );
-  text = text.replace(/^#\s+<[^>\n]*>\s*$/m, () => `# ${args.title}`);
+  text = text.replace(/^#[ \t]+<[^>\r\n]*>[ \t]*$/m, () => `# ${args.title}`);
   if (fs.existsSync(out))
     throw new OkfError(`既に存在します: ${rel(out, b.repo)}`);
   write(out, text);
