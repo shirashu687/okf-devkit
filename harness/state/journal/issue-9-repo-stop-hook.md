@@ -75,3 +75,9 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - Local validation: Python 170/170, Node 12/12, compatibility 7/7 successful; docs index --write/--check successful, lint error0/warn0. Compatibility was retried after setting absolute worktree PYTHONPATH and PYTHONUTF8=1; PR24 also required npm ci before Node tests.
 - Start-SHA task-scope check cannot accept imported historical declarations with different bases; those declarations were preserved rather than rewritten. PR-scope comparison is the integration gate.
 - Claude actual session event remains outside the requested scope. Independent review and final remote CI are separate pending observations; no merge/publish performed. Retro: existing observations preserved, no new trial or adopted rule.
+
+## PR #25 subsequent main integration (2026-10-03)
+
+- Remote PR was OPEN and matched the previous local reviewed SHA before changes. Merged main a16842f02e71a26849f5c094a32653c23af22640 without history rewrite. Preserved both log entries; node-runtime generated timestamp, where conflicted, uses the later main value. Ledger observations are unchanged and counts match the retained rows. Historical task declarations remain intact.
+- Local validation on the integrated tree: Python173/173, Node13/13, compatibility7/7 successful; docs index --write/--check successful, lint error0/warn0. npm ci completed in the design worktree before Node tests. PR-scope change check and conflict/diff checks run after commit; independent review and final remote CI remain separate pending observations.
+- Retro: no new trial or adopted rule. No merge/publish/Issue close; Claude actual session remains excluded.
