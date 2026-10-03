@@ -52,6 +52,7 @@ import sys
 import tempfile
 import threading
 import time
+import webbrowser
 from pathlib import Path, PurePosixPath
 
 try:  # PyYAML があれば使う
@@ -2422,6 +2423,17 @@ def cmd_render(bundle: Bundle, args) -> int:
         f"削除 {report.removed} 件 / "
         f"warn {len(report.warnings)} 件 -> {report.output_root}"
     )
+    if getattr(args, "open", False) and not args.check:
+        homepage = (report.output_root / "index.html").resolve()
+        if not homepage.is_file():
+            print(f"warn: トップページがありません: {homepage}", file=sys.stderr)
+        else:
+            try:
+                opened = webbrowser.open(homepage.as_uri())
+            except (OSError, webbrowser.Error):
+                opened = False
+            if not opened:
+                print(f"warn: ブラウザを開けません: {homepage.as_uri()}", file=sys.stderr)
     return 0
 
 
@@ -2854,6 +2866,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_render = sub.add_parser("render", help="Bundle の Markdown を閲覧用 HTML に変換する")
     p_render.add_argument("--output", help="出力先（既定: Markdown の隣。例: _site）")
+    p_render.add_argument("--open", action="store_true", help="生成後にトップページをブラウザで開く（check / hook 時は無効）")
     p_render.add_argument("--check", action="store_true", help="書き込まず、全ページを生成できるか検証する")
     p_render.add_argument("--hook", action="store_true", help="Stop hook 用。成功時は空の JSON だけを返す")
 

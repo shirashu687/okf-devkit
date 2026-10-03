@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "worklog": "harness/state/journal/issue-11-render-open.md",
+  "changes": [
+    {
+      "path": "tests/test_render.py",
+      "reason": "Issue #11の明示的ブラウザ起動・check/hook抑止とランタイム別安全起動をstubで検証。既存検証を維持。"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Issue #11の明示的ブラウザ起動・check/hook抑止とランタイム別安全起動をstubで検証。既存検証を維持。"
+    }
+  ]
+}

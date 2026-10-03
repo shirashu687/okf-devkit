@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: devin/swe-2-max
-  at: "2026-09-14T15:25:14Z"
+  at: "2026-10-03T00:00:00Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -51,3 +51,5 @@ YAML 1.1の解釈には `yaml`、HTML変換にはPython側と同系統の `markd
 全入力に対するバイト一致を保証するものではなく、診断文・厳格な入力拒否・コンソール改行に差がある。
 新しいhookはローカルnpmパッケージも探索する。既存hookは手順に従いコピーして更新する。
 npm公開は別作業であり、この変更の成果はチェックアウトと `npm pack` によるローカル配布である。
+
+`render --open` も両実装で提供し、check / hook 時にはブラウザを起動しない。Node.js 版は標準の child_process でOSのブラウザ起動コマンドへfile URLを引数として渡し、shell評価を行わない。
