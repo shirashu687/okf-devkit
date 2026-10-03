@@ -2,7 +2,7 @@
 
 ## メタデータ・開始時の状態
 
-- 状態: 進行中。対象 shirashu687/okf-devkit、独立worktree issue17、ブランチ codex/issue17-site-default。
+- 状態: 実装・ローカル検証完了。外部更新と最終SHA CIの完了結果はPR #31の最終SHA記録を参照。対象 shirashu687/okf-devkit、独立worktree issue17、ブランチ codex/issue17-site-default。
 - 作業者: codex/gpt-6。開始SHA 82adb7b1e65c071d54a67c2ff4b38050834a03f5、PR比較点main 5ce845a4deb454919fdec92d5cdff2105dcbc7df。
 - 開始時の追跡/未追跡変更なし。既存PR #31の_site既定化とmain取込みを保持し、その後の今回の差分だけをtask宣言へ列挙。
 - ユーザーは同PRで旧HTML整理の設計・実装・独立review・テスト・push・Draft更新・最新SHA CIを依頼済み。親PR #22はmerge済みのためbaseをmainへ変更する。merge/deploy/publish/Issue closeは行わない。
@@ -80,3 +80,5 @@ push対象は本作業ブランチ、PR #31のみ。main5ce845aとremote head c9
 Windowsalias初回全体検証: Python195件(skip1)/Node25件は成功。compatは10/11成功・1失敗（旧source末尾spaceがPython CLIで正規化され拒否を通過）。低レベルnewroot fixtureでは同一root拒否として検出され、source側の正規化前検査不足が隠れていた。CLI両方向fixtureを保持して実装を修正し再試行する。同じIMP-0015の追加根拠として記録し、独立回数を増やさない。
 
 Windows別名修正後の再試行成功: Python196件(失敗0/error0/skip1)、Node25件(失敗0)、compat11件(失敗0)。証拠cleanup-alias-rerun-python.log / cleanup-alias-node.log / cleanup-alias-rerun-compat.log。npm ci監査0、lint error0/warn0・index最新・task/PR宣言とも成功。独立二軸reviewでraw正規化前チェックと全fixture境界を再確認、blockingなし。
+
+安全修正commit 83596623555186a0e14e88e2551b0a5055dea649。cli/render logを実commit参照で更新。ここまでの実行結果は上記の4値記録どおりであり、最終CIはこの記録commit時点では未実行。最終HEAD限定review・CI結果・外部操作は [PR #31](https://github.com/shirashu687/okf-devkit/pull/31) の最終SHA記録に追記する。
