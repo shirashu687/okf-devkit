@@ -293,3 +293,29 @@ class BacklogProgressTests(OkfTestCase):
         self.assertIn('>未設定</span> 1 件', summary)
         self.assertIn('href="B-0001-x%20%23%25.html"', summary)
         self.assertIn("B-0001-x #%.md", page)
+
+
+@unittest.skipUnless(renderer.MarkdownIt is not None, "markdown-it-py が必要")
+class NavigationTreeTests(OkfTestCase):
+    def test_nested_current_position_config_order_filename_and_source(self) -> None:
+        self.write("docs/index.md", "# Docs\n")
+        self.write("docs/z-team/deep/a #%.md", doc_text(title="Nested <title>"))
+        self.write("docs/a-team/b.md", doc_text(title="Other"))
+        bundle = self.bundle()
+        bundle.layers = ["preferred", "secondary"]
+        bundle.cfg["layer_dirs"] = {"preferred": "z-team", "secondary": "a-team"}
+        renderer.render_bundle(bundle, okf.Doc, self.repo / "_site")
+        page = self.read("_site/z-team/deep/a #%.html")
+        navigation = page.split('<nav class="site-nav"')[1].split('</nav>')[0]
+        self.assertLess(navigation.index('preferred · z-team'), navigation.index('secondary · a-team'))
+        self.assertIn('<details data-current="true" open><summary title="z-team">', navigation)
+        self.assertIn('<details data-current="true" open><summary title="z-team/deep">', navigation)
+        self.assertIn('<details data-current="false"><summary title="a-team">', navigation)
+        self.assertIn('aria-current="page" class="active"', navigation)
+        self.assertIn('<code>a #%.md</code>', navigation)
+        self.assertIn('Nested &lt;title&gt;', navigation)
+        self.assertIn('href="a%20%23%25.html"', navigation)
+        self.assertIn('<code>docs/z-team/deep/a #%.md</code>', page)
+        self.assertIn('href="../../../docs/z-team/deep/a%20%23%25.md"', page)
+        renderer.render_bundle(bundle, okf.Doc)
+        self.assertIn('href="a%20%23%25.md"', self.read("docs/z-team/deep/a #%.html"))

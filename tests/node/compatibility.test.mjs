@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import YAML from "yaml";
 import path from "node:path";
 import {
   document,
@@ -232,4 +233,21 @@ test("Python and Node render identical readonly backlog progress sections", t =>
     const summary = root => fs.readFileSync(path.join(root, "_site", file), "utf8").split('<section class="backlog-progress"')[1].split('</section>')[0];
     assert.equal(summary(py), summary(js));
   }
+});
+
+
+test("Python and Node hierarchical nav and source metadata remain identical", t => {
+  const py=temp(t),js=temp(t);init(py,"python");init(js);
+  for (const root of [py,js]) {
+    const config=YAML.parse(fs.readFileSync(path.join(root,"okf.yml"),"utf8"));
+    config.layers=["preferred","secondary"];config.layer_dirs={preferred:"z-team",secondary:"a-team"};
+    put(root,"okf.yml",YAML.stringify(config));
+    put(root,"docs/index.md","# Docs\n");
+    put(root,"docs/z-team/deep/a #%.md",document());put(root,"docs/a-team/b.md",document());
+  }
+  ok(run(py,["render","--output","_site"],{runtime:"python"}));ok(run(js,["render","--output","_site"]));
+  const read=root=>fs.readFileSync(path.join(root,"_site/z-team/deep/a #%.html"),"utf8");
+  const nav=text=>text.split('<nav class="site-nav"')[1].split('</nav>')[0];
+  const source=text=>text.split('<p class="source-meta">')[1].split('</p>')[0];
+  assert.equal(nav(read(py)),nav(read(js)));assert.equal(source(read(py)),source(read(js)));
 });

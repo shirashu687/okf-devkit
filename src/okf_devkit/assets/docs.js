@@ -24,9 +24,13 @@
     document.querySelectorAll(".site-nav li[data-search]").forEach((item) => {
       item.hidden = query !== "" && !item.dataset.search.includes(query);
     });
+    document.querySelectorAll(".site-nav details").forEach((directory) => {
+      const visible = [...directory.querySelectorAll("li[data-search]")].some((item) => !item.hidden);
+      directory.parentElement.hidden = !visible;
+      directory.open = query !== "" ? visible : directory.dataset.current === "true";
+    });
     document.querySelectorAll(".site-nav section").forEach((section) => {
-      const visible = [...section.querySelectorAll("li")].some((item) => !item.hidden);
-      section.hidden = !visible;
+      section.hidden = ![...section.querySelectorAll("li[data-search]")].some((item) => !item.hidden);
     });
   });
 

@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: devin/swe-2-max
-  at: "2026-10-03T00:00:00Z"
+  at: "2026-10-03T00:17:54Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -53,3 +53,5 @@ YAML 1.1の解釈には `yaml`、HTML変換にはPython側と同系統の `markd
 npm公開は別作業であり、この変更の成果はチェックアウトと `npm pack` によるローカル配布である。
 
 Backlog の HTML 進捗表示も両実装で同じ設定・一覧・件数を扱い、比較テストで主要表示の一致を確認する。共通アセットは引き続き共有する。
+
+HTML ナビのディレクトリ階層・設定層順・現在位置・元ファイル表示も両実装へ同時に反映し、生成セクションの互換性を比較する。

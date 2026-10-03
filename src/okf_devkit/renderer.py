@@ -280,47 +280,54 @@ def _render_backlog(pages: list[Page], current: Page, bundle: Any) -> str:
     return ''.join(chunks)
 
 
-def _render_navigation(pages: list[Page], current: Page) -> str:
-    groups: dict[str, list[Page]] = {}
+def _render_navigation(pages: list[Page], current: Page, bundle: Any) -> str:
+    files: dict[str, list[Page]] = {}
+    children: dict[str, set[str]] = {}
     for page in pages:
-        parts = PurePosixPath(page.source_rel).parts
-        group = parts[0] if len(parts) > 1 else "ルート"
-        groups.setdefault(group, []).append(page)
-    order = ["ルート", "project", "client", "server", "batch", "backlog"]
-    group_names = {
-        "ルート": "全体",
-        "project": "プロジェクト",
-        "client": "クライアント",
-        "server": "サーバー",
-        "batch": "バッチ",
-        "backlog": "バックログ",
-    }
-    chunks = []
-    for group in sorted(groups, key=lambda item: (order.index(item) if item in order else 99, item)):
-        chunks.append(f"<section><h2>{html.escape(group_names.get(group, group))}</h2><ul>")
-        for page in sorted(groups[group], key=lambda item: (item.source_rel != f"{group}/index.md", item.source_rel)):
+        directory = str(PurePosixPath(page.source_rel).parent)
+        files.setdefault(directory, []).append(page)
+        while directory != ".":
+            parent = str(PurePosixPath(directory).parent)
+            children.setdefault(parent, set()).add(directory)
+            directory = parent
+    layer_dirs = bundle.cfg.get("layer_dirs") or {}
+    configured = [(str(layer_dirs.get(layer, layer)), str(layer)) for layer in bundle.layers]
+
+    def rank(directory: str) -> tuple[int, str]:
+        positions = [i for i, (mapped, _layer) in enumerate(configured)
+                     if mapped == directory or mapped.startswith(directory + "/")]
+        return (min(positions) if positions else len(configured), directory)
+
+    def subtree(directory: str) -> str:
+        chunks = ['<ul>']
+        for page in sorted(files.get(directory, []), key=lambda item: (item.doc.name != "index.md", item.source_rel)):
             active = ' aria-current="page" class="active"' if page.source_rel == current.source_rel else ""
-            href = _relative_html(current.output_rel, page.source_rel)
-            search = " ".join(
-                str(value)
-                for value in (
-                    page.doc.title,
-                    page.doc.description,
-                    page.doc.type,
-                    page.source_rel,
-                    _backlog_state(page) if page.doc.type == "Backlog Item" else "",
-                    " ".join(page.doc.get("tags", [])) if isinstance(page.doc.get("tags", []), list) else "",
-                )
-            ).lower()
-            progress = (f'<small><code>{html.escape(PurePosixPath(page.source_rel).name)}</code> · '
-                        f'{html.escape(_backlog_state(page))}</small>'
-                        if page.doc.type == "Backlog Item" else "")
-            chunks.append(
-                f'<li data-search="{html.escape(search, quote=True)}"><a href="{html.escape(href, quote=True)}"{active}>'
-                f"{html.escape(page.doc.title)}{progress}</a></li>"
-            )
-        chunks.append("</ul></section>")
-    return "".join(chunks)
+            href = quote(_relative_html(current.output_rel, page.source_rel), safe="/:@-._~!$&'()*+,;=")
+            tags = page.doc.get("tags", [])
+            state = _backlog_state(page) if page.doc.type == "Backlog Item" else ""
+            search = " ".join(str(value) for value in (
+                page.doc.title, page.doc.description, page.doc.type, page.source_rel, state,
+                " ".join(tags) if isinstance(tags, list) else "",
+            )).lower()
+            progress = f" · {html.escape(state)}" if state else ""
+            chunks.append(f'<li data-search="{html.escape(search, quote=True)}">'
+                          f'<a href="{html.escape(href, quote=True)}"{active}>{html.escape(page.doc.title)}'
+                          f'<small><code>{html.escape(page.doc.name)}</code>{progress}</small></a></li>')
+        for child in sorted(children.get(directory, []), key=rank):
+            contains_current = current.source_rel.startswith(child + "/")
+            expanded = ' open' if contains_current else ''
+            current_value = "true" if contains_current else "false"
+            label = PurePosixPath(child).name
+            layer = next((layer for mapped, layer in configured if mapped == child), None)
+            if layer and layer != label:
+                label = f"{layer} · {label}"
+            chunks.append(f'<li class="nav-directory"><details data-current="{current_value}"{expanded}>'
+                          f'<summary title="{html.escape(child, quote=True)}">{html.escape(label)}</summary>'
+                          f'{subtree(child)}</details></li>')
+        chunks.append('</ul>')
+        return ''.join(chunks)
+
+    return '<section><h2>ドキュメント</h2>' + subtree(".") + '</section>'
 
 
 def _render_breadcrumbs(page: Page, page_sources: set[str]) -> str:
@@ -481,14 +488,15 @@ def render_bundle(
             "LANG": "ja",
             "ASSETS": html.escape(assets_rel, quote=True),
             "SOURCE": html.escape(page.source_rel),
-            "SOURCE_LINK": html.escape(source_link, quote=True),
+            "SOURCE_LINK": html.escape(quote(source_link, safe="/:@-._~!$&'()*+,;="), quote=True),
+            "SOURCE_REPO": html.escape(page.doc.repo_rel),
             "HOME_LINK": html.escape(_relative_html(page.output_rel, "index.md"), quote=True),
             "SOURCE_HASH": source_hash,
             "TYPE_CLASS": html.escape(_type_class(type_name), quote=True),
             "LONG_CLASS": " long-document" if long_page else "",
             "BREADCRUMBS": _render_breadcrumbs(page, page_sources),
             "BADGES": _render_badges(page.doc),
-            "NAVIGATION": _render_navigation(pages, page),
+            "NAVIGATION": _render_navigation(pages, page, bundle),
             "TOC": _render_toc(page.headings),
             "CONTENT": page.body_html,
             "BACKLOG": _render_backlog(pages, page, bundle),

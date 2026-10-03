@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: process:codex
-  at: "2026-10-03T00:00:00Z"
+  at: "2026-10-03T00:17:54Z"
 code_globs:
   - src/okf_devkit/renderer.py
   - node/renderer.mjs
@@ -43,3 +43,5 @@ okf render --output _site
 ## 状態を反映する
 
 元 Markdown の frontmatter の `state` を更新して `okf render` を再実行すると、一覧・件数も更新される。生成・閲覧では元 Markdown を変更しない。画面からの編集・同期や別の管理データは持たない。このリポジトリ自身の課題管理は GitHub Issues を継続する。
+
+サイドナビは [階層ナビの手順](/render/navigation.md) に従いディレクトリ階層で表示する。検索中は一致する項目の祖先を展開する。状態・全件数の意味は変わらない。

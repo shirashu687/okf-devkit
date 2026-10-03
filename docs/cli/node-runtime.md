@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: devin/swe-2-max
-  at: "2026-10-03T00:00:00Z"
+  at: "2026-10-03T00:17:54Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -88,3 +88,5 @@ YAMLは1.1として読み、日付を文字列に正規化する。Node.js版で
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
 
 HTML の Backlog 進捗一覧は Python 版と同じ読み取り専用表示で、設定ディレクトリ・状態別件数・本文リンクを扱う。手順は [Backlog の進捗表示](/render/backlog-progress.md) を参照。
+
+HTML の階層ナビ・元ファイル表示も Python 版と同じ構造を生成する。[階層ナビの手順](/render/navigation.md) を参照。
