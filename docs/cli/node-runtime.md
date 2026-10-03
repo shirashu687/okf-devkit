@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: devin/swe-2-max
-  at: "2026-09-14T15:25:14Z"
+  at: "2026-10-03T00:11:30Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -52,6 +52,7 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 | render | 共有HTMLアセット、目次・関連・被リンク・Mermaid、output / check / hook |
 | sync | index → log → lint → stale、gateの指紋による差し戻し制限 |
 
+`new doc` の Project Overview / Architecture / Reference / How-To 型では `--code-globs "src/**"` が必須。複数のglobを指定でき、relatedは空リストで生成する。既存スクリプトにも根拠コード引数を追加する。
 `--root` / `--config` はコマンドの前後で指定できる。
 `render --check` は書き込まず生成可否を検証する。保存済みHTMLとの一致検査ではない。
 `render --hook` は成功時に `{}`、失敗時に1を返す。`sync --gate` は初回のlint errorで2、同じエラー集合の再検出で0を返す。
