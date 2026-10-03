@@ -49,11 +49,13 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 | affected | base比較・作業ツリー・明示pathsから文書と未カバーパスを出力 |
 | new | backlog / docの雛形、語彙検査、採番、出力先の検証 |
 | status | backlogの状態・優先度集計、JSON出力 |
-| render | 共有HTMLアセット、目次・関連・被リンク・Mermaid、output / check / hook |
+| render | 共有HTMLアセット、目次・関連・被リンク・Mermaid、output / check / hook / open |
 | sync | index → log → lint → stale、gateの指紋による差し戻し制限 |
 
 `new doc` の Project Overview / Architecture / Reference / How-To 型では `--code-globs "src/**"` が必須。複数のglobを指定でき、relatedは空リストで生成する。既存スクリプトにも根拠コード引数を追加する。
 `--root` / `--config` はコマンドの前後で指定できる。
+`render --open` は生成先の `index.html` を既定ブラウザで開く。Windows は rundll32、macOS は open、Linux は xdg-open を使用し、起動コマンドを開始できない場合は警告として扱う。起動後の表示やコマンド終了結果までは確認しない。
+`--check` / `--hook` との併用では開かない。Mermaid の file:// 制限がある場合はローカルHTTP配信を使う。
 `render --check` は書き込まず生成可否を検証する。保存済みHTMLとの一致検査ではない。
 `render --hook` は成功時に `{}`、失敗時に1を返す。`sync --gate` は初回のlint errorで2、同じエラー集合の再検出で0を返す。
 `sync` のlog入力はコミット済み履歴だけなので、今回の未コミット変更は履歴へ反映されない。

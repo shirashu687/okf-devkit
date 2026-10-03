@@ -5,6 +5,10 @@
 ## 2026-10-03
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
+
+- **Creation** render --open を追加。生成先のトップページを開き、check / hook 時は起動しない。 (`a731462`)
+
+
 ## 2026-09-10
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 
