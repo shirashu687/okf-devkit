@@ -40,3 +40,11 @@ Issue #4 の4本文と #5 の self-check CI を追加する。既存 npm 未統�
 ## 再試行履歴
 
 - ログ追記後の lint: warn1（sharedログ日付順）を検出し、最新日付を先頭へ移動して再検査する。初回の本文 lint warn0とは別対象版。
+
+- log --write --range main..HEAD: 手書きのhashなしエントリにより初回4層が失敗。記録済み変更を一意に特定する036d60aを手書きエントリへ追加して再検査する。
+
+## full retrospective
+
+依頼・Issue4/5・実差分・検証記録を照合し、ログ更新時の要件不適合修正をretroトリガーとして判定。IMP-0011へ一件の観測として記録した。原因は仮説、恒久採用・試行開始なし。最新ログは4層の log --write --range main..HEAD すべてexit0、lint0/0。対象外のnpm未統合作業や環境権限は変更しない。
+
+追加検証: 一時コピーのcli/indexを古くすると index --check exit1。追跡HTMLなし。task/PR宣言検査成功（比較元は開始SHA）。
