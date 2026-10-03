@@ -19,8 +19,8 @@
   ],
   "scripts": {
     "okf": "node node/cli.mjs",
-    "test": "node --test tests/node/native.test.mjs",
-    "test:compat": "node --test tests/node/compatibility.test.mjs"
+    "test": "node --test tests/node/native.test.mjs tests/node/render-cleanup.test.mjs",
+    "test:compat": "node --test tests/node/compatibility.test.mjs tests/node/cleanup-compatibility.test.mjs"
   },
   "dependencies": {
     "markdown-it": "^14.1.0",
