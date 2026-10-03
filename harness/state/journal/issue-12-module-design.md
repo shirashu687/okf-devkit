@@ -32,3 +32,9 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 - Merged origin/main 98373cc without conflict or history rewrite. Historical declarations retained; PR diff contains no protected files, so no new declaration is needed.
 - Local validation: Python170/170 successful; docs index --write/--check successful, lint error0/warn0, git diff --check successful. PR-scope change check at main/head successful. Node code/assets/hooks were not changed in this design-only PR; independent review and final remote CI remain separate pending observations.
 - Retro: retained main ledger observations, no new observation/trial/adoption. No implementation, merge or publication performed.
+
+## PR #27 subsequent main integration (2026-10-03)
+
+- Remote PR was OPEN and matched the previous local reviewed SHA before changes. Merged main a16842f02e71a26849f5c094a32653c23af22640 without history rewrite. Preserved both log entries; node-runtime generated timestamp, where conflicted, uses the later main value. Ledger observations are unchanged and counts match the retained rows. Historical task declarations remain intact.
+- Local validation on the integrated tree: Python173/173, Node13/13, compatibility7/7 successful; docs index --write/--check successful, lint error0/warn0. npm ci completed in the design worktree before Node tests. PR-scope change check and conflict/diff checks run after commit; independent review and final remote CI remain separate pending observations.
+- Retro: no new trial or adopted rule. No merge/publish/Issue close; Claude actual session remains excluded.
