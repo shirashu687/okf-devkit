@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: devin/swe-2-max
-  at: "2026-09-14T15:25:14Z"
+  at: "2026-10-03T00:00:00Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -71,6 +71,10 @@ Copy-Item node_modules/okf-devkit/src/okf_devkit/scaffold/hooks/render_hook.sh .
 POSIXでは `cp` で同じ2ファイルをコピーする。探索順はローカルnpmパッケージ、主ワークツリーのnpmパッケージ、従来のPython経路、開発チェックアウト。
 開発チェックアウトは `src/okf_devkit/defaults.yml` がある場合だけ候補にする。npm依存が未導入でも既存Python環境を優先して利用できる。
 hook実行時にnpmレジストリへアクセスしない。Windows PowerShell 5.1でもUTF-8 BOMなしのhookを読めるよう、ps1のソースはASCIIで記述する。
+
+このリポジトリの `.okf/hooks/` も共有 scaffold と同じラッパーを使い、
+`.claude/settings.json` の Stop hook から呼ぶ。プロジェクト内の設定だけを管理し、
+利用者のグローバル hook 設定は変更しない。
 
 ## 検証と互換性
 

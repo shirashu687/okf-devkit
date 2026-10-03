@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "worklog": "harness/state/journal/issue-9-repo-stop-hook.md",
+  "changes": [
+    {
+      "path": ".claude/settings.json",
+      "reason": "Issue #9: repo-only Stop hook while preserving plugin settings."
+    }
+  ]
+}

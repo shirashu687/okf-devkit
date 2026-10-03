@@ -176,6 +176,8 @@ Obsidianでは、このリポジトリのルートフォルダをそのままVau
 
 `okf init` が `.okf/hooks/render_hook.sh` / `.ps1` を置く。Stop hook から呼ぶと、
 作業終了時に閲覧用 HTML が自動で再生成される。
+このリポジトリでも `.claude/settings.json` の同じ Stop hook を使っている。
+ラッパーは共有 scaffold と揃え、Node.js と既存 Python 環境の両方を探索する。
 
 **Claude Code** — `.claude/settings.json`:
 
