@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-02T23:59:03Z
+  at: 2026-10-03T08:53:34Z
 code_globs:
   - src/okf_devkit/cli.py
   - .github/workflows/ci.yml
@@ -29,11 +29,15 @@ related:
 | lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |
 | stale | 期日・コード更新・検証状態のレポート | なし。指摘があっても exit 0 |
 | affected | `--base` との差分または `--paths` を文書へ逆引き | なし。対応文書と未カバーのパスを表示 |
-| new doc | layer/type/title とテンプレートから文書を作る | 新規 Markdown。本文と code_globs の補完が必要 |
+| new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。本文を補完し、`index --write` → `lint` を実行 |
 | new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
 | status | backlog の state を集計 | なし。text/json 出力 |
 | render | Markdown とアセットから HTML を作る | 通常は Markdown の隣。`--output` はリポジトリ内の別配置 |
 | sync | index → log → lint → stale をまとめて実行 | index/log 更新。`--gate` は hook 用の差戻し判定 |
+
+## 新規文書の根拠コードと検査
+
+`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。例えば `okf new doc --layer cli --type Reference --title "コマンド仕様" --code-globs "src/okf_devkit/cli.py" "node/cli.mjs"` と指定する。生成後は本文を補完し、目次を更新してから規約検査を実行する。
 
 ## 自リポジトリの CI
 
