@@ -6,9 +6,9 @@
 - 範囲: メタデータURL2件、隔離したローカルwheel build/install/init/lint検証。配布名とバージョンは保持。
 - 保留: PyPI公開、タグ、Trusted Publishing、publish workflow。利用者は公開操作を除外し、Python/Node配布方針は未統合npmブランチに記録されているため、公開方式の決定を先取りしない。
 - 台帳開始確認: main評価中5/10、試行0/3、採用0、期限未定。既存venv read-only利用、ビルドdepsは一時build isolationへ。
-- 検証結果: Python既存suite 未実行、wheel build 未実行、隔離wheel smoke 未実行、保護宣言 未実行、CI 未実行。
-- review: 仕様軸・標準軸独立review予定。
-- 次の一手: pip wheelの隔離ビルドと資産内容確認。
+- 初期検証状態: 全検査が未実行だった。現在の成功結果と未実行のCIは下表に記録。
+- review: 仕様軸investigate、標準軸docs_ciで独立review済み。コード指摘0、初期検証状態/次の一手の古い記述を更新。
+- 次の一手: 最終コミットをpushし部分対応Draft PRを作成、最新SHAのCIを確認。
 
 ## 対象版と検証
 検証対象は開始SHA9d72e0e5798883d81789582d8879f139865d37b5＋pyproject.tomlのURL2件変更と今回journal宣言のみ。元repo/venvは変更なし。ビルドのegg-info/build生成物はignore対象としてこのworktree内にのみ存在する。
@@ -26,3 +26,9 @@ Nodeコード・依存・hookは変更しないためNode追加検証は適用�
 
 ## retroゲート
 依頼・URL差分・ローカルbuild/install・既存suiteを照合し、新規トリガーなし。既存venvのbuild/setuptools/wheel未導入は事前に確認してbuild isolationへ設計した通常の環境準備。恒久ルールや台帳行追加なし。公開操作・Trusted Publishing・配布名空き確認と本番pip installは未実行（公開方針確定後に別作業）。
+
+## 最終ローカル状態
+- 実装HEAD3f51be9（gitの短縮SHA、開始SHAとの差分）。未コミットは生成docs/log.mdとこの検証記録のみ、ユーザー変更なし。
+- affected --base開始SHA: 更新文書なし、pyproject/journalは未カバー。共有の配布仕様は今回は変更しない。
+- log --layer shared --range main..HEAD --write: 成功、1件追加、実装hash3f51be9。index --write/lint/index --check: 成功、error0/warn0（tool chunk86954e）。
+- 独立仕様review: 部分対応の範囲・資産検証・非公開方針適合。独立標準review: protected宣言・隔離環境・必要suite適合。両軸の記録整合指摘を修正、製品コード指摘0。
