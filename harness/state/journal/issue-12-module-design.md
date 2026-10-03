@@ -61,7 +61,7 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 
 - 開始HEAD2ac1c7939f0b99a7ca38a9b8b891bad83136c234、clean working tree。remote PRはOPEN/CONFLICTING/head一致、読取時base5ce845a4。指定exact main50380b3d3a22507b2bd2e329e1d206141ce2432e（#31）をb6baac002dea8d806915942c3446432adb4283b0でmerge、履歴rewriteなし。
 - 競合はcli/logのみ。研究2c6eeeaとmainの_site/cleanup/safety全3エントリ、既存open/new-doc履歴を保存。mainの実装・テスト・CI・docs・宣言を削除/改変せず取込み。research文書の初回調査snapshotを明記し、既存cleanup moduleを維持するinterface、安全条件、現行cleanup suiteとの接続を追記した。runtime変更なし、Issue12の実分割は未完了。
-- 検証対象b6baac0のclean tree：既存venv、PYTHONPATH=worktree/src、PYTHONUTF8=1。Python全196件、fail0/error0/skip0、session53878 exit0（../issue27-site-python.txt）。npm ci --ignore-scripts exit0、native25/pass25/fail0、compat11/pass11/fail0、cleanup追加suite含む。既存venvをOKF_TEST_PYTHON指定、session27707 exit0（../issue27-site-node.txt/issue27-site-compat.txt）。
+- 検証対象b6baac0のclean tree：既存venv、PYTHONPATH=worktree/src、PYTHONUTF8=1。Python全196件、fail0/error0/skip1（unittestはOK skipped=1、skipを成功件数に加えない）、session53878 exit0（../issue27-site-python.txt）。npm ci --ignore-scripts exit0、native25/pass25/fail0、compat11/pass11/fail0、cleanup追加suite含む。既存venvをOKF_TEST_PYTHON指定、session27707 exit0（../issue27-site-node.txt/issue27-site-compat.txt）。
 - OKF成功：affected exact503mainで影響0（journal未カバー）、index --write/--check最新、lint0/0、render --check21pages/_site/書込0削除0warn0。競合markers/unmerged/diffcheckなし。
 - PRscope exactmain503→b6baac0は4ordinaryfiles、check_changes exit0。保護対象actualdiffなし、空宣言を追加せず履歴task/PR宣言をすべて保持。main ledgerは9観測rowでbyte-equivalent、試行0/採用0を保存。新規ledger行を作らない。
 - この証拠とhash付cli/log追記のみを最後にcommitする。追加runtime変更なし。今回の独立review・remoteCIは未実行、親へfinalSHAを返して確認を依頼する。local成功をCI成功と扱わない。push/PRedit/force/merge公開は実施せず、npm既存branchとIssue17worktreeを変更しない。
