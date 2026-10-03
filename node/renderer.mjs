@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { planCleanup, printPlan, executeCleanup, writeManifest } from "./render-cleanup.mjs";
 import { openBrowser } from "./browser.mjs";
 import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
@@ -282,7 +283,7 @@ function backlinks(page, pages) {
         "</ul></aside>"
     : "";
 }
-export function renderBundle(b, output = b.root, doWrite = true) {
+export function renderBundle(b, output = b.root, doWrite = true, removeStale = true) {
   output = inside(b.repo, output);
   const md = markdown(),
     pages = b.files(true).map((p) => prepare(new Doc(p, b), b, md)),
@@ -393,7 +394,7 @@ export function renderBundle(b, output = b.root, doWrite = true) {
         }
       }
     };
-    clean(output);
+    if (removeStale) clean(output);
   }
   return {
     pages: pages.length,
@@ -401,14 +402,26 @@ export function renderBundle(b, output = b.root, doWrite = true) {
     removed,
     warnings: [...new Set(warnings)].sort(compare),
     output,
+    artifacts: Object.fromEntries(plan.map(([file, content]) => [rel(file, output), content])),
   };
 }
 export async function cmdRender(b, args, open = openBrowser) {
-  const report = renderBundle(
-    b,
-    args.output ? path.resolve(b.repo, args.output) : b.root,
-    !args.check,
-  );
+  if (args.cleanupFrom && args.hook) throw new OkfError("render cleanup: --cleanup-from cannot be combined with --hook");
+  if (args.cleanupFrom && [args.cleanupFrom, args.output || "_site"].some(p => p.split(/[\\/]/).includes('..'))) throw new OkfError("render cleanup: parent traversal in path");
+  const output = path.resolve(b.repo, args.output || "_site");
+  let cleanup;
+  if (args.cleanupFrom) {
+    const old = path.resolve(b.repo, args.cleanupFrom);
+    const target = renderBundle(b, output, false);
+    const legacy = renderBundle(b, old, false);
+    cleanup = planCleanup(b.repo, output, old, target.artifacts, legacy.artifacts);
+    printPlan(cleanup);
+  }
+  const report = renderBundle(b, output, !args.check, !cleanup);
+  if (!args.check) {
+    writeManifest(b.repo, output, report.artifacts);
+    if (cleanup) executeCleanup(cleanup);
+  }
   if (args.hook) {
     console.log("{}");
     return 0;

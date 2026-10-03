@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:52:08Z
+  at: 2026-10-03T11:53:12Z
 code_globs:
   - src/okf_devkit/cli.py
   - .github/workflows/ci.yml
@@ -32,12 +32,16 @@ related:
 | new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。本文を補完し、`index --write` → `lint` を実行 |
 | new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
 | status | backlog の state を集計 | なし。text/json 出力 |
-| render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 通常は Markdown の隣。`--output` はリポジトリ内の別配置。`--check` / hook 時はブラウザを起動しない |
+| render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 既定は `_site/`。`--output docs` で従来の隣接配置を指定。`--check` / hook 時はブラウザを起動しない |
 | sync | index → log → lint → stale をまとめて実行 | index/log 更新。`--gate` は hook 用の差戻し判定 |
 
 ## 新規文書の根拠コードと検査
 
 `new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。例えば `okf new doc --layer cli --type Reference --title "コマンド仕様" --code-globs "src/okf_devkit/cli.py" "node/cli.mjs"` と指定する。生成後は本文を補完し、目次を更新してから規約検査を実行する。
+
+## 出力先と旧生成物の整理
+
+旧生成物の整理は `render --output _site --cleanup-from docs --check` で計画を確認し、`--check` を外した明示実行だけで行う。通常の render / hook は旧出力を整理しない。hash・manifest で識別できる未編集生成物だけを新出力成功後に退避し、未知・編集済み出力は保持する。receipt と非上書き復元、旧新出力先の安全境界は [生成済みHTMLの整理](/render/output-cleanup.md) を参照する。
 
 ## 自リポジトリの CI
 

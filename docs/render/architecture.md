@@ -7,16 +7,19 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-02T23:59:03Z
+  at: 2026-10-03T11:53:12Z
 code_globs:
   - src/okf_devkit/renderer.py
   - src/okf_devkit/assets/**
   - node/renderer.mjs
 related:
   - /cli/commands.md
+  - /render/output-cleanup.md
 ---
 
 # HTML レンダリングの処理構造
+
+CLI の既定出力先は `_site/` で、低レベル `render_bundle()` の既定隣接配置は維持する。明示的な `--cleanup-from` だけが旧生成物の整理を計画・実行し、通常実行と hook は整理しない。安全境界と退避・復元の契約は [生成済みHTMLの整理](/render/output-cleanup.md) を参照する。
 
 `render_bundle()` は Bundle、Doc factory、任意の出力先、write フラグを受け取り `RenderReport` を返す。Python は markdown-it-py を利用する。Node 実装は `node/renderer.mjs` にあり、同じ同梱ページ・CSS・JavaScript アセットを使う。
 

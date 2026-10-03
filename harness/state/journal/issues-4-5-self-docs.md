@@ -84,3 +84,11 @@ Issue #4 の4本文と #5 の self-check CI を追加する。既存 npm 未統�
 - Local Python/Node/compat and docs verification results are recorded after completion below; independent review, push and final remote CI pending. Retro retains existing observations without new trial/adoption.
 
 - Verification completed: existing Python176/176, npm ci successful, Node15/15 and compatibility7/7 successful using existing venv, absolute worktree PYTHONPATH and PYTHONUTF8=1. Docs index --write/--check successful, lint error0/warn0. Final PR-scope declarations and diff/conflict checks run on the committed head. Remote CI remains unobserved for this new head.
+
+## PR #31 main integration (2026-10-03)
+
+- Confirmed PR24 OPEN with matching remote/local c53c8b2, then merged exact main50380b3d3a22507b2bd2e329e1d206141ce2432e. Preserved both log entries, all cleanup implementation/tests and CI compatibility entry; regenerated the render index rather than choosing one side. Ledger retains10 observations within the10-item cap, no silent drops/trials/adoption.
+- Updated commands/render architecture for CLI_site versus unchanged low-level API default and explicit-only cleanup with safety-contract links. Hash/manifest/receipt/rollback, raw Windows path checks and main AI instructions retained. PR-scope base updated; historical task declarations unchanged. npm development branch untouched.
+- Verification results appended after completion. Independent review/push/final remote CI pending; no merge/publish/Issue close performed.
+
+- Verification: Python196 tests, failure0/error0/skip1 (symlink unavailable on this Windows environment); Windows raw alias/manifest tests ran. npm ci successful; Node25/25, compatibility11/11 successful, including cleanup suites. Docs index --write/--check and lint error0/warn0 successful; render --check wrote/deleted0 files and reported warn0. npm pack --dry-run completed; cleanup implementation/tests/package scripts and CI compatibility entry retained. Affected report inspected: imported main documents retained; PR24 references aligned to current CLI semantics. Final committed-head PR-scope/diff/conflict checks below. Independent review and final CI pending.
