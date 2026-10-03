@@ -108,6 +108,7 @@ jobs:
           okf lint
           okf index --check
           okf render --check
+          test ! -d _site
           git add -A && git commit -qm "feat: initial bundle"
           okf log --write
           test -s docs/client/log.md
@@ -123,3 +124,5 @@ jobs:
           okf init --site-name "Hook Smoke"
           okf index --write
           test "$(sh .okf/hooks/render_hook.sh)" = "{}"
+          test -s _site/index.html
+          test ! -e docs/index.html

@@ -108,7 +108,7 @@ okf init --site-name "My Project" --layer client=src/client/** --layer server=sr
 ```bash
 okf index --write   # 目次を生成
 okf lint            # 規約違反の確認（init 直後は 0 件）
-okf render          # 閲覧用 HTML を生成する
+okf render          # _site/ に閲覧用 HTML を生成する
 okf render --open   # 生成後にトップページをブラウザで開く
 ```
 
@@ -220,6 +220,11 @@ Obsidianでは、このリポジトリのルートフォルダをそのままVau
   }
 }
 ```
+
+`render` の既定出力先はプロジェクトルートの `_site/`。`.gitignore` に `_site/` を追加する。
+`okf render --output docs` で従来のMarkdown隣接配置を使える（bundle_rootが異なる場合はそのディレクトリを指定）。
+既存の隣接HTMLは自動削除しない。必要に応じて生成ヘッダーを確認し、手書きHTMLと区別して整理する。
+Stop hookも `_site/` を更新し、`--check` は出力先にファイルを作らず生成可否を検証する。
 
 `render --open` は出力先の `index.html` を既定のブラウザで開く。`--output _site` も使用できる。
 `--check` / `--hook` と併用してもブラウザは開かない。起動APIが失敗を返した場合は警告を出し、HTML生成は成功のまま扱う。

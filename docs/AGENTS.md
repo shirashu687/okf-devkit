@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: devin/swe-2-max
-  at: 2026-09-14T15:25:14Z
+  at: 2026-10-03T00:17:53Z
 related:
   - /CONVENTIONS.md
   - /agents/issue-tracker.md
@@ -108,7 +108,9 @@ okf log --write              # git 履歴から log.md に追記
 okf lint                     # OKF 適合 + 語彙検証
 okf stale                    # 陳腐化レポート
 okf affected --base main     # 更新すべきドキュメントを列挙
-okf render                   # Markdown の隣に閲覧用 HTML を生成
-okf render --output _site    # 公開用の独立サイトを生成
+okf render                   # _site/ に閲覧用 HTML を生成
+okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
 okf sync                     # index → log → lint → stale を一括
 ```
+
+生成HTMLの `_site/` はプロジェクトの `.gitignore` に追加する。既存の隣接HTMLは自動削除せず、必要な場合は生成ヘッダーを確認して整理する。

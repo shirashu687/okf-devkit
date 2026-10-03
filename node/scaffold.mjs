@@ -179,7 +179,7 @@ export function cmdInit(repo, args) {
     skipped.forEach((p) => console.log(`  ${p}`));
   }
   console.log(
-    `\n次の手順:\n  1. ${bundle}/CONVENTIONS.md の語彙を確認・調整する\n  2. okf.yml の layer_map が実際のコード配置と合っているか確認する\n  3. okf index --write で目次を生成する\n  4. okf lint で規約違反が無いか確認する`,
+    `\n次の手順:\n  1. ${bundle}/CONVENTIONS.md の語彙を確認・調整する\n  2. okf.yml の layer_map が実際のコード配置と合っているか確認する\n  3. okf index --write で目次を生成する\n  4. okf lint で規約違反が無いか確認する\n  5. .gitignore に _site/ を追加する（HTML生成物）`,
   );
   return 0;
 }

@@ -109,7 +109,9 @@ okf stale                    # 陳腐化レポート
 okf affected --base main     # 更新すべきドキュメントを列挙
 okf new backlog --title "..." --layer shared
 okf status                   # backlog 集計
-okf render                   # Markdown の隣に閲覧用 HTML を生成
-okf render --output _site    # 公開用の独立サイトを生成
+okf render                   # _site/ に閲覧用 HTML を生成
+okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
 okf sync                     # index → log → lint → stale を一括
 ```
+
+生成HTMLの `_site/` はプロジェクトの `.gitignore` に追加する。既存の隣接HTMLは自動削除せず、必要な場合は生成ヘッダーを確認して整理する。

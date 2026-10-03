@@ -213,3 +213,17 @@ test("HTML golden parity and idempotence on shared Markdown and assets", (t) => 
   assert.deepEqual(Object.keys(result), Object.keys(golden));
   assert.match(ok(run(root, ["render", "--output", "_site"])), /書き込み 0 件/);
 });
+
+
+test("default render output and explicit legacy layout agree across runtimes", (t) => {
+  const root = temp(t);
+  init(root);
+  ok(run(root, ["index", "--write"]));
+  for (const [args, output] of [[[], "_site"], [["--output", "docs"], "docs"]]) {
+    ok(run(root, ["render", ...args], { runtime: "python" }));
+    const golden = snapshot(root, output);
+    ok(run(root, ["render", ...args]));
+    assert.deepEqual(snapshot(root, output), golden);
+    assert.equal(fs.existsSync(path.join(root, output, "index.html")), true);
+  }
+});

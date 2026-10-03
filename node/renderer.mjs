@@ -406,7 +406,7 @@ export function renderBundle(b, output = b.root, doWrite = true) {
 export async function cmdRender(b, args, open = openBrowser) {
   const report = renderBundle(
     b,
-    args.output ? path.resolve(b.repo, args.output) : b.root,
+    path.resolve(b.repo, args.output || "_site"),
     !args.check,
   );
   if (args.hook) {

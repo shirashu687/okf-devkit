@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: devin/swe-2-max
-  at: "2026-10-03T00:04:47Z"
+  at: "2026-10-03T00:17:53Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -53,3 +53,5 @@ YAML 1.1の解釈には `yaml`、HTML変換にはPython側と同系統の `markd
 npm公開は別作業であり、この変更の成果はチェックアウトと `npm pack` によるローカル配布である。
 
 `render --open` も両実装で提供し、check / hook 時にはブラウザを起動しない。Node.js 版は標準の child_process でOSのブラウザ起動コマンドへfile URLを引数として渡し、shell評価を行わない。
+
+CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ変更する。--outputで従来配置を選べ、低レベルrender関数の隣接既定は保持する。

@@ -130,11 +130,23 @@ class RenderBundleTests(OkfTestCase):
         self.assertEqual(0, report.written)
         self.assertFalse((self.docs / "index.html").exists())
 
+    def test_cli_default_site_check_hook_and_legacy_output(self) -> None:
+        args = ns(output=None, check=True, hook=False, open=False)
+        self.assertEqual(0, okf.cmd_render(self.bundle(), args))
+        self.assertFalse((self.repo / "_site").exists())
+        args.check, args.hook = False, True
+        self.assertEqual(0, okf.cmd_render(self.bundle(), args))
+        self.assertTrue((self.repo / "_site/index.html").is_file())
+        self.assertFalse((self.docs / "index.html").exists())
+        args.output, args.hook = "docs", False
+        self.assertEqual(0, okf.cmd_render(self.bundle(), args))
+        self.assertTrue((self.docs / "index.html").is_file())
+
     def test_open_uses_output_homepage_uri(self) -> None:
         for output in (None, "site 日本語 %"):
             with self.subTest(output=output), patch.object(okf.webbrowser, "open", return_value=True) as opened:
                 self.assertEqual(0, okf.cmd_render(self.bundle(), ns(output=output, check=False, hook=False, open=True)))
-                root = self.docs if output is None else self.repo / output
+                root = self.repo / (output or "_site")
                 opened.assert_called_once_with((root / "index.html").resolve().as_uri())
 
     def test_open_is_suppressed_for_check_hook_and_default(self) -> None:
