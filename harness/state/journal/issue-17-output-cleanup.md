@@ -54,3 +54,7 @@
 ## 残作業・次の一手
 
 最終検証と二軸再review、実commit参照の層別log、PR base main変更、fast-forward push、PR更新、最新SHA CI確認。ブロッカーなし。実行済み外部操作は最終記録に追記する。
+
+## 実装版と層別log
+
+実装commit 59a0bb515b5bb3ccfd12631c9b672c67fddf3109。cli/render/scaffold logへUpdateと実commit参照を記録。最終検証後、PR #31のbase変更と通常pushを行い最新SHA CIを確認する。PRは利用者側でready状態へ変更済みのため、その状態を勝手に変更せず保持する。
