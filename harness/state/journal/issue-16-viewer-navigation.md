@@ -51,3 +51,8 @@ ledger評価6/10、試行0、採用0、期限付き試行なし。IMP0012は#21�
 
 - Merge updated backlog parent including main a16842f02e71a26849f5c094a32653c23af22640. Preserve new-doc/backlog/navigation tests and both documentation entries; screenshots and renderer/assets unchanged. Parent final 30dcce718216d8822e9e0e385ba8a2f7cf1c2365 contains subsequent worklog-only corrections; declaration follows that SHA.
 - Fixed implementation 910ed29254d57cb0603683e2718a9498105019f1: Python 176 / Node native 16 / compatibility 9 passed; lint error0/warn0, index --check, diffcheck passed. PR check first observed newer parent and rejected stale declaration; updated base and reran successfully separately. Image-only previous checks interrupted, not successful. Node/compat required by adopted runtime changes, performed above.
+
+### Render-open main integration (remaining conflict followup)
+
+- Start ebb3f9c7375d20b68241ea3824d0baad1977ca36, merge adjusted parent including exact main 5ce845a4deb454919fdec92d5cdff2105dcbc7df. ADR, ledger and native conflicts keep both navigation/search and browser-open entries/tests. Implementation merge b8c507b; final parent 3e177b2ab5fc556238315c37a1507704054d2aa3 adds only verification worklog. Historical task declarations and screenshots preserved, PR declaration base updated.
+- npm ci / Python 179 / Node native 18 / compatibility 9 succeeded; index --write / lint error0 warn0 / index --check / diffcheck succeeded. Marker/evidence diff and exact-parent PR changecheck verified separately. Parent owns independent review, push and remote final-head CI; none claimed here.
