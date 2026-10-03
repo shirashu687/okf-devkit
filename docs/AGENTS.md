@@ -6,8 +6,8 @@ tags: [docs, okf, guide]
 status: stable
 layer: shared
 generated:
-  by: devin/swe-2-max
-  at: 2026-10-03T00:11:30Z
+  by: codex/gpt-6
+  at: 2026-10-03T10:19:54Z
 related:
   - /CONVENTIONS.md
   - /agents/issue-tracker.md
@@ -108,7 +108,12 @@ okf log --write              # git 履歴から log.md に追記
 okf lint                     # OKF 適合 + 語彙検証
 okf stale                    # 陳腐化レポート
 okf affected --base main     # 更新すべきドキュメントを列挙
-okf render                   # Markdown の隣に閲覧用 HTML を生成
-okf render --output _site    # 公開用の独立サイトを生成
+okf render                   # _site/ に閲覧用 HTML を生成
+okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
+okf render --cleanup-from docs --check # 旧生成物の退避計画のみ（実配置に合わせる）
 okf sync                     # index → log → lint → stale を一括
 ```
+
+旧生成HTMLを整理する場合は、上の計画を確認してから `--check` を外す。新出力成功後、未編集と確認できた生成物だけを `.okf/render-backups/` へ退避する。手書き・編集済み・識別不能の旧版HTMLは残す。ソースMarkdownとユーザーの既存ファイルを上書きせず、`--hook` に整理オプションを設定しない。[整理手順](/render/output-cleanup.md) の範囲・復元条件を確認する。
+
+生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はプロジェクトの `.gitignore` に追加する。旧出力の整理は明示オプションと計画確認に限定し、生成ヘッダーだけを根拠に削除しない。

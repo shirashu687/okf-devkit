@@ -235,3 +235,16 @@ test("Python and Node render identical readonly backlog progress sections", t =>
     assert.equal(summary(py), summary(js));
   }
 });
+
+test("default render output and explicit legacy layout agree across runtimes", (t) => {
+  const root = temp(t);
+  init(root);
+  ok(run(root, ["index", "--write"]));
+  for (const [args, output] of [[[], "_site"], [["--output", "docs"], "docs"]]) {
+    ok(run(root, ["render", ...args], { runtime: "python" }));
+    const golden = snapshot(root, output);
+    ok(run(root, ["render", ...args]));
+    assert.deepEqual(snapshot(root, output), golden);
+    assert.equal(fs.existsSync(path.join(root, output, "index.html")), true);
+  }
+});
