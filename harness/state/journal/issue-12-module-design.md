@@ -26,3 +26,9 @@
 Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適用外。既存CIのNode比較は最終SHAで確認する。文書・ログのみの変更、失敗・回帰・指示取りこぼしなし、retroトリガーなし。新規ledger行は作らない。
 
 最新内容版57d18333bdbb50fda8db7463c4c7d5f7aa5a1bd5を独立review済み。この追記はreview証拠のみ。最終SHAはpush後のCI対象としてPRに記録する。Issue12の200行以下・実分割は未達、先行PR統合後の実装で扱う。
+
+## PR #27 main integration (2026-10-03)
+
+- Merged origin/main 98373cc without conflict or history rewrite. Historical declarations retained; PR diff contains no protected files, so no new declaration is needed.
+- Local validation: Python170/170 successful; docs index --write/--check successful, lint error0/warn0, git diff --check successful. PR-scope change check at main/head successful. Node code/assets/hooks were not changed in this design-only PR; independent review and final remote CI remain separate pending observations.
+- Retro: retained main ledger observations, no new observation/trial/adoption. No implementation, merge or publication performed.
