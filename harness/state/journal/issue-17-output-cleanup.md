@@ -16,7 +16,7 @@
 - 旧新ルートの範囲・入れ子・symlink/junction・backup経路・新出力衝突を事前拒否。cleanupでは既存stale削除を抑止し、通常低レベルrendererの従来動作を保持する。
 - 新manifestとreceiptは原子的保存。receipt plannedをコピー前に保存し、コピー/移動完了を分ける。失敗時は上書きせず復元前後hash確認、復旧必要な場所を記録する。
 - 新出力巻戻しや並行改変に対する完全なtransactionを約束しない。再実行の対象ゼロならbackupを作らない。hook併用拒否。
-- package.jsonは既存npm test/test:compatへ新規テストを追加するだけ。依存/lock/CI/既存必須検査の緩和なし。
+- package.jsonは既存npm test/test:compatへ新規テストを追加するだけ。依存/lock/既存必須検査の緩和なし。CIの直接指定にも新互換ファイルを追加する。
 
 ## 検証
 
@@ -58,3 +58,5 @@
 ## 実装版と層別log
 
 実装commit 59a0bb515b5bb3ccfd12631c9b672c67fddf3109。cli/render/scaffold logへUpdateと実commit参照を記録。最終検証後、PR #31のbase変更と通常pushを行い最新SHA CIを確認する。PRは現在ready状態であるため、その状態を勝手に変更せず保持する。
+
+最終workflow現物確認でCI比較コマンドがnpm scriptを使わず旧ファイルのみ直接指定していることを確認。新cleanup互換3件も4matrixで実行するよう対象を追加し、task保護宣言へworkflowを追記。既存比較/exit処理は保持。

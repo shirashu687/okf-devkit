@@ -18,6 +18,10 @@
     {
       "path": "tests/node/cleanup-compatibility.test.mjs",
       "reason": "ユーザーの旧生成物整理依頼に対応するopt-in退避・dry-run・安全拒否・失敗復元・Python/Node互換の回帰を追加。既存suite/CIを保持し、追加テストをnpmの既存検証入口へ接続する。"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "既存CIのNode/Python比較入口へcleanup互換テストを追加し、既存8件を維持して最終SHAのmatrixで新規3件も検証する。"
     }
   ]
 }
