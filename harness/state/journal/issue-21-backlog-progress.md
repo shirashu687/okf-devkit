@@ -64,3 +64,8 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 - Start: 7186566009452616d29938cc70435ab15f010698. Merge origin/main 98373cc2231c90248c2301a726aa1607bf1f073e without rewriting history. Preserve both shared-log and backlog documentation, both native tests, and ledger IMP-0008 / IMP-0012 observations. Historical task declaration remains unchanged; PR declaration uses current main.
 - Local verification: Python 172 passed; Node native 13 passed; compatibility 8 passed with worktree src explicitly in PYTHONPATH. Initial compatibility attempt used installed Python source and failed; corrected environment rerun passed. npm ci successful. index --write / lint (error 0, warn 0) / index --check and PR-scope change check successful. CI and independent review pending parent verification.
 - Retro: existing observation rows preserved; no new permanent policy. No global hook, release, merge, Issue close or npm branch changes.
+
+### Concurrent main update and image evidence
+
+- Merge main a16842f02e71a26849f5c094a32653c23af22640 (adopted new-doc evidence requirement); preserve both backlog/native and new-doc native tests plus both documentation/log entries. Image evidence unchanged. PR declaration base updated; no history rewrite.
+- Fixed merged implementation 6aaeea0436d40478b13e4cd811e7737c4fd7ea2d: Python 175 / Node native 14 / compatibility 8 passed; lint error0/warn0, index --check, PR changecheck and diffcheck passed. Previous image-only checks were interrupted on main update and are not reported successful. Runtime changes from main require Node/compat checks, performed above.
