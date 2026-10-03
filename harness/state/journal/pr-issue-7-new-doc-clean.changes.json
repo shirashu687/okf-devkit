@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "9d72e0e5798883d81789582d8879f139865d37b5",
+  "base": "98373cc2231c90248c2301a726aa1607bf1f073e",
   "worklog": "harness/state/journal/issue-7-new-doc-clean.md",
   "changes": [
     {

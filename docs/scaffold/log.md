@@ -5,8 +5,10 @@
 ## 2026-10-03
 - **Creation** new doc に根拠コードの --code-globs 指定を追加し、必須型の生成に要求。relatedを空で生成し、H1直後の空行を保持。 (`be22026`)
 
+- **Update** fix: align init shared log with configured path。 ([#6](https://github.com/shirashu687/okf-devkit/issues/6), `4c951ec`)
 
 ## 2026-09-10
+- **Update** Merge pull request #3 from shirashu687/codex/node-runtime。 (`2139a79`)
 - **Creation** feat: add Python-free Node.js CLI。 (`41f58f1`)
 
 ## 2026-09-07

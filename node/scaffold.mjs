@@ -165,7 +165,7 @@ export function cmdInit(repo, args) {
     `# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
   for (const l of layers)
     plan.push([`${bundle}/${l.dir}/log.md`, emptyLog(l.name)]);
-  plan.push([`${bundle}/project/log.md`, emptyLog("shared")]);
+  plan.push([`${bundle}/log.md`, emptyLog("shared")]);
   // Validate the entire plan (including symlinks) before the first write.
   for (const [file] of plan) inside(repo, path.resolve(repo, file));
   const skipped = [];

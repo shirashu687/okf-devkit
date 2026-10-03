@@ -87,3 +87,5 @@ npm run test:compat
 YAMLは1.1として読み、日付を文字列に正規化する。Node.js版では重複キー・循環aliasをエラーにする。
 全YAML構文・全Markdown・全カスタム正規表現の同値性を保証しない。`kind_rules.pattern` はJavaScriptのRegExpで評価するため、Python専用正規表現構文は移植が必要。
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
+
+`init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
