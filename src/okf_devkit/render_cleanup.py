@@ -28,6 +28,10 @@ def safe_path(repo: Path, path: Path) -> Path:
     repo = repo.resolve()
     if ".." in path.parts:
         raise RenderError("cleanup refuses parent traversal")
+    # GetFullPathName can erase Windows trailing dot/space aliases.
+    # Inspect the user's lexical spelling before normalization.
+    if os.name == "nt" and any(part.endswith((".", " ")) for part in path.parts):
+        raise RenderError("cleanup refuses ambiguous Windows path spelling")
     path = Path(os.path.abspath(path))
     try:
         rel = path.relative_to(repo)
@@ -35,7 +39,7 @@ def safe_path(repo: Path, path: Path) -> Path:
         raise RenderError("cleanup path must stay inside repository") from exc
     current = repo
     for part in rel.parts:
-        if ":" in part or any(ord(char) < 32 for char in part):
+        if ":" in part or any(ord(char) < 32 for char in part) or (os.name == "nt" and part.endswith((".", " "))):
             raise RenderError("cleanup refuses unsafe path characters")
         current /= part
         try:
@@ -66,6 +70,13 @@ def validate_roots(repo: Path, old: Path, new: Path) -> tuple[Path, Path]:
             raise RenderError("cleanup root must be a directory")
     if old == new or old in new.parents or new in old.parents:
         raise RenderError("cleanup roots must be distinct and non-nested")
+    if old.exists() and new.exists() and os.path.samefile(old, new):
+        raise RenderError("cleanup roots refer to the same directory")
+    for root, other in ((old, new), (new, old)):
+        if root.exists():
+            for ancestor in other.parents:
+                if ancestor.exists() and os.path.samefile(root, ancestor):
+                    raise RenderError("cleanup roots overlap through a directory alias")
     return old, new
 
 
@@ -82,9 +93,14 @@ def read_manifest(repo: Path, root: Path) -> dict[str, str] | None:
         if not isinstance(value, dict) or set(value) != {"version", "generator", "output_root", "files"} or type(value["version"]) is not int or value["version"] != 1 or value["generator"] != "okf-devkit" or value["output_root"] != root.relative_to(repo.resolve()).as_posix() or not isinstance(value["files"], list):
             raise ValueError("schema")
         entries = {}
+        seen_names = set()
         for entry in value["files"]:
             if not isinstance(entry, dict) or set(entry) != {"path", "sha256"} or not valid_name(entry["path"]) or not isinstance(entry["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]) or entry["path"] in entries:
                 raise ValueError("entry")
+            key = entry["path"].casefold() if os.name == "nt" else entry["path"]
+            if key in seen_names:
+                raise ValueError("aliased duplicate entry")
+            seen_names.add(key)
             entries[entry["path"]] = entry["sha256"]
         return entries
     except (ValueError, TypeError, KeyError) as exc:

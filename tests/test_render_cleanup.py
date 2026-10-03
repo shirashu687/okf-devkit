@@ -70,6 +70,31 @@ class CleanupTests(unittest.TestCase):
             with self.subTest(old=old, new=new), self.assertRaises(RenderError):
                 validate_roots(self.repo, old, new)
 
+    @unittest.skipUnless(sys.platform == "win32", "Windows path aliases")
+    def test_windows_alias_roots_rejected_before_writes(self):
+        snapshot = {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()}
+        for name in ("docs.", "docs ", "DOCS", "docs. /site", "docs./site"):
+            with self.subTest(name=name), self.assertRaises(RenderError):
+                plan_cleanup(self.repo, self.old, self.repo / name, self.artifacts, self.artifacts)
+        self.assertEqual(snapshot, {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()})
+
+    def test_actual_directory_alias_is_rejected(self):
+        self.new.mkdir()
+        with patch("okf_devkit.render_cleanup.os.path.samefile", return_value=True), self.assertRaises(RenderError):
+            validate_roots(self.repo, self.old, self.new)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows case-insensitive artifact names")
+    def test_windows_manifest_case_alias_rejected_before_writes(self):
+        write_manifest(self.repo, self.old, self.artifacts)
+        manifest_path = self.old / MANIFEST
+        value = json.loads(manifest_path.read_text())
+        value["files"].append({"path": "INDEX.html", "sha256": digest(artifact_bytes(self.artifacts["index.html"]))})
+        manifest_path.write_text(json.dumps(value))
+        snapshot = {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()}
+        with self.assertRaises(RenderError):
+            self.plan()
+        self.assertEqual(snapshot, {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()})
+
     def test_invalid_manifest_and_destination_conflict(self):
         write_manifest(self.repo, self.old, self.artifacts)
         manifest = json.loads((self.old / MANIFEST).read_text())
@@ -226,6 +251,16 @@ class CleanupCliTests(OkfTestCase):
         self.assertFalse((self.docs / "index.html").exists())
         self.assertEqual(self.read("docs/index.md"), "# Demo\n")
         self.assertNotIn("cleanup move:", self.render("_site", "docs")[1])
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows raw path aliases")
+    def test_cli_windows_source_and_target_aliases_rejected_before_write(self):
+        self.render("docs")
+        snapshot = {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()}
+        for output, old in (("_site", "docs "), ("_site", "docs."), ("_site ", "docs"), ("_site.", "docs")):
+            for check in (True, False):
+                with self.subTest(output=output, old=old, check=check), self.assertRaises(cli.OkfError):
+                    self.render(output, old, check=check)
+                self.assertEqual(snapshot, {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file()})
 
     def test_hook_rejected_before_write_and_render_failure_keeps_old(self):
         with self.assertRaises(cli.OkfError):

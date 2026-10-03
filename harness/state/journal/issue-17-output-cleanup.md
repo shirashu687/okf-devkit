@@ -68,3 +68,15 @@
 push対象は本作業ブランチ、PR #31のみ。main5ce845aとremote head c93c82eaの不変を確認してbase mainへ変更後、通常fast-forward pushし、descriptionを最終仕様へ更新する。最終SHA CIはまだ未実行で成功扱いしない。実際の実行結果と最終二軸reviewはPR本文/コメントに最新SHAで記録する。
 
 最終CI追加差分63ed4eaの独立仕様軸/標準軸review成功、指摘なし。既存8互換・環境変数・終了値処理を保持し新3件を追加、task/PR宣言整合とdiff check正常を確認。444869cの記録追記は親が現物照合。
+
+## Windows別名境界の追加安全修正
+
+- 011ae5eのCI全9jobは成功したが、追加点検でWindows旧新root aliasのP1を検出したため完了にせず修正を追加。
+- Nodeの大小文字root/包含比較をWindowsだけcase-insensitive化。両者で末尾dot/spaceの曖昧componentsと同一実体を拒否。Pythonは祖先のsamefileも確認。Windows manifestのcase-only重複を拒否、POSIXのcase-sensitive意味は保持。
+- Node snapshotの既定docs対象では旧生成物old/newを含まないため、拒否fixtureをリポジトリ全体へ拡大。manifestなしのCLI拒否を両runtimeのcheck/実行で確認する互換fixtureも追加。
+- focused: Python18件skip1、Node9件成功（snapshot拡大後は再確認）。fullsuiteと最終CIはこの新差分で再実行する。
+- 独立reviewは元のP1を確認。修正後の再review待ち。retro full実施、既存IDと照合し異なるパス同一性症状をIMP-0015へ観測として登録。恒久採用・試行・権限変更なし。
+
+Windowsalias初回全体検証: Python195件(skip1)/Node25件は成功。compatは10/11成功・1失敗（旧source末尾spaceがPython CLIで正規化され拒否を通過）。低レベルnewroot fixtureでは同一root拒否として検出され、source側の正規化前検査不足が隠れていた。CLI両方向fixtureを保持して実装を修正し再試行する。同じIMP-0015の追加根拠として記録し、独立回数を増やさない。
+
+Windows別名修正後の再試行成功: Python196件(失敗0/error0/skip1)、Node25件(失敗0)、compat11件(失敗0)。証拠cleanup-alias-rerun-python.log / cleanup-alias-node.log / cleanup-alias-rerun-compat.log。npm ci監査0、lint error0/warn0・index最新・task/PR宣言とも成功。独立二軸reviewでraw正規化前チェックと全fixture境界を再確認、blockingなし。

@@ -36,12 +36,12 @@ test('manifest migration preserves edits, handwritten HTML and Markdown, backs u
 test('exact legacy output migrates; edited/version-different output stays; check and hook do not write', t => {
   const root = fixture(t), bundle = new Bundle(root);
   renderBundle(bundle, path.join(root, 'old'));
-  const before = snapshot(root);
+  const before = snapshot(root,'.');
   const result = run(root, ['render', '--output', 'new', '--cleanup-from', 'old', '--check']);
   ok(result); assert.match(result.stdout, /cleanup move: old\/index.html/);
-  assert.deepEqual(snapshot(root), before);
+  assert.deepEqual(snapshot(root,'.'), before);
   assert.notEqual(run(root, ['render', '--output', 'new', '--cleanup-from', 'old', '--hook']).status, 0);
-  assert.deepEqual(snapshot(root), before);
+  assert.deepEqual(snapshot(root,'.'), before);
   fs.appendFileSync(path.join(root, 'old/index.html'), '\nold version');
   ok(run(root, ['render', '--output', 'new', '--cleanup-from', 'old']));
   assert.equal(fs.existsSync(path.join(root, 'old/index.html')), true);
@@ -49,21 +49,21 @@ test('exact legacy output migrates; edited/version-different output stays; check
 test('invalid roots, tampered manifests, conflicting targets are refused before writes', t => {
   const root = fixture(t); ok(run(root, ['render', '--output', 'old']));
   for (const [old, output] of [['old','old'], ['old','old/nested'], ['old/nested','old'], ['.','new'], ['../escape','new'], ['.okf','new'], ['old','.okf/render-backups/new']]) {
-    const before = snapshot(root);
+    const before = snapshot(root,'.');
     assert.notEqual(run(root, ['render','--output',output,'--cleanup-from',old]).status, 0);
-    assert.deepEqual(snapshot(root), before);
+    assert.deepEqual(snapshot(root,'.'), before);
   }
   put(root, 'new/index.html', '<h1>user</h1>');
-  let before = snapshot(root);
+  let before = snapshot(root,'.');
   assert.notEqual(run(root, ['render','--output','new','--cleanup-from','old']).status, 0);
-  assert.deepEqual(snapshot(root), before);
+  assert.deepEqual(snapshot(root,'.'), before);
   const file = path.join(root, 'old/.okf-render-manifest.json');
   const manifest = JSON.parse(fs.readFileSync(file));
   for (const invalid of ['../index.html','nested/name:stream.html','nested/nul\u0000.html','nested/line\n.html']) {
     manifest.files[0].path = invalid;
-    fs.writeFileSync(file, JSON.stringify(manifest)); before = snapshot(root);
+    fs.writeFileSync(file, JSON.stringify(manifest)); before = snapshot(root,'.');
     assert.notEqual(run(root, ['render','--output','clean','--cleanup-from','old']).status, 0);
-    assert.deepEqual(snapshot(root), before);
+    assert.deepEqual(snapshot(root,'.'), before);
   }
 });
 test('partial transaction restores moved artifacts without clobbering recovery conflicts', t => {
@@ -127,5 +127,30 @@ test('receipt writes stay atomic and initial planned metadata identifies interru
     assert.equal(receipt.planned.length,plan.moves.length);
     assert.ok(receipt.planned.every(item => item.backup && item.sha256));
     for (const item of plan.moves) assert.equal(fs.existsSync(path.join(root,item.path)),true);
+  }
+});
+test('Windows case and trailing dot/space aliases cannot migrate into themselves', { skip: process.platform !== 'win32' }, t => {
+  const root = fixture(t), b = new Bundle(root);
+  renderBundle(b,path.join(root,'old'));
+  for (const [old,output] of [['old','OLD'], ['old.','new'], ['old ','new'], ['old','new.'], ['old','new '], ['old','OLD/nested']]) {
+    const before = snapshot(root,'.');
+    for (const mode of [[],['--check']]) {
+      assert.notEqual(run(root,['render','--output',output,'--cleanup-from',old,...mode]).status,0);
+      assert.deepEqual(snapshot(root,'.'),before);
+    }
+    if (output.toLowerCase().startsWith('new')) assert.equal(fs.existsSync(path.join(root,output)),false);
+  }
+});
+test('Windows manifest case-only duplicates are refused before any output changes', { skip: process.platform !== 'win32' }, t => {
+  const root = fixture(t); ok(run(root,['render','--output','old']));
+  const file = path.join(root,'old/.okf-render-manifest.json'), manifest = JSON.parse(fs.readFileSync(file));
+  const original = manifest.files.find(item => item.path === 'index.html');
+  manifest.files.push({ ...original, path:'INDEX.html' });
+  fs.writeFileSync(file,JSON.stringify(manifest));
+  const before = snapshot(root,'.');
+  for (const mode of [[],['--check']]) {
+    assert.notEqual(run(root,['render','--output','new','--cleanup-from','old',...mode]).status,0);
+    assert.deepEqual(snapshot(root,'.'),before);
+    assert.equal(fs.existsSync(path.join(root,'new')),false);
   }
 });

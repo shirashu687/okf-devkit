@@ -9,7 +9,8 @@ const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const posix = (p) => p.split(path.sep).join('/');
 const compare = (a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b));
 const fail = (message) => { throw new OkfError(`render cleanup: ${message}`); };
-const contained = (root, target) => target === root || target.startsWith(root + path.sep);
+const canonical = p => process.platform === 'win32' ? p.toLowerCase() : p;
+const contained = (root, target) => canonical(target) === canonical(root) || canonical(target).startsWith(canonical(root) + path.sep);
 
 export function safePath(repo, target) {
   if (/[\x00-\x1f]/.test(String(target))) fail('control character in path');
@@ -17,12 +18,13 @@ export function safePath(repo, target) {
   repo = path.resolve(repo); target = path.resolve(target);
   if (!contained(repo, target)) fail('path outside repository');
   if (path.relative(repo, target).includes(':')) fail('colon in path');
+  if (process.platform === 'win32' && path.relative(repo,target).split(path.sep).some(p => /[. ]$/.test(p))) fail('ambiguous Windows path component');
   let current = repo;
   for (const part of ['', ...path.relative(repo, target).split(path.sep).filter(Boolean)]) {
     if (part) current = path.join(current, part);
     let stat;
     try { stat = fs.lstatSync(current); } catch (e) { if (e.code === 'ENOENT') continue; throw e; }
-    if (stat.isSymbolicLink() || path.resolve(fs.realpathSync(current)).toLowerCase() !== current.toLowerCase()) fail(`linked path: ${posix(path.relative(repo, current))}`);
+    if (stat.isSymbolicLink() || canonical(path.resolve(fs.realpathSync(current))) !== canonical(current)) fail(`linked path: ${posix(path.relative(repo, current))}`);
   }
   return target;
 }
@@ -48,8 +50,8 @@ export function loadManifest(repo, output) {
   if (Object.keys(value).sort().join() !== 'files,generator,output_root,version' || value.version !== 1 || value.generator !== 'okf-devkit' || value.output_root !== posix(path.relative(repo, output)) || !Array.isArray(value.files)) fail('invalid manifest schema/root');
   const seen = new Set();
   for (const entry of value.files) {
-    if (!entry || Object.keys(entry).sort().join() !== 'path,sha256' || !artifactPath(entry.path) || !/^[0-9a-f]{64}$/.test(entry.sha256) || seen.has(entry.path)) fail('invalid manifest artifact');
-    seen.add(entry.path);
+    if (!entry || Object.keys(entry).sort().join() !== 'path,sha256' || !artifactPath(entry.path) || !/^[0-9a-f]{64}$/.test(entry.sha256) || seen.has(canonical(entry.path))) fail('invalid manifest artifact');
+    seen.add(canonical(entry.path));
   }
   return value;
 }
@@ -64,7 +66,8 @@ export function writeManifest(repo, output, artifacts) {
 export function planCleanup(repo, output, old, artifacts, legacyArtifacts) {
   repo = path.resolve(repo); output = safePath(repo, output); old = safePath(repo, old);
   const backups = path.join(repo, '.okf', 'render-backups');
-  if ([old, output].some(p => p === repo || contained(p, backups) || contained(backups, p)) || contained(old, output) || contained(output, old)) fail('roots must be distinct, non-nested repository directories outside backup storage');
+  if ([old, output].some(p => canonical(p) === canonical(repo) || contained(p, backups) || contained(backups, p)) || contained(old, output) || contained(output, old)) fail('roots must be distinct, non-nested repository directories outside backup storage');
+  if (fs.existsSync(old) && fs.existsSync(output) && canonical(fs.realpathSync(old)) === canonical(fs.realpathSync(output))) fail('roots resolve to the same directory');
   safePath(repo, backups);
   if (fs.existsSync(backups) && !fs.lstatSync(backups).isDirectory()) fail('backup storage is not a directory');
   const targetManifest = loadManifest(repo, output);
