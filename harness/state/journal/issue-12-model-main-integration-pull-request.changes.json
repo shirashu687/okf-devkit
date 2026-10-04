@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "a8fbe29f7e4e5c8b02090a59901a2fa345424334",
+  "base": "16b340bc7ea34e07104669fe686a8febccf42ae1",
   "worklog": "harness/state/journal/issue-12-model-main-integration.md",
   "changes": [
     {
