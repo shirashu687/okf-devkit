@@ -33,3 +33,19 @@ Specがsourcee80の二つの具体的不足を指摘した。READMEのnpm ci復�
 fullretro trigger:既決のlocal/global区別とimmutableasset説明が利用者向け本文に十分反映されていなかった。証拠はSpec reviewとsourcee80/修正54a667e。影響はglobal復旧誤適用と旧assetREADMEへの誤認で、実ユーザー導入/asset変更/公開は起きていない。仮説は説明の短縮で復旧範囲とsource-vs-archive境界が欠落したこと。原文の原因を断定しない。対応は狭い2文書補正で、runtime/policy/tag/配布物は維持。
 
 既存IMP0009の文書/API保証範囲と同じcodingstandards/review scopeとして独立task発生1を加算、1→2。初回全履歴保持、二指摘は一事象、review再読取や修正再検証を再計数しない。評価10/試行0/採用0、他ID/期限/状態を変更しない。採用や恒久効果なし。補正後requiredfullを1回、同じsourceでNodecompat/guards/packageとdocs/scopeを確認し、最後はjournal-onlyfreeze。既存assetREADME旧版と公開後consumer未実施は残存制約としてrootへ引き継ぐ。
+
+## 補正後の最終freeze証拠
+
+検証対象source `74d410c013dd2bac82a005a3757f73bee5b27ed8`（README/guide補正54a667eとactualhash log/fullretroledgerを含む）。以後の製品文書・runtime/testsは変更しない。最後の追加はこの検証記録だけ。
+
+| 結果 | 実コマンド・対象版 | 証拠 |
+| --- | --- | --- |
+| 成功 | 同じ既存venv/absolutePYTHONPATH/PYTHONUTF8で tests/run_all.py | 全261件=成功260+既存Windows symlink skip1、失敗0/error0、exit0。repo外release-guidance-python-corrected.txt。 |
+| 成功 | npm test / 同じOKF_TEST_PYTHONで test:compat / test:release / test:package | Node31/compat14/guards14/package3、全fail0/skip0。release-guidance-{node,compat,guards,package}-corrected.txt。既存npmci8/audit9/vuln0は依存不変なので有効。 |
+| 成功 | Python/Node lint/index --check/render --check、固定12c task/PRscope、diff --check | 双方lint0error/0warn、index最新、render34/write0/delete0/warn0、保護対象0/checker0/diff0。最終HEAD proofはcommit後repo外保存。 |
+| 未実行 | 本PR CI・merge・公開、consumer、canonical URL公開後取得 | rootがPR/push/CI担当。merge/tag移動/asset更新/公開はauthor対象外。 |
+| 失敗 / 実行不能 | 補正後の必須検証 | ともになし。レビュー前の不足と旧結果は前節に保持し、後から成功へ書き換えない。 |
+
+独立修正source review:root割当Spec/Standardsとも findings0/blocking0、ordinaryledger再発記録も確認済みと通知を受けた。finaljournal-only exactHEADレビューは親担当。評価枠/初回履歴/他ID保存、IMP0009のみ今回独立1回加算。恒久採用や効果は未判定。
+
+日本語PR本文外稿はrepo外release-guidance-pr-body-ja.mdへ補正内容/260passed+1skip/二軸結果/既存archive旧README制約を反映。最終cleanSHAをrootへ渡して以後編集を停止する。
