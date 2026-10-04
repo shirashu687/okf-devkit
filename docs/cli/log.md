@@ -3,6 +3,13 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** refactor: extract init command with explicit scaffold ownership。 (`32499d7`)
+- **Update** refactor(cli): extract sync with explicit gate state and legacy callbacks。 (`855b9be`)
+- **Update** refactor(cli): extract render while retaining cleanup and factory owners。 (`8a1c814`)
+- **Update** refactor(cli): extract status with explicit document factory root。 (`fa07d1d`)
+- **Update** refactor(cli): extract safe new document and backlog command。 (`51e8d95`)
+- **Update** refactor(cli): extract affected with explicit-root Git lookup。 (`c70eb7b`)
+- **Update** refactor(cli): extract stale with invocation-owned Git cache。 (`17e090c`)
 - **Update** refactor(cli): extract lint command with bundle-owned paths。 (`60b9b89`)
 - **Update** refactor(cli): extract log command with explicit Git root。 (`e21a724`)
 - **Update** refactor(cli): extract index command with explicit project root。 (`25a9a05`)

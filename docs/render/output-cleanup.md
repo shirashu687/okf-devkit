@@ -7,8 +7,10 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:57:43Z
+  at: 2026-10-04T11:13:32Z
 code_globs:
+  - src/okf_devkit/commands/render.py
+  - tests/test_commands_b.py
   - src/okf_devkit/gitutil.py
   - tests/test_gitutil.py
   - src/okf_devkit/render_cleanup.py
@@ -26,6 +28,8 @@ related:
 ---
 
 # 生成済みHTMLを別の出力先へ整理する
+
+render のコマンド調整は `commands/render.py` が所有し、Doc factory、出力先、cleanup root、manifest、退避先を同じ project root に束縛する。renderer と render_cleanup は遅延参照する実際の所有者のまま維持し、既存CLIの Doc factory や webbrowser 差し替えも adapter 経由で保持する。清掃範囲・hash 判定・receipt・rollback の契約は変更しない。
 
 第4段階のCLI分割ではGitとresource処理を `gitutil.py` に移した。render入口・cleanup計画・manifest・退避復旧の所有者と呼出しは変更していない。モデルが保持するproject rootと文書rootの区別も維持する。
 Doc/configの内部抽出ではrendererのDoc callbackと既存のCLI導線を保持する。Bundleは構築時のプロジェクトrootを保持するが、本手順の出力先・manifest・退避仕様やlow-level rendererの既定値は変更しない。

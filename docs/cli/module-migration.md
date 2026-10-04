@@ -7,8 +7,16 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:26:23Z
+  at: 2026-10-04T11:13:32Z
 code_globs:
+  - src/okf_devkit/commands/stale.py
+  - src/okf_devkit/commands/affected.py
+  - src/okf_devkit/commands/new.py
+  - src/okf_devkit/commands/status.py
+  - src/okf_devkit/commands/render.py
+  - src/okf_devkit/commands/sync.py
+  - src/okf_devkit/commands/init.py
+  - tests/test_commands_b.py
   - src/okf_devkit/commands/index.py
   - src/okf_devkit/commands/log.py
   - src/okf_devkit/commands/lint.py
@@ -36,10 +44,10 @@ related:
 
 # CLI 分割の移行設計
 
-第5a段階では index、log、lint の実装と専用helpersを `commands/index.py`、`commands/log.py`、`commands/lint.py` へ分離した。canonical commandはBundleの `.repo_root` を使い、CLIや可変rootをimportしない。予約文書のDoc構築にもrootを明示する。旧CLI入口は現在のrootと必要なwriter/Git/resource/index/linter callbackを渡す薄いadapterで保持する。残る7コマンドと引数入口は未分離で、Issue #12全体の200行以下という条件はまだ満たしていない。
+第5b段階で stale、affected、new、status、render、sync、init も `commands/` 配下へ分離し、全10コマンドの実装所有者を移した。canonical command は Bundle の `.repo_root` または明示した project root を使い、CLI の可変 root を import しない。stale は呼び出しごとの Git 時刻 cache を文書間で共有し、status/render の Doc factory に root を明示する。旧CLIは現在の root・helper・writer・factory・gate TTL を呼び出し時に渡す薄い adapter で維持する。引数解析と互換 export の最終分離は後続段階に残り、cli 200行以下という Issue #12 全体の完了条件はまだ満たしていない。
 
 第4段階の実装は `gitutil.py` を所有者とし、rootと時刻cacheを明示する。`CommitTimesCache` はrootが変わると再計算し、同root内の更新は呼出元がmappingをNoneへ戻して無効化する。旧cliのroot・git runner・時刻map/reset adapterと同一Commit/parser exportを保持する。実2repo・特殊名・runner失敗・resource glob・gateを新所有者で検証する。commandsと200行以下の入口はまだ未完了。
-第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commandsとcli 200行以下は未完了である。
+第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commands 分離は第5b段階で完了した。cli 200行以下は未完了である。
 
 
 この文書は Issue #12 の事前調査・技術設計と段階別の実装記録であり、Issue全体の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。

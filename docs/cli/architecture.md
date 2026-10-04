@@ -7,8 +7,16 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:26:23Z
+  at: 2026-10-04T11:13:32Z
 code_globs:
+  - src/okf_devkit/commands/stale.py
+  - src/okf_devkit/commands/affected.py
+  - src/okf_devkit/commands/new.py
+  - src/okf_devkit/commands/status.py
+  - src/okf_devkit/commands/render.py
+  - src/okf_devkit/commands/sync.py
+  - src/okf_devkit/commands/init.py
+  - tests/test_commands_b.py
   - src/okf_devkit/commands/index.py
   - src/okf_devkit/commands/log.py
   - src/okf_devkit/commands/lint.py
@@ -32,7 +40,7 @@ related:
 
 # CLI の処理構造
 
-第5a段階では index、log、lint の実装と専用helpersを `commands/index.py`、`commands/log.py`、`commands/lint.py` へ分離した。canonical commandはBundleの `.repo_root` を使い、CLIや可変rootをimportしない。予約文書のDoc構築にもrootを明示する。旧CLI入口は現在のrootと必要なwriter/Git/resource/index/linter callbackを渡す薄いadapterで保持する。残る7コマンドと引数入口は未分離で、Issue #12全体の200行以下という条件はまだ満たしていない。
+第5b段階で stale、affected、new、status、render、sync、init も `commands/` 配下へ分離し、全10コマンドの実装所有者を移した。canonical command は Bundle の `.repo_root` または明示した project root を使い、CLI の可変 root を import しない。stale は呼び出しごとの Git 時刻 cache を文書間で共有し、status/render の Doc factory に root を明示する。旧CLIは現在の root・helper・writer・factory・gate TTL を呼び出し時に渡す薄い adapter で維持する。引数解析と互換 export の最終分離は後続段階に残り、cli 200行以下という Issue #12 全体の完了条件はまだ満たしていない。
 
 第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
 第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
@@ -59,7 +67,7 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 | lint | `commands/lint.py` の `run_lint()` が Finding を集め、`cmd_lint()` が終了値を決める |
 | affected | `changed_paths()` または明示パスを `compute_affected()` の `code_globs` 照合へ渡す |
 | stale | `run_stale()` が期日、検証情報、コード最終更新時刻を調べる |
-| render | `cmd_render()` が renderer を遅延 import して Bundle と Doc を渡す |
+| render | `commands/render.py` が renderer/cleanup を遅延 import し、同じ project root に束縛した Doc factory を渡す |
 
 `affected` は `code_globs` のない文書を逆引き対象にしない。`layer_map` は未カバーのパス分類にも使う。Git 履歴を参照する log/stale は履歴の深さに依存する。
 
