@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T11:53:12Z
+  at: 2026-10-04T06:11:06Z
 code_globs:
   - src/okf_devkit/renderer.py
   - src/okf_devkit/assets/**
@@ -35,7 +35,7 @@ HTML の frontmatter 表示は本文の信頼度・状態を補助する。ソ�
 
 ## 出力と検査の境界
 
-既定の出力先はバンドルルートで Markdown の隣へ配置する。CLI の `--output` はリポジトリ内に限定する。アセットは出力ルートの `_assets/` に配置し、各ページから相対参照する。
+低レベル `render_bundle()` の既定出力先はバンドルルートで Markdown の隣へ配置する。CLI の既定出力先は `_site/` で、`--output` はリポジトリ内に限定する。アセットは出力ルートの `_assets/` に配置し、各ページから相対参照する。
 
 `--check` は write を無効にして同じ生成計画を走らせる。ファイル作成・削除も既存 HTML の差分比較も行わない。依存やアセット不足などの RenderError は CLI の運用エラーになる。警告だけでは失敗しない。
 
