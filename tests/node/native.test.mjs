@@ -363,6 +363,42 @@ test("local npm hook resolves Node with Python removed from PATH", (t) => {
   assert.equal(hook.stdout.trim(), "{}");
 });
 
+function progressFixture(root) {
+  const config = fs.readFileSync(path.join(root, "okf.yml"), "utf8");
+  put(root, "okf.yml", config + "\nbacklog:\n  dir: work/tasks\n  states: [queued, doing, done, dropped]\n  state_order: [done, queued, doing, dropped]\n");
+  put(root, "docs/work/tasks/index.md", "# Tasks\n");
+  for (const [index, state] of ["queued", "doing", "done", "dropped", "unexpected", null].entries()) {
+    put(root, `docs/work/tasks/B-000${index + 1}-x #%.md`, document(state ? `state: ${state}\n` : "").replace("type: Reference", "type: Backlog Item").replace("title: Example", 'title: "Task <safe>"'));
+  }
+  put(root, "docs/work/tasks/reference.md", document());
+  put(root, "docs/work/tasks/nested/B-9999.md", document("state: queued\n").replace("type: Reference", "type: Backlog Item"));
+}
+const summary = html => html.split('<section class="backlog-progress"')[1].split('</section>')[0];
+
+test("backlog progress honors configuration, source links, empty and regeneration", t => {
+  const root = temp(t); init(root);
+  put(root, "docs/index.md", "# Docs\n");
+  ok(run(root, ["render", "--output", "_site"]));
+  assert.match(fs.readFileSync(path.join(root, "_site/index.html"), "utf8"), /Backlog Item はありません。/);
+  progressFixture(root);
+  const before = snapshot(root);
+  ok(run(root, ["render", "--output", "_site"]));
+  assert.deepEqual(snapshot(root), before);
+  const read = file => fs.readFileSync(path.join(root, file), "utf8");
+  let view = summary(read("_site/index.html"));
+  assert.match(view, /全 6 件/);
+  for (const state of ["queued", "doing", "done", "dropped", "unexpected", "未設定"]) assert.ok(view.includes(`>${state}</span> 1 件`));
+  assert.ok(view.indexOf(">done</span>") < view.indexOf(">queued</span>"));
+  assert.ok(view.includes('href="work/tasks/B-0001-x%20%23%25.html"'));
+  assert.ok(view.includes("Task &lt;safe&gt;"));
+  assert.ok(summary(read("_site/work/tasks/index.html")).includes('href="B-0001-x%20%23%25.html"'));
+  put(root, "docs/work/tasks/B-0001-x #%.md", read("docs/work/tasks/B-0001-x #%.md").replace("state: queued", "state: done"));
+  ok(run(root, ["render", "--output", "_site"]));
+  view = summary(read("_site/index.html"));
+  assert.ok(view.includes('>queued</span> 0 件'));
+  assert.ok(view.includes('>done</span> 2 件'));
+});
+
 
 test("render opens the generated homepage only on explicit non-hook writes", async (t) => {
   const { cmdRender } = await import("../../node/renderer.mjs");
@@ -456,4 +492,38 @@ test("init shared log matches config and log write reuses it", (t) => {
     assert.deepEqual(fs.readdirSync(path.join(root, bundleRoot), { recursive: true }).filter((p) => p === "log.md" || p.endsWith(`${path.sep}log.md`)), before);
     assert.match(fs.readFileSync(bundle.logPath("shared"), "utf8"), /Update shared source/);
   }
+});
+
+
+test("grouped backlog uses title-first cards, native disclosures and optional controls", t => {
+  const root=temp(t);init(root);put(root,'docs/index.md','# Docs\n');
+  put(root,'okf.yml',fs.readFileSync(path.join(root,'okf.yml'),'utf8')+'\nbacklog:\n  priorities: [high]\n  efforts: [small]\n');
+  for(const state of ['doing','todo','done','dropped'])
+    put(root,`docs/backlog/${state}.md`,document(`state: ${state}\npriority: high\neffort: small\n`).replace('type: Reference','type: Backlog Item'));
+  ok(run(root,['render']));
+  const page=fs.readFileSync(path.join(root,'_site/index.html'),'utf8');
+  assert.ok(page.includes('class="backlog-tools" hidden'));
+  assert.equal((page.match(/class="backlog-card"/g)||[]).length,4);
+  assert.equal((page.match(/data-default-open="false"/g)||[]).length,2);
+  assert.equal((page.match(/data-default-open="true" open/g)||[]).length,2);
+  assert.ok(page.includes('priority: high'));assert.ok(page.includes('effort: small'));
+});
+
+test("backlog search opens matches, restores user disclosure and toggles only presentation", async () => {
+  const vm=await import('node:vm');
+  let click,input;
+  const card={dataset:{backlogSearch:'done task b-1'},hidden:false};
+  const group={dataset:{defaultOpen:'false'},open:true,hidden:false,querySelectorAll:()=>[card]};
+  const button={setAttribute:(key,value)=>{button[key]=value;},addEventListener:(_,fn)=>{click=fn;}};
+  const search={value:'',addEventListener:(_,fn)=>{input=fn;}};
+  const status={textContent:''};
+  const tools={hidden:true,querySelector:s=>({'.backlog-view-toggle':button,'.backlog-search':search,'.backlog-search-status':status}[s])};
+  let board=false;
+  const progress={classList:{toggle:()=>{board=!board;return board;}},querySelector:()=>tools,querySelectorAll:()=>[group]};
+  const document={documentElement:{dataset:{}},querySelector:()=>null,querySelectorAll:s=>s==='.backlog-progress'?[progress]:[]};
+  vm.runInNewContext(fs.readFileSync(path.join(repo,'src/okf_devkit/assets/docs.js'),'utf8'),{document,localStorage:{getItem:()=>null},matchMedia:()=>({matches:false})});
+  assert.equal(tools.hidden,false);click();assert.equal(button['aria-pressed'],'true');click();assert.equal(button['aria-pressed'],'false');
+  search.value='absent';input();assert.equal(card.hidden,true);assert.equal(group.hidden,true);assert.equal(group.open,false);
+  search.value='task';input();assert.equal(group.open,true);assert.equal(status.textContent,'1 件が一致');
+  search.value='';input();assert.equal(group.open,true);assert.equal(group.hidden,false);assert.equal(card.hidden,false);
 });

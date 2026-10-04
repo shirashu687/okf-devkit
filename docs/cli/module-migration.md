@@ -7,7 +7,7 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T11:53:15Z
+  at: 2026-10-04T03:14:08Z
 code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/renderer.py
@@ -80,3 +80,9 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 既に分離されたcleanup moduleはstage5のcommands/renderへ戻して同居させない。renderの入口は既存moduleの計画、範囲検証、manifest記録、退避実行を呼ぶinterfaceとして扱う。cleanupのチェック非書込み、hookとの併用拒否、旧新範囲・曖昧Windowsパス・manifest重複の拒否、編集済み/手書き出力の保持、退避/復旧の安全条件を移動後も維持する。ライブラリrenderの既定とCLIの `_site` 既定も区別する。
 
 分割の検証には従来のPython全件に `tests/test_render_cleanup.py`、Nodeの `npm test` にrender-cleanup、`npm run test:compat` にcleanup-compatibilityが含まれる現行scriptを使う。commandsを移す直前に採用済みmainとまだ未統合の変更を再確認し、この文書の初回の先行Issue一覧だけを実装順の根拠にしない。
+
+## 状態別 Backlog 表示との接続
+
+統合対象 `c09c6eea9756c05904c6dc2f27f3f832d28e283f` はHTMLの状態別リスト、任意カンバン、表示検索と開閉復元をPython/Node共通資産へ追加している。この表示処理はrendererと共有assetsが所有し、CLIのmodule分割時にcommands/statusへ移さない。ファイル型Backlogの集計とHTMLの表示interfaceを区別し、読み取り専用、設定語彙/順序、本文リンク、検索前の開閉復元、JavaScriptなしのリスト表示を維持する。
+
+分割後も現行Python renderテスト、Node nativeとcompat、およびcleanup suiteをすべて実行する。表示だけの操作でMarkdownやcleanup manifestを変更しない契約は、既存の共通資産側で保つ。ここでのmain統合は分割実装の完了を示さず、最初の調査SHAの測定値は保持する。

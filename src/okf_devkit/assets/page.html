@@ -24,12 +24,13 @@
   <div class="shell">
     <aside class="sidebar" id="site-nav">
       <label class="search-label" for="doc-search">ドキュメント検索</label>
-      <input id="doc-search" type="search" placeholder="タイトル・タグで絞り込み">
+      <input id="doc-search" type="search" placeholder="タイトル・ID・状態・タグで絞り込み">
       <nav class="site-nav" aria-label="ドキュメント一覧">{{NAVIGATION}}</nav>
     </aside>
     <main id="content">
       {{BREADCRUMBS}}
       {{BADGES}}
+      {{BACKLOG}}
       <div class="reading-grid">
         <article class="document">{{CONTENT}}</article>
         {{TOC}}
