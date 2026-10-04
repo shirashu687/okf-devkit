@@ -56,4 +56,3 @@ class DocTests(OkfTestCase):
         self.assertTrue(item.source_problems())
         item.fm["code_globs"] = [False, ""]
         self.assertEqual(len(item.code_globs_problems()), 2)
-
