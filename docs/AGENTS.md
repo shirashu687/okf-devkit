@@ -7,10 +7,11 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:19:54Z
+  at: 2026-10-04T08:41:49Z
 related:
   - /CONVENTIONS.md
   - /agents/issue-tracker.md
+  - /agents/pr-lifecycle.md
 ---
 
 # docs ディレクトリの歩き方
@@ -90,7 +91,7 @@ LLM は背景・進め方・完了条件を調査して Issue 本文に記入す
 
 1. 影響ドキュメントの本文更新（対象は `okf affected` が出力するもの）
 2. 該当層 `docs/<layer>/log.md` への追記（`okf log --write` で生成）
-3. 対応する GitHub Issue の更新（完了ならクローズ）
+3. 対応する GitHub Issue の現在状態と残条件を更新する。設計・部分PRは `Refs` とし、Issue全体の受け入れ条件とclose権限を満たした場合だけクローズする（[PR準備状態](/agents/pr-lifecycle.md)）。
 
 ## 4. やってはいけないこと
 

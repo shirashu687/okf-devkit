@@ -9,5 +9,6 @@
 ## Convention
 * [Domain docs](./domain.md) - single-context のドメイン文書を読む場所と順序を定義する。
 * [Issue tracker 運用](./issue-tracker.md) - GitHub Issues をこのリポジトリの課題管理先として運用する規約。
+* [PR準備状態と統合手順](./pr-lifecycle.md) - PRのDraft解除、部分成果、検証証拠とmerge判断を区別する開発運用規約。
 * [Triage labels](./triage-labels.md) - GitHub Issues で使う triage カテゴリと状態ラベルの対応表。
 <!-- okf:auto:end -->

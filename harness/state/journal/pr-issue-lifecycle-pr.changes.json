@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "d539e28c51c2a562f9729a07854c0fbf236438d0",
+  "worklog": "harness/state/journal/pr-issue-lifecycle.md",
+  "changes": [
+    {
+      "path": "AGENTS.md",
+      "reason": "User approved repository PR/Issue lifecycle rules on 2026-10-04; add navigation to the canonical lifecycle document."
+    }
+  ]
+}

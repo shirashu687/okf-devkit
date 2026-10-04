@@ -19,6 +19,10 @@
 
 課題の分類時は [triageラベル](docs/agents/triage-labels.md) を読み、Issue にカテゴリ1つと状態ラベル1つを付ける。
 
+### PR lifecycle
+
+PR の作成・Draft解除・レビュー・merge判断の前に [PR準備状態と統合手順](docs/agents/pr-lifecycle.md) を読む。Issue の最新状態・次アクションは [課題管理規約](docs/agents/issue-tracker.md) に記録する。
+
 ### Domain docs
 
 ドメイン語・設計判断を扱うときは [CONTEXT.md](CONTEXT.md) と関連ADRを読む。single-contextの配置規約は [ドメイン文書案内](docs/agents/domain.md) にある。
