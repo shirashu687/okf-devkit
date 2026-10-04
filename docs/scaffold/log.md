@@ -3,6 +3,8 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 更新済み親の目的別AI案内を保持し、Git helper分離とinit/scaffoldの生成契約を統合。 (`7171733`)
+- **Update** Git helper分離後もinit/scaffold生成入口を維持する記録を更新。 (`d1fd3c9`)
 - **Update** mainのAI操作案内・helpとCLI共通helper分離を統合し、双方の仕様・テスト・生成案内・変更履歴を保持した。 (`b0d938c`)
 - **Update** 生成するAI向け入口を目的別の短い案内へ整理し、未カバー文書とsync/logの診断、既存ファイル保持を明記した。 (`33b2311`)
 - **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)

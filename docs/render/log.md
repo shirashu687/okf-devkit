@@ -3,6 +3,8 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 更新済み親とのGit分離統合でもrender/cleanupと文書root/projectroot境界を保持。 (`7171733`)
+- **Update** Git helper分離後もrender/cleanup所有境界とroot区別を維持する記録を更新。 (`d1fd3c9`)
 - **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)
 - **Update** レンダラーAPIの隣接配置とCLIの_site既定を出力境界の説明でも区別した。 (`20ff40d`)
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)

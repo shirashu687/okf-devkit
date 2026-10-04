@@ -3,6 +3,8 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 更新済みモデル/YAML親とmainのhelp・AI案内を通常mergeし、Git分離・root/cache・旧runner契約と両側の既存テストを保持。 (`7171733`)
+- **Update** refactor: extract explicit-root Git helpers with legacy adapters。 (`d1fd3c9`)
 - **Update** 更新済みmain・YAML親と明示rootのDoc/configモデルを統合し、AI案内・help・既存constructor・型・root別cache・両変更履歴を保持した。 (`b0f350b`)
 - **Update** Doc/frontmatterとBundle/configを明示repo_rootのモデルへ分離。旧CLI constructor・Doc型・root別cache・YAML所有者と同梱defaultsを保持した。 (`0fd9627`)
 - **Update** Integrated the updated pure-helper parent and AI operation/help guidance with YAML ownership extraction; retained normal-owner/legacy-adapter tests and all historical records. (`92f7870`)

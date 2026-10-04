@@ -9,6 +9,8 @@ generated:
   by: codex/gpt-6
   at: 2026-10-04T10:30:21Z
 code_globs:
+  - src/okf_devkit/gitutil.py
+  - tests/test_gitutil.py
   - src/okf_devkit/render_cleanup.py
   - src/okf_devkit/renderer.py
   - src/okf_devkit/cli.py
@@ -24,6 +26,8 @@ related:
 ---
 
 # 生成済みHTMLを別の出力先へ整理する
+
+第4段階のCLI分割ではGitとresource処理を `gitutil.py` に移した。render入口・cleanup計画・manifest・退避復旧の所有者と呼出しは変更していない。モデルが保持するproject rootと文書rootの区別も維持する。
 Doc/configの内部抽出ではrendererのDoc callbackと既存のCLI導線を保持する。Bundleは構築時のプロジェクトrootを保持するが、本手順の出力先・manifest・退避仕様やlow-level rendererの既定値は変更しない。
 
 
