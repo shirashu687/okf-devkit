@@ -23,7 +23,7 @@
 | IMP-0005 | 観測 | 2026-09-10 | 3 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 Issue #34: inherited npm global/prefix settings could defeat temporary install isolation; fixed before publication and verified with a hostile-environment sentinel. [Distribution worklog](state/journal/issue-34-github-distribution.md). |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
-| IMP-0009 | 観測 | 2026-10-03 | 1 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
+| IMP-0009 | 観測 | 2026-10-03 | 2 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
 | IMP-0014 | 観測 | 2026-10-03 | 1 | coding standards / review | 高 | 旧生成物退避の独立reviewで復元hash・receipt原子的保存とpartialcopy識別の不足を検出した。 | 障害境界ごとの復旧証拠を実装と注入テストで照合する候補 | Python/Node render cleanup | copy/unlink/receipt/restore各失敗で原本保持と記録を照合 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。公開前に本件修正、恒久採用なし。 |
 | IMP-0015 | 観測 | 2026-10-03 | 1 | automated checks | 高 | Windowsの大小文字/末尾dot・space別名により旧新出力が同じ実ディレクトリになり得る境界を追加点検で検出した。 | OSのパス同一性と拒否後の全fixture不変を照合する候補 | render cleanupのルート・manifest境界 | Windows別名指定をCLI check/実行双方で拒否し生成物保持を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。同PRで安全修正、恒久採用なし。 |
 
@@ -149,6 +149,12 @@
 - 原因仮説: lintがlog接頭辞・出典を強制せず、APIの開始とブラウザ表示を説明上混同した可能性。発生回数は今回の独立事象1回。
 - 候補: coding standards / review、重要度低。log書式と起動API保証範囲を現物照合する。今回の独立レビューは不一致を検出し、誤った完了報告前に修正した。
 - 状態: 観測、試行未開始、期限未定。恒久ルール追加や採用承認なし。
+
+### 2026-10-04 導入案内での独立再発
+
+- 根拠: [導入案内修正worklog](state/journal/release-install-guidance.md)。source e80fbc0のSpec reviewで、READMEのnpm ci復旧がglobalへも適用できる説明と、現在の文書が固定archive内READMEへ反映されない事実の利用者向け説明不足を検出した。
+- 初回Issue #11の文書/API保証範囲不一致と同じcoding standards/reviewの対象として独立発生を1回加算し、合計2回。二つの指摘を一つのtask境界照合の事象として扱い、同じreviewの読み直しを再計数しない。初回の証拠と原因仮説はそのまま保持する。
+- 修正: local/globalの復旧手段を区別し、immutable tgz内README旧版の制約をREADME/guideへ明記した。今回の修正成功を恒久改善の採用や効果と呼ばない。状態観測/試行未開始/期限未定は維持。
 
 ### IMP-0008
 

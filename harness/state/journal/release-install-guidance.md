@@ -25,3 +25,11 @@ runtime/workflow/tests/version/政策/保護対象は変更しない。元repo/v
 retroゲート照合範囲:条件付き公開の依頼/不足時の最小PR範囲、元README2PyPI誤例と旧時制、immutable配布物の差、source全差分、既存成功証拠/新source全local結果/引継ぎ。調査で見つけた既存不足を計画どおり修正しており、今回authorの要件取りこぼし、回帰、誤成功、反復手戻り、重大環境摩擦はない。台帳採用/新候補/回数更新なし。独立Spec/Standardsはroot割当で最終報告待ち、journalが判定の不足を成功扱いしない。次はrootの二軸review/exactSHA DraftPRCI。重大な未解消差は既存tgz同梱README旧版であり、今回文書PRでは直らない。追加PRmerge/新タグ・新配布物/現Draft公開の判断はユーザーの承認範囲と照合して親が報告する。
 
 authorは記録commit後全編集をfreezeし、cleanHEADと日本語PR本文外稿を親へ渡す。実装・workflow・版・テスト規約は開始mainと同一。
+
+## 二軸review後の補正とfull retrospective
+
+Specがsourcee80の二つの具体的不足を指摘した。READMEのnpm ci復旧範囲をrepo-localへ限定し、globalは保存旧tgz再導入と元解決path/版確認に分けた。journalだけだったimmutable12c archive内README旧版の制約を利用者向けREADME/guideにも明記した。製品文書source54a667eをcommitし、その実hashを同じsharedlog意味単位へ追加。前のfinal宣言を取り消さず履歴として残し、ここから再検証する。
+
+fullretro trigger:既決のlocal/global区別とimmutableasset説明が利用者向け本文に十分反映されていなかった。証拠はSpec reviewとsourcee80/修正54a667e。影響はglobal復旧誤適用と旧assetREADMEへの誤認で、実ユーザー導入/asset変更/公開は起きていない。仮説は説明の短縮で復旧範囲とsource-vs-archive境界が欠落したこと。原文の原因を断定しない。対応は狭い2文書補正で、runtime/policy/tag/配布物は維持。
+
+既存IMP0009の文書/API保証範囲と同じcodingstandards/review scopeとして独立task発生1を加算、1→2。初回全履歴保持、二指摘は一事象、review再読取や修正再検証を再計数しない。評価10/試行0/採用0、他ID/期限/状態を変更しない。採用や恒久効果なし。補正後requiredfullを1回、同じsourceでNodecompat/guards/packageとdocs/scopeを確認し、最後はjournal-onlyfreeze。既存assetREADME旧版と公開後consumer未実施は残存制約としてrootへ引き継ぐ。
