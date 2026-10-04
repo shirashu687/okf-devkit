@@ -7,7 +7,7 @@ status: stable
 layer: scaffold
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T09:40:44Z
 code_globs:
   - src/okf_devkit/scaffold/**
   - src/okf_devkit/defaults.yml
@@ -19,6 +19,8 @@ related:
 ---
 
 # 初期化と同梱雛形
+Doc/config分離後もdefaultsはパッケージ内の `defaults.yml`、scaffoldは同梱の `scaffold/` を参照する。利用先のCWDや文書rootから配布素材を探さない。initの引数・生成先・既存ファイル保持は変更しない。
+
 
 CLIの純粋helpers分離後も、initの配置物・設定と同梱素材の解決位置は維持する。素材位置はパッケージから解決し、現在のCWDや利用者rootへ移さない。
 

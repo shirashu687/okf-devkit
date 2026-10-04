@@ -7,8 +7,12 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T09:40:44Z
 code_globs:
+  - tests/test_config.py
+  - tests/test_doc.py
+  - src/okf_devkit/config.py
+  - src/okf_devkit/doc.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - .github/workflows/ci.yml
@@ -19,6 +23,8 @@ related:
 ---
 
 # コマンド仕様
+内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
+
 
 純粋helpersの分離後も、この表の引数・終了値・書き込み条件は維持する。連続呼出しや別CWDからの絶対 `--root` / `--config` 指定は対象リポジトリに従い、Git時刻cacheもそのrootへ切り替わる。
 

@@ -56,6 +56,9 @@ import webbrowser
 from pathlib import Path, PurePosixPath
 
 from . import yamlio as _yamlio
+from . import config as _config
+from .doc import Doc as _Doc, CODE_GLOBS_REQUIRED_TYPES
+from .config import CONFIG_FILENAME, DEFAULTS_PATH, RESERVED_DEFAULT, INDEX_LINK_STYLES, merge_config
 
 # Legacy direct-call injection seam; normal parsing belongs to yamlio.
 _pyyaml = _yamlio._pyyaml
@@ -66,11 +69,9 @@ _pyyaml = _yamlio._pyyaml
 # =============================================================================
 
 PACKAGE_DIR = Path(__file__).resolve().parent
-DEFAULTS_PATH = PACKAGE_DIR / "defaults.yml"
 SCAFFOLD_DIR = PACKAGE_DIR / "scaffold"
 
 #: プロジェクト設定のファイル名。この存在がプロジェクトルートの定義になる。
-CONFIG_FILENAME = "okf.yml"
 
 #: プロジェクトルート。``main()`` が起動時に確定させる。
 #: モジュール読み込み時のパスに依存させないため、既定は CWD にしておく
@@ -100,16 +101,13 @@ def find_project_root(start: Path | None = None) -> Path:
         pass
     return here
 
-RESERVED_DEFAULT = ("index.md", "log.md")
 
 # ``index.link_style`` は index.md の出力形式だけを切り替える。
 # frontmatter の ``related`` や ``Doc.bundle_rel`` の意味は変えない。
-INDEX_LINK_STYLES = ("bundle-absolute", "relative")
 
 # `code_globs`（更新検知の起点）を必須とする type。
 # コードから導出されるドキュメントのみ対象で、Convention / Glossary /
 # Decision Record / Backlog Item は対象外。`status: deprecated` も除外される。
-CODE_GLOBS_REQUIRED_TYPES = ("Project Overview", "Architecture", "Reference", "How-To")
 
 
 from .errors import OkfError, MarkerError
@@ -144,281 +142,20 @@ def parse_yaml(text: str, source: str = "<yaml>"):
 # =============================================================================
 
 
-class Doc:
-    """バンドル内の 1 ファイルを表す。"""
-
-    def __init__(self, path: Path, bundle_root: Path):
-        self.path = path
-        self.repo_rel = rel_posix(path, REPO_ROOT)
-        self.bundle_rel = "/" + rel_posix(path, bundle_root)
-        self.name = path.name
-        self.text = read_text(path)
-        self.fm: dict = {}
-        self.fm_error: str | None = None
-        self.has_fm = False
-        self.fm_opened = False  # 先頭が `---` だったか（終端欠落の判定用）
-        self.body = self.text
-        self._fm_lines: list[str] = []
-        self._parse()
-
-    def _parse(self) -> None:
-        lines = self.text.split("\n")
-        if not lines or lines[0].strip() != "---":
-            return
-        self.fm_opened = True
-        end = None
-        for idx in range(1, len(lines)):
-            if lines[idx].strip() in ("---", "..."):
-                end = idx
-                break
-        if end is None:
-            self.fm_error = "frontmatter の終端 `---` がありません"
-            return
-        self.has_fm = True
-        self._fm_lines = lines[1:end]
-        self.body = "\n".join(lines[end + 1:])
-        try:
-            data = _yamlio.parse_yaml("\n".join(self._fm_lines), self.repo_rel)
-        except OkfError as exc:
-            self.fm_error = str(exc)
-            return
-        if data is None:
-            data = {}
-        if not isinstance(data, dict):
-            self.fm_error = "frontmatter がマップではありません"
-            return
-        self.fm = data
-
-    # -- 参照系 ------------------------------------------------------------
-    def get(self, key, default=None):
-        value = self.fm.get(key, default)
-        return default if value is None else value
-
-    def key_line(self, key: str) -> int | None:
-        """frontmatter 内のトップレベルキーの行番号（1 始まり）。"""
-        for idx, line in enumerate(self._fm_lines):
-            if re.match(rf"^{re.escape(key)}\s*:", line):
-                return idx + 2  # `---` の分
-        return None
-
-    @property
-    def h1(self) -> str | None:
-        for line in self.body.split("\n"):
-            m = re.match(r"^#\s+(.+?)\s*$", line)
-            if m:
-                return m.group(1)
-        return None
-
-    @property
-    def title(self) -> str:
-        title = self.fm.get("title")
-        if isinstance(title, str) and title.strip():
-            return title.strip()
-        if self.h1:
-            return self.h1
-        return self.path.stem.replace("-", " ").replace("_", " ")
-
-    @property
-    def description(self) -> str:
-        desc = self.fm.get("description")
-        return desc.strip() if isinstance(desc, str) else ""
-
-    @property
-    def type(self) -> str:
-        value = self.fm.get("type")
-        return value.strip() if isinstance(value, str) else ""
-
-    @property
-    def status(self) -> str:
-        value = self.fm.get("status")
-        return value.strip() if isinstance(value, str) else "stable"
-
-    def code_globs(self) -> list[str]:
-        """`code_globs` の一覧（正しい形式のものだけ）。更新検知の起点。
-
-        OKF 標準の `sources` は出典（provenance）専用なので、変更監視用の
-        glob はこの独自キーに分離している。
-        """
-        out = []
-        raw = self.fm.get("code_globs")
-        if isinstance(raw, list):
-            for item in raw:
-                if isinstance(item, str) and item.strip():
-                    out.append(item.strip().replace("\\", "/"))
-        return out
-
-    def code_globs_problems(self) -> list[str]:
-        """`code_globs` の形式上の問題を返す。
-
-        欠如が問題かどうかは type / status に依存するため、ここでは
-        「書かれている場合の形式」だけを検査する。
-        """
-        problems: list[str] = []
-        raw = self.fm.get("code_globs")
-        if raw is None:
-            return problems
-        if not isinstance(raw, list):
-            return [f"`code_globs` はリストである必要があります（現在: {type(raw).__name__}）"]
-        for pos, item in enumerate(raw, start=1):
-            if not isinstance(item, str) or not item.strip():
-                problems.append(f"`code_globs[{pos}]` が空、または文字列ではありません")
-        return problems
-
-    def requires_code_globs(self) -> bool:
-        """このドキュメントが `code_globs` を必須とするか。
-
-        コードから導出される type のみ必須。`status: deprecated` は除外する。
-        """
-        if self.status == "deprecated":
-            return False
-        return self.type in CODE_GLOBS_REQUIRED_TYPES
-
-    def source_problems(self) -> list[str]:
-        """`sources`（OKF 標準の provenance）の形式上の問題を返す。欠如は問題としない。"""
-        problems: list[str] = []
-        raw = self.fm.get("sources")
-        if raw is None:
-            return problems
-        if not isinstance(raw, list):
-            return [f"`sources` はリストである必要があります（現在: {type(raw).__name__}）"]
-        for pos, item in enumerate(raw, start=1):
-            if not isinstance(item, dict):
-                problems.append(f"`sources[{pos}]` はマップ（`- resource: ...`）である必要があります")
-                continue
-            resource = item.get("resource")
-            if not isinstance(resource, str) or not resource.strip():
-                problems.append(f"`sources[{pos}].resource` が空、または文字列ではありません")
-        return problems
-
-
-# =============================================================================
-# 設定・バンドル走査
-# =============================================================================
-
-
-def merge_config(base: dict, override: dict) -> dict:
-    """``base`` に ``override`` を重ねた新しい dict を返す。
-
-    dict は再帰的にマージし、**リストとスカラーは丸ごと置換**する。
-    リストを追記扱いにすると「既定の語彙を減らせない」ため、
-    プロジェクト側が ``types`` を書いたらその内容が唯一の正になる。
-    """
-    out = dict(base)
-    for key, value in override.items():
-        if isinstance(value, dict) and isinstance(out.get(key), dict):
-            out[key] = merge_config(out[key], value)
-        else:
-            out[key] = value
-    return out
+class Doc(_Doc):
+    """Temporary legacy constructor; canonical doc.Doc requires repo_root."""
+    def __init__(self, path: Path, bundle_root: Path, *, repo_root: Path | None = None):
+        super().__init__(path, bundle_root, repo_root=REPO_ROOT if repo_root is None else repo_root)
 
 
 def load_merged_config(cfg_path: Path) -> dict:
-    """同梱の ``defaults.yml`` にプロジェクトの ``okf.yml`` を重ねて返す。"""
-    if not DEFAULTS_PATH.exists():  # pragma: no cover - 壊れたインストール向け
-        raise OkfError(f"同梱の既定設定が見つかりません: {DEFAULTS_PATH}")
-    defaults = _yamlio.parse_yaml(read_text(DEFAULTS_PATH), str(DEFAULTS_PATH))
-    if not isinstance(defaults, dict):  # pragma: no cover
-        raise OkfError(f"既定設定の形式が不正です: {DEFAULTS_PATH}")
-
-    project = _yamlio.parse_yaml(read_text(cfg_path), str(cfg_path))
-    if project is None:
-        project = {}
-    if not isinstance(project, dict):
-        raise OkfError(f"設定ファイルの形式が不正です: {cfg_path}")
-    return merge_config(defaults, project)
+    return _config.load_merged_config(cfg_path, defaults_path=DEFAULTS_PATH)
 
 
-class Bundle:
-    """docs/ バンドル全体と設定を保持する。"""
-
+class Bundle(_config.Bundle):
+    """Temporary legacy constructor capturing the currently injected CLI root."""
     def __init__(self, config_path: Path | None = None):
-        cfg_path = config_path or (REPO_ROOT / CONFIG_FILENAME)
-        if not cfg_path.exists():
-            raise OkfError(
-                f"設定ファイルが見つかりません: {cfg_path}\n"
-                "  `okf init` で生成するか、--config でパスを指定してください。"
-            )
-        cfg = load_merged_config(cfg_path)
-        self.cfg = cfg
-        self.config_path = cfg_path
-        self.root = (REPO_ROOT / str(cfg.get("bundle_root", "docs"))).resolve()
-        self.exclude = list(cfg.get("exclude") or [])
-        self.reserved = tuple(cfg.get("reserved") or RESERVED_DEFAULT)
-        self.types = list(cfg.get("types") or [])
-        self.statuses = list(cfg.get("statuses") or ["draft", "stable", "deprecated"])
-        self.site_name = str(cfg.get("site_name") or REPO_ROOT.name)
-        self.layers = list(cfg.get("layers") or [])
-        raw_index_cfg = cfg.get("index", {})
-        if not isinstance(raw_index_cfg, dict):
-            raise OkfError("設定 `index` はマップで指定してください")
-        self.index_cfg = dict(raw_index_cfg)
-        self.index_link_style = self._validate_index_link_style()
-        self.backlog_cfg = dict(cfg.get("backlog") or {})
-        self.log_cfg = dict(cfg.get("log") or {})
-        self._docs: list[Doc] | None = None
-
-    def _validate_index_link_style(self) -> str:
-        value = self.index_cfg.get("link_style", "bundle-absolute")
-        if not isinstance(value, str) or value not in INDEX_LINK_STYLES:
-            allowed = " / ".join(f"`{item}`" for item in INDEX_LINK_STYLES)
-            raise OkfError(f"設定 `index.link_style` は {allowed} のいずれかの文字列で指定してください")
-        return value
-
-    # -- パス判定 ----------------------------------------------------------
-    def is_excluded(self, path: Path) -> bool:
-        try:
-            rel = rel_posix(path, self.root)
-        except ValueError:
-            return True
-        return any(path_matches(rel, pat) for pat in self.exclude)
-
-    def dirs(self) -> list[Path]:
-        """index 生成対象のディレクトリ（バンドルルート含む）を昇順で返す。"""
-        found = [self.root]
-        for dirpath, dirnames, _files in os.walk(self.root):
-            dirnames[:] = sorted(
-                d for d in dirnames
-                if not d.startswith(("_", "."))
-                and not self.is_excluded(Path(dirpath) / d)
-            )
-            for d in dirnames:
-                found.append(Path(dirpath) / d)
-        return sorted(set(found), key=lambda p: rel_posix(p, self.root) if p != self.root else "")
-
-    def md_files(self, include_reserved: bool = False) -> list[Path]:
-        out = []
-        for d in self.dirs():
-            for p in sorted(d.iterdir()):
-                if p.is_file() and p.suffix == ".md" and not self.is_excluded(p):
-                    if not include_reserved and p.name in self.reserved:
-                        continue
-                    out.append(p)
-        return out
-
-    def docs(self) -> list[Doc]:
-        """非予約ファイルの Doc 一覧（キャッシュ付き）。"""
-        if self._docs is None:
-            self._docs = [Doc(p, self.root) for p in self.md_files()]
-        return self._docs
-
-    def backlog_dir(self) -> Path:
-        return self.root / str(self.backlog_cfg.get("dir", "backlog"))
-
-    # -- log の出力先 ------------------------------------------------------
-    def log_layers(self) -> list[str]:
-        """自動追記の対象になる層。"""
-        value = self.log_cfg.get("layers")
-        if value is None:
-            return list(self.layers)
-        return [str(v) for v in value]
-
-    def log_path(self, layer: str) -> Path:
-        """層 → log.md のパス（`log.paths` で層ごとに差し替え可能）。"""
-        paths = self.log_cfg.get("paths") or {}
-        rel = paths.get(layer) if isinstance(paths, dict) else None
-        if rel:
-            return (self.root / str(rel)).resolve()
-        return (self.root / layer / "log.md").resolve()
+        super().__init__(config_path, repo_root=REPO_ROOT, doc_factory=Doc, defaults_path=DEFAULTS_PATH)
 
 
 # =============================================================================

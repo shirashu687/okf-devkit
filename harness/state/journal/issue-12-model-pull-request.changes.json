@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "111f04ea2ee827e6c6652d24775fbb5c450d4227",
+  "worklog": "harness/state/journal/issue-12-model.md",
+  "changes": [
+    {
+      "path": "tests/test_doc.py",
+      "reason": "Stage3 explicit-root Doc/config extraction regression coverage; preserve existing behavior and validate canonical/legacy constructors across roots."
+    },
+    {
+      "path": "tests/test_config.py",
+      "reason": "Stage3 explicit-root Doc/config extraction regression coverage; preserve existing behavior and validate canonical/legacy constructors across roots."
+    }
+  ]
+}

@@ -7,8 +7,12 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T09:40:44Z
 code_globs:
+  - tests/test_config.py
+  - tests/test_doc.py
+  - src/okf_devkit/config.py
+  - src/okf_devkit/doc.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - src/okf_devkit/errors.py
@@ -25,10 +29,12 @@ related:
 ---
 
 # CLI 分割の移行設計
+第3段階までの実装: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。段階4以降のGit・commands移行とcli 200行以下は未完了であり、本段階だけでIssue #12全体を完了としない。
+
 
 この文書は Issue #12 の事前調査と技術設計であり、モジュール分割の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。
 
-段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。段階2以降と200行以下の入口は未完了である。
+段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。段階4以降と200行以下の入口は未完了である。
 
 ## 現状の依存とテスト面
 

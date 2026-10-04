@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T09:40:44Z
 code_globs:
   - src/okf_devkit/render_cleanup.py
   - src/okf_devkit/renderer.py
@@ -24,6 +24,8 @@ related:
 ---
 
 # 生成済みHTMLを別の出力先へ整理する
+Doc/configの内部抽出ではrendererのDoc callbackと既存のCLI導線を保持する。Bundleは構築時のプロジェクトrootを保持するが、本手順の出力先・manifest・退避仕様やlow-level rendererの既定値は変更しない。
+
 
 CLIの共通例外・純粋helpersを分離しても、この整理手順と安全境界は維持する。従来の `cli.OkfError` は共通例外classの再exportであり、手動strict実行とadvisory hookの契約は変更しない。
 
