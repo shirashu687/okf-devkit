@@ -26,3 +26,7 @@ Evidence SHA256:
 ## Authorized merged-main adoption
 
 At 2026-10-04T12:48:15.254871+00:00 isolated codex/issue12-merge41 starts from original3010fa0ac55f8e2b5981c3354c7e0568448ccf34. User authorized sequential merge38 through44. Main after40 isf19491dc128689ed00709387704a9501b0e6171d. Before normalmerge only latest ownPR declaration base updated to actualmain, protectedtest_gitutil only; originalTASKbase497fe05 unchanged. Parent inherited39/40metadata to retain exactmain bytes. Allsrc/tests/node/docs originalbytes expected. Child localintegration/validation only; parent remote review/retarget/push/CI/merge. Mandatoryvalidation pending.
+
+Merged-main adoption validation at source/payload freeze7f436c728f36ab97f71ee53ed7f51dd70ff8ea07: Python244 tests in74.595s, failures0/errors0/skipped1 existingWindows symlink limitation, exit0. NativeNode31/compatibility14 pass with skips0, exit0; npmci8added/9audited/0vulnerabilities. Both runtimes lint0errors/0warnings,indexcheck current,render32pages writes/deletes/warnings0. Allsrc/tests/node/docs remain byte-identical original3010; inherited39/40declarations exactM40. Task497/PRf194 exactscopes0, committedfullrange diffcheck0, clean.
+
+Only this verification journal changes after tested payload; no redundant full rerun or product change. Parent finalexacthead review/currentCI/retarget/push/merge pending; local tests do not prove remoteCI. Retrospective gate routine ancestry adoption with no new runtime defect/trial/adoption trigger; no ledger edits or child remote operations.
