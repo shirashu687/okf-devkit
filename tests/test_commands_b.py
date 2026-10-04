@@ -86,3 +86,32 @@ class RemainingCommandTest(OkfTestCase):
         self.assertTrue(all(c.kwargs['repo_root'] == bundle.repo_root for c in factory.call_args_list))
         self.assertTrue((self.repo / '_site/owner.html').is_file())
         self.assertFalse((self.repo / 'different').exists())
+
+    def test_sync_gate_owner_and_strict_exit_contract_survive_cli_root_changes(self):
+        from okf_devkit.commands import sync
+        self.git_init()
+        config = self.make_config()
+        self.write('docs/bad.md', doc_text(type_='Unknown Type', layer='shared', code_globs=None))
+        bundle = cli.Bundle(config)
+        prior = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', prior)
+        with patch.object(gitutil, 'git', wraps=gitutil.git) as runner, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(2, sync.cmd_sync(bundle, ns(gate=True, session_id='owner')))
+            self.assertEqual(0, sync.cmd_sync(bundle, ns(gate=True, session_id='owner')))
+            self.assertEqual(1, sync.cmd_sync(bundle, ns(gate=False, session_id='owner')))
+        self.assertTrue(runner.called)
+        self.assertTrue(all(c.args[0] == bundle.repo_root for c in runner.call_args_list))
+        self.assertTrue((self.repo / '.git/okf-gate/owner.json').is_file())
+        self.assertFalse((self.repo / 'different').exists())
+
+    def test_legacy_gate_counter_observes_current_ttl_override(self):
+        import os
+        import time
+        self.git_init()
+        self.assertEqual(1, cli.gate_bump(None, 'same'))
+        state = cli._gate_state_file(None)
+        old = time.time() - 10
+        os.utime(state, (old, old))
+        with patch.object(cli, 'GATE_TTL', 0):
+            self.assertEqual(1, cli.gate_bump(None, 'same'))
