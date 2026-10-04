@@ -80,3 +80,13 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 - Retroゲートは予定されたmain統合として差分・依頼・検証を照合。今回の新規失敗/回帰/要件取りこぼしなし。前回のsymlink unavailableは既処理限界として保持し重複観測しない。次はrootの独立reviewと最新SHA CI。
 
 - fullPython最終結果：199件、fail0/error0/skip1、OK(skipped=1)、session89947 exit0。1件は既知のsymlink unavailable境界（前回verbose確認）としてskipを成功件数へ含めない。残る変更は本検証証拠とhash付き層logだけでruntime変更なし。
+
+## PR #27 final docs/hook main integration (2026-10-04)
+
+- 開始SHA51180cf387146068ff7ac14413513440914f8bc8、clean tree。指定exact mainfc84eaa47d601cbfab3241fa5e61a600508a516dをe5ec5a0ef77fb7be851bc179ccb066d0f39ab837で通常mergeし、その内容・設計更新をcheckpointとして固定した。競合cli/logはmain全行と元研究hash3件を保存、cli/indexはmain本文と研究をindex --writeで再生成した。
+- main全runtime/Node/assets/tests/hooks/config/self-check CIを保持。設計文書だけに、main実装本文との連携、renderer/UIとcleanupの所有境界、advisory adapterとstrict CLIの区別を追記した。初回survey SHA・数値を保持。大分割実装や機能削除はしない。
+- originalstart51180→checkpointのtask検査はexit1（履歴same-scope base/duplicate conflict）。成功へ置換しない。保護取り込み7ファイルをexactmainのGit blobと照合し全一致、対応する履歴宣言のpath列挙を別々に確認した。元18task宣言、main37宣言は原名/base/Git bytesを保持。根拠workspace ../issue27-final-main-imports.json と ../issue27-final-main-original-task.txt。checker/policyはmain-identical。検証後のmetadataはcheckpoint→final task比較、PRはexactfc84→final全差分で確認し、未宣言source変更をmetadata比較の成功で覆わない。
+- 対象checkpointのclean treeで既存venv＋絶対PYTHONPATH worktree/src＋PYTHONUTF8=1、Python205件 fail0/error0/skip1、session4523 exit0（symlink unavailable既知限界を成功件数へ含めない）。npm ci --ignore-scripts exit0、Node30/pass30/fail0、compat13/pass13/fail0、session87627 exit0。OKF_TEST_PYTHONも既存venv。正確な今回証拠は workspace ../issue27-fc84-python.txt、../issue27-fc84-node.txt、../issue27-fc84-compat.txt（旧176/15/7のissue27-mainログとは別）。
+- OKF検査成功：affected actualfc84mainで影響0/journal未カバー、index --write/--check最新、lint0/0、render --check28pages/_site/write0/delete0/warn0。PRscopefc84→checkpointは4ordinaryfiles、保護差分なしでexit0。mainのRepository docsジョブを含むCI全10を保持し、localからremoteCI成功を推定しない。
+- LedgerはmainとGit bytes同一でactive10/rejected3/total13、既存occurrence/source/detail/evidenceと却下履歴を保持。追加観測/試行/採用/静かな削除なし。通常のmain同期と過去に記録済みskip境界以外に新しい回帰や欠落なし。R1/R2と2phase検査の限界は上記通り、元task exit1を隠さない。
+- これ以降は実hash付logと結果worklogのみ。親明示のmetadata再full例外を適用し、製品/設計本文は追加変更しない。今回の独立Spec/Standards reviewとremoteCIは未実行、final SHAを通知後に親がreview/push/merge確認を行う。作者はlocal commitのみでpush/PRedit/force/既存npmbranch変更なし。
