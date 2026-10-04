@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "c008ed0c9df35b450bb60f2538bf507400fa427c",
+  "worklog": "harness/state/journal/issue-16-viewer-navigation.md",
+  "changes": [
+    {
+      "path": "tests/test_render.py",
+      "reason": "Issue16 hierarchical/current/configured navigation and visible source path regression; existing tests unchanged"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Issue16 hierarchical/current/configured navigation and visible source path regression; existing tests unchanged"
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "Issue16 hierarchical/current/configured navigation and visible source path regression; existing tests unchanged"
+    }
+  ]
+}

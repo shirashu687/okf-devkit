@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import YAML from "yaml";
+import vm from "node:vm";
 import path from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import {
@@ -399,6 +401,58 @@ test("backlog progress honors configuration, source links, empty and regeneratio
   assert.ok(view.includes('>done</span> 2 件'));
 });
 
+
+test("hierarchical navigation shows configured layers, current ancestors and source filenames", t => {
+  const root = temp(t); init(root);
+  const config = parseYaml(fs.readFileSync(path.join(root,"okf.yml"),"utf8"));
+  config.layers = ["preferred","secondary"];
+  config.layer_dirs = {preferred:"z-team",secondary:"a-team"};
+  put(root,"okf.yml",YAML.stringify(config));
+  put(root,"docs/index.md","# Docs\n");
+  put(root,"docs/z-team/deep/a #%.md",document().replace("title: Example",'title: "Nested <title>"'));
+  put(root,"docs/a-team/b.md",document());
+  ok(run(root,["render","--output","_site"]));
+  const page = fs.readFileSync(path.join(root,"_site/z-team/deep/a #%.html"),"utf8");
+  const nav = page.split('<nav class="site-nav"')[1].split('</nav>')[0];
+  assert.ok(nav.indexOf("preferred · z-team") < nav.indexOf("secondary · a-team"));
+  assert.ok(nav.includes('<details data-current="true" open><summary title="z-team">'));
+  assert.ok(nav.includes('<details data-current="true" open><summary title="z-team/deep">'));
+  assert.ok(nav.includes('<details data-current="false"><summary title="a-team">'));
+  assert.ok(nav.includes('aria-current="page" class="active"'));
+  assert.ok(nav.includes('<code>a #%.md</code>'));
+  assert.ok(nav.includes('href="a%20%23%25.html"'));
+  assert.ok(page.includes('<code>docs/z-team/deep/a #%.md</code>'));
+  assert.ok(page.includes('href="../../../docs/z-team/deep/a%20%23%25.md"'));
+});
+
+
+test("sidebar search opens matching directories and restores current ancestors", () => {
+  const currentItem = {dataset:{search:"deep/current.md"},hidden:false};
+  const otherItem = {dataset:{search:"other/reference.md"},hidden:false};
+  const directory = (item,current) => ({dataset:{current},open:current === "true",parentElement:{hidden:false},querySelectorAll:() => [item]});
+  const active = directory(currentItem,"true"), other = directory(otherItem,"false");
+  const section = {hidden:false,querySelectorAll:() => [currentItem,otherItem]};
+  let onInput;
+  const search = {value:"",addEventListener:(_event, callback) => {onInput=callback;}};
+  const document = {
+    documentElement:{dataset:{}},
+    querySelector:selector => selector === "#doc-search" ? search : null,
+    querySelectorAll:selector => ({
+      '.site-nav li[data-search]':[currentItem,otherItem],
+      '.site-nav details':[active,other],
+      '.site-nav section':[section],
+    }[selector] || []),
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(repo,"src/okf_devkit/assets/docs.js"),"utf8"),{
+    document,localStorage:{getItem:() => null},matchMedia:() => ({matches:false}),
+  });
+  search.value="reference.md";onInput();
+  assert.equal(currentItem.hidden,true);assert.equal(active.parentElement.hidden,true);
+  assert.equal(otherItem.hidden,false);assert.equal(other.open,true);
+  search.value="absent";onInput();assert.equal(section.hidden,true);
+  search.value="";onInput();
+  assert.equal(section.hidden,false);assert.equal(active.open,true);assert.equal(other.open,false);
+});
 
 test("render opens the generated homepage only on explicit non-hook writes", async (t) => {
   const { cmdRender } = await import("../../node/renderer.mjs");

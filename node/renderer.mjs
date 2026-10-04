@@ -165,63 +165,44 @@ function backlogProgress(pages, current, b) {
   chunks.push('</section>');
   return chunks.join('');
 }
-function navigation(pages, current) {
-  const groups = new Map(),
-    order = ["ルート", "project", "client", "server", "batch", "backlog"];
-  const names = {
-    ルート: "全体",
-    project: "プロジェクト",
-    client: "クライアント",
-    server: "サーバー",
-    batch: "バッチ",
-    backlog: "バックログ",
-  };
+function navigation(pages, current, b) {
+  const files = new Map(), children = new Map();
   for (const page of pages) {
-    const group = page.source.includes("/")
-      ? page.source.split("/")[0]
-      : "ルート";
-    if (!groups.has(group)) groups.set(group, []);
-    groups.get(group).push(page);
+    let directory = path.posix.dirname(page.source);
+    if (!files.has(directory)) files.set(directory, []);
+    files.get(directory).push(page);
+    while (directory !== ".") {
+      const parent = path.posix.dirname(directory);
+      if (!children.has(parent)) children.set(parent, new Set());
+      children.get(parent).add(directory);
+      directory = parent;
+    }
   }
-  const rank = (g) => (order.includes(g) ? order.indexOf(g) : 99);
-  return [...groups.keys()]
-    .sort((a, b) => rank(a) - rank(b) || compare(a, b))
-    .map((g) => {
-      const items = groups
-        .get(g)
-        .sort(
-          (a, b) =>
-            Number(a.source !== `${g}/index.md`) -
-              Number(b.source !== `${g}/index.md`) ||
-            compare(a.source, b.source),
-        );
-      return (
-        `<section><h2>${escape(names[g] || g)}</h2><ul>` +
-        items
-          .map((p) => {
-            const active =
-                p.source === current.source
-                  ? ' aria-current="page" class="active"'
-                  : "",
-              tags = p.doc.get("tags", []);
-            const search = [
-              p.doc.title,
-              p.doc.description,
-              p.doc.type,
-              p.source,
-              p.doc.type === "Backlog Item" ? backlogState(p) : "",
-              Array.isArray(tags) ? tags.join(" ") : "",
-            ]
-              .join(" ")
-              .toLowerCase();
-            const progress = p.doc.type === "Backlog Item" ? `<small><code>${escape(path.posix.basename(p.source))}</code> · ${escape(backlogState(p))}</small>` : "";
-            return `<li data-search="${escape(search)}"><a href="${escape(relativeHtml(current.output, p.source))}"${active}>${escape(p.doc.title)}${progress}</a></li>`;
-          })
-          .join("") +
-        "</ul></section>"
-      );
-    })
-    .join("");
+  const configured = b.layers.map(layer => [String(b.cfg.layer_dirs?.[layer] || layer), String(layer)]);
+  const rank = directory => {
+    const positions = configured.flatMap(([mapped], i) => mapped === directory || mapped.startsWith(directory + "/") ? [i] : []);
+    return positions.length ? Math.min(...positions) : configured.length;
+  };
+  function subtree(directory) {
+    const chunks = ['<ul>'];
+    for (const p of (files.get(directory) || []).sort((a,b) => Number(a.doc.name !== "index.md") - Number(b.doc.name !== "index.md") || compare(a.source,b.source))) {
+      const active = p.source === current.source ? ' aria-current="page" class="active"' : "";
+      const href = encodeURI(relativeHtml(current.output,p.source)).replaceAll("#", "%23").replaceAll("?", "%3F");
+      const tags = p.doc.get("tags", []), state = p.doc.type === "Backlog Item" ? backlogState(p) : "";
+      const search = [p.doc.title,p.doc.description,p.doc.type,p.source,state,Array.isArray(tags) ? tags.join(" ") : ""].join(" ").toLowerCase();
+      const progress = state ? ` · ${escape(state)}` : "";
+      chunks.push(`<li data-search="${escape(search)}"><a href="${escape(href)}"${active}>${escape(p.doc.title)}<small><code>${escape(p.doc.name)}</code>${progress}</small></a></li>`);
+    }
+    for (const child of [...(children.get(directory) || [])].sort((a,b) => rank(a) - rank(b) || compare(a,b))) {
+      const containsCurrent = current.source.startsWith(child + "/");
+      let label = path.posix.basename(child);
+      const layer = configured.find(([mapped]) => mapped === child)?.[1];
+      if (layer && layer !== label) label = `${layer} · ${label}`;
+      chunks.push(`<li class="nav-directory"><details data-current="${containsCurrent ? "true" : "false"}"${containsCurrent ? " open" : ""}><summary title="${escape(child)}">${escape(label)}</summary>${subtree(child)}</details></li>`);
+    }
+    chunks.push('</ul>'); return chunks.join('');
+  }
+  return '<section><h2>ドキュメント</h2>' + subtree(".") + '</section>';
 }
 function breadcrumbs(page, sources) {
   const parts = page.source.split("/"),
@@ -372,7 +353,8 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
         path.posix.relative(path.posix.dirname(p.output), "_assets"),
       ),
       SOURCE: escape(p.source),
-      SOURCE_LINK: escape(rel(p.doc.path, path.dirname(target))),
+      SOURCE_LINK: escape(encodeURI(rel(p.doc.path, path.dirname(target))).replaceAll("#", "%23").replaceAll("?", "%3F")),
+      SOURCE_REPO: escape(rel(p.doc.path, b.repo)),
       HOME_LINK: escape(relativeHtml(p.output, "index.md")),
       SOURCE_HASH: createHash("sha256")
         .update(p.doc.text)
@@ -391,7 +373,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
           : "",
       BREADCRUMBS: breadcrumbs(p, sources),
       BADGES: badges(p.doc),
-      NAVIGATION: navigation(pages, p),
+      NAVIGATION: navigation(pages, p, b),
       TOC: toc(p.headings),
       CONTENT: p.body,
       BACKLOG: backlogProgress(pages, p, b),
