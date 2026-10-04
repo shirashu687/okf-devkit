@@ -7,7 +7,7 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T13:44:39Z
+  at: 2026-10-04T14:52:21Z
 code_globs:
   - package.json
   - package-lock.json
@@ -28,7 +28,7 @@ related:
 
 明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
 本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
-この文書のRelease経路は配布workflowの検証・別途承認された公開後に使う。公開予定のv0.1.0はPreReleaseで、現在未公開。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。初回公開前は実在を確認した完全Git SHA経路を選び、URLを捏造しない。
+この文書のRelease経路は別途承認された公開後に使う。v0.1.0はタグ用workflow全10jobと3assetの検証済みDraftがあるが、現在未公開。公開済みPreReleaseの取得・実利用者への導入は未実施。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。公開前は確認済み完全Git SHAのソース経路を選ぶ。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
 
 ## 1. 環境と既存状態を読む
@@ -59,6 +59,7 @@ Python版やglobal版の `okf` がある場合、解決されたパス・起動�
 ## 3. 取得とインストール
 
 Git経路は利用者が選び、現物のコミットが存在する完全40桁SHAへ固定する。ブランチ名や `latest` を固定版と呼ばない。
+現在のv0.1.0タグ対象は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。ソース導入でこの版を選ぶ場合はnpmのGit URLへこのSHAを指定する。下の195252dは以前の導入実測の履歴であり、現在のタグ対象と混同しない。今回、最新SHAのconsumer導入成功は主張しない。
 以下は導入を実測した現行baseline（版0.1.0）の完全SHA。新しい版を依頼された場合は、その版の確認済みSHAへ置き換える。
 
 ```powershell
@@ -69,6 +70,24 @@ npm.cmd install --save-dev --save-exact --ignore-scripts "git+https://github.com
 lockfileのresolvedはSSH形式へ正規化されたが、内部transportの詳細は観測していない。全OS・全npm版の再現やHTTPSへの内部fallbackは保証せず、導入先でresolvedと実際の再導入を確認する。globalなGit URL書換えや認証変更で回避しない。Release公開後は確認済みの固定HTTPS asset URLを標準とする。
 
 公開済みRelease経路ではGitHubの実在するReleaseから版・asset名・取得URLとSHA-256を読み、ダウンロードしたtgzを照合する。privateの場合は既存の認可された取得経路を使い、URLや記録へtokenを埋め込まない。失敗時は認証/接続を依頼し、repoを公開しない。
+
+このrepoは現在publicであるが、Draft assetは公開前のため通常の匿名取得経路には出ない。公開Releaseとrepoの可視性は別条件で、private repoのReleaseを公開してもrepoの認可は必要である。以下は**公開後に使う予定URLと未実行例**。現在は404となるため、実在する公開Releaseの確認前にダウンロード成功とは扱わない。
+
+```powershell
+# 公開後のみ、新しい空の取得ディレクトリで実行
+$assetBase = "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0"
+foreach ($assetName in @("okf-devkit-0.1.0.tgz", "release-manifest.json", "SHA256SUMS")) {
+    Invoke-WebRequest "$assetBase/$assetName" -OutFile $assetName
+}
+$releaseManifest = Get-Content release-manifest.json -Raw | ConvertFrom-Json
+Get-FileHash okf-devkit-0.1.0.tgz,release-manifest.json -Algorithm SHA256
+Get-Content SHA256SUMS
+$releaseManifest
+```
+
+manifestのrepositoryが`shirashu687/okf-devkit`、tag=`v0.1.0`、version=`0.1.0`、commit=`12cdb44c2876b50bd7337a5ea20f7744a27d7802`と一致するか照合する。filesが期待するtgz1件のみで、名前・実ファイルサイズ・SHA-256が一致することを確認する。計算したtgzとmanifestのhashをSHA256SUMSの対応する両行へ照合し、欠落・余分なasset・不一致なら停止する。公開後の実取得/hash確認はまだ実行していない。
+
+Python版は選んだ仮想環境で`python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"`、または同じSHAのcloneで`python -m pip install -e .`を使う。Python3.11以上、Gitと依存取得が必要。本体のPyPI公開とPython wheel/sdist assetはないため、`pip install okf-devkit`を取得手順としない。
 
 ```powershell
 # 取得済みファイルの確認。EXPECTED_SHA256との一致を確認してからインストール

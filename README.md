@@ -44,20 +44,48 @@ OKF v0.2 §5 は独自キーの追加を明示的に許可しており、consume
 ## インストール
 
 ```bash
-pip install okf-devkit
+python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"
 ```
 
 Python 3.11+ / Windows・macOS・Linux 対応。依存は `markdown-it-py` と `PyYAML` のみ。
+Python本体は未公開のPyPI package名から取得せず、確認済み完全SHAのソースを選んだ仮想環境へ導入する。Gitと依存取得の通信が必要。既存cloneを同じSHAへcheckoutした場合は、そのclone内で`python -m pip install -e .`を使える。Python wheel/sdistのRelease assetはない。
 
 ### Python がない環境（Node.js 版）
 
 Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を扱う `log` / `affected --base` とhookにはGitも必要。
 本体はGitHubから固定版で導入し、npmレジストリには公開しない。依存の取得にはnpmを使う。
 標準はrepo-local、globalは明示選択。Node同梱exeと自動更新は提供しない。
-GitHub Releaseの配布workflowはこのDraft PRで追加するが、実タグでの実行・Release公開は未実施。公開前は確認済み完全Git SHAまたはチェックアウトからのtgzを使う。
+v0.1.0タグは完全SHA `12cdb44c2876b50bd7337a5ea20f7744a27d7802` を指し、配布workflowの全10job成功と3assetの照合を済ませたDraftがある。現在は未公開で、公開済みPreReleaseとしての導入確認はまだ行っていない。公開前は確認済み完全Git SHAのソース経路を使う。実利用者への導入は別工程である。
 配布担当者は [タグ・Draft検査・公開の手順](docs/agents/release-node.md) を参照する。
 
 **AIに任せる入口**: [導入・更新・rollbackの手順と貼り付け用依頼文](docs/agents/install-okf.md)。環境確認、管理方式の選択、固定版導入、初期化、実CLI検証を順に扱う。インストールと `init` は別操作で、既存ファイルは `init` でスキップする。更新に `init --force` を使わない。
+
+### 公開後のGitHub配布物を取得する
+
+次のURLと例は**公開後の予定**で、現在の未公開Draftから匿名取得できるURLではない。公開後にv0.1.0の実Releaseとasset URLを再確認して使う。このrepoは現在publicだが、公開Releaseとrepoの可視性は別の条件である。private repoの場合は既存の認可されたGitHub取得経路を使い、tokenをURLへ埋め込んだりrepoを公開したりしない。
+
+```powershell
+# 公開後のみ。新しい空の取得ディレクトリで実行
+$assetBase = "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0"
+foreach ($assetName in @("okf-devkit-0.1.0.tgz", "release-manifest.json", "SHA256SUMS")) {
+    Invoke-WebRequest "$assetBase/$assetName" -OutFile $assetName
+}
+Get-FileHash okf-devkit-0.1.0.tgz,release-manifest.json -Algorithm SHA256
+Get-Content SHA256SUMS
+Get-Content release-manifest.json
+```
+
+導入前にmanifestのrepository、tag=`v0.1.0`、version=`0.1.0`、commit=`12cdb44c2876b50bd7337a5ea20f7744a27d7802`、tgzの名前・サイズ・SHA-256を確認する。計算したtgz/manifestのhashとSHA256SUMSの両行が一致しなければ停止する。詳細な[取得・照合手順](docs/agents/install-okf.md)に従い、同じassetを利用する。チェックサムはバイト照合であり取得元の信頼性の証明ではない。
+
+```powershell
+# 標準のrepo-local。globalは利用者が明示選択した場合だけ
+npm.cmd install --save-dev --save-exact --ignore-scripts "C:/verified/path/okf-devkit-0.1.0.tgz"
+node node_modules/okf-devkit/node/cli.mjs --help
+# 明示的にglobalを選び、既存版と復旧元を保存した場合の代替
+npm.cmd install --global --ignore-scripts "C:/verified/path/okf-devkit-0.1.0.tgz"
+```
+
+上のlocal/globalは代替の選択肢で、両方を実行する手順ではない。POSIXでは`npm.cmd`を`npm`に読み替える。取得済みtgzの保持場所はCI/他端末でも使える方式を選ぶ。更新時はmanifest/lockfileと既存の検証済み配布物を保存し、復旧はその組と`npm ci --ignore-scripts`を使う。同じ0.1.0という版名だけで同じバイトと判断せず、既存assetの差替えや再packをしない。
 
 ```powershell
 # このリポジトリ内で実行（PowerShell / bash 共通）
@@ -72,7 +100,7 @@ node node/cli.mjs --root "C:/path/to/project" index --write
 node node/cli.mjs --root "C:/path/to/project" render
 ```
 
-別プロジェクトから通常の `okf` コマンドとして使う場合は、パッケージを作ってローカルインストールする。
+開発checkoutから試す場合は、パッケージを作ってローカルインストールできる。次の`npm pack`は開発用であり、公開済みReleaseの検証済みassetを再作成する手順ではない。
 
 ```powershell
 # okf-devkit のチェックアウトで実行
@@ -222,7 +250,7 @@ LLM に差し戻したい場合は別コマンドの `okf sync --gate` を使う
 ## CI
 
 ```yaml
-- run: pip install okf-devkit
+- run: python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"
 - run: okf lint
 - run: okf index --check
 - run: okf render --check

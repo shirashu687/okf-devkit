@@ -1,0 +1,7 @@
+# 初回Release導入案内の修正
+
+開始/実PR比較base `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。fresh remote main同SHAを確認。user承認は不足時の日本語最小修正PRまでで、merge/tag移動/asset差替え/公開は対象外。rootはDraft403054686、tagv0.1.0対象12c、タグrun全10成功/3asset検証済み、現在未公開、repo publicを観測。canonical asset URLとPyPI本体はHTTP404、公開後の実取得成功は主張しない。
+
+READMEの古いDraftPR時制と未公開PyPI取得例2箇所を修正。既存GitHub配布物の3asset取得予定URL、manifest/repository/tag/version/commit/size/hash/SHA256SUMS照合、local/global明示選択、固定ソースPython、initforce禁止/lockfile復旧を案内。guideは以前195252導入実測の履歴を保持し、現在12cとの区別と未実施consumerを明記。既存検証済みtgz同梱READMEは旧版のままで、今回の変更はそのバイトへ反映されない。タグ移動/再pack/asset更新で修復しない。rootがこの差と案内優先を説明する。
+
+runtime/workflow/tests/version/政策/保護対象は変更しない。元repo/venv/global設定を変更しない。authorは編集commit/freezeのみ、rootがDraftPR/push/CI/独立レビュー。source固定後fullPython/Nodecompat/releaseguards/package/docs/affected/checker、hashlog後必須Pythonを実行し、未実行CI/公開と区別する。
