@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-04
+- **Creation** repo共通のadvisory終了アダプターとCopilot/Codex設定を追加し、Claudeも同じ処理へ接続。strict手動生成を保持し、対応表・信頼・二重生成と実イベント未検証の範囲を明記した（Issue #9、`4f2663a`）。
+
 ## 2026-10-03
 
 - **Update** — リポジトリの Claude Code Stop hook を設定し、共有 scaffold の Node/Python 対応ラッパーに同期した（Issue #9、`b57b9aa`）。

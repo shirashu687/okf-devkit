@@ -99,7 +99,7 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - Copilot互換sourcesはadditive。親の設計判断でClaude機能を自動削除せず、二重生成の可能性・二つのtimeout・生成物の再書込みを明示。payload判別や重複抑止状態ファイルは追加しない。Markdown正本は保持し、通常renderのstale owned HTML削除は既存仕様どおり。
 - 新テストは実shellのmock子コマンド0/1/2、非JSONstdout抑制、stderr保持、payload非実行/非表示、空白を含むnested Gitrootと各登録launcherを検証する。実共通wrapperはNodeの実CLIへforwardするfixtureで2回成功と不正YAMLのstrict1/advisory0を別確認する。
 - 初回検証:4testのうちWindows cmd経由launcherテストが失敗。原因はPython argv listからcmdへ渡す引用符の表現で実コマンドが文字列として表示されたこと。raw config commandをshell経由で実行するテストへ修正、PowerShell経由とcmd経由の両方で成功。Git shellはPATH外なのでGit executableの隣接binを検出。検証失敗を省略しない。
-- 検証状態: 実行中。対象版は上記開始SHA+作業ツリー。full Python、npm ci、Node/compat、affected/index/lint/render/check、task/PR宣言検査と独立二軸reviewを完了後に結果表へ記録する。最新SHAのCIは未実行（親review後push担当へ引継ぎ）。
+- 検証状態: ローカル必須検証は最終結果表どおり成功。対象版は上記開始SHA+作業ツリー。full Python、npm ci、Node/compat、affected/index/lint/render/check、task/PR宣言検査と独立二軸reviewを完了後に結果表へ記録する。最新SHAのCIは未実行（親review後push担当へ引継ぎ）。
 - retro開始確認:ledgerは評価10/10、試行0/3、採用0、最終確認2026-10-04。期限付き試行/採用見直しなし。既存IDと却下履歴は書き換えない。今回のlauncher test初回失敗は既存IMP-0005のshell/runtime検証範囲として親へ報告し、完了時に処理範囲を確定する。
 
 - 実共通fixtureの初回検証は2失敗:forward moduleをimportするだけではentrypoint guardでmainが走らず、mainを明示呼出し後はfixtureの必須okf.ymlが欠けて実CLIが失敗した。組込みdefaults.ymlを初期configへコピーし、不正YAML検査後は元configを復元して修正。Windows標準encodingで診断が読めない再現もreviewerから報告され、subprocessをUTF-8/replaceに明示した。実CLI側の失敗判定は変更せず、assertionを弱めない。Node依存未準備のPython-only環境はrealNode fixtureのみ明示skipし、npm ci実行後は必ず検証する。
@@ -134,3 +134,9 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 | 実行不能 | 追加範囲の必須ローカル検証 | なし。既存symlinkケースの環境制約はskip理由に保持。 |
 
 独立review: cleanup_pythonが仕様と標準を別軸で全tracked/untracked差分、公式資料、実focused5再実行、ledger/fullretroを確認。stale ownedHTML削除の文言とfixture前提・encoding指摘を修正、製品blocking0。記録最終commitとexactSHA宣言の確認は次に行う。
+
+### 追加範囲の実装・記録の固定
+
+- 実装commit: `4f2663a49bdbb67bdd27a20367ee1d0cbeca70cc`。前記ローカル検証の対象code/config/testsをこの版へ固定し、docs/shared+cli層logに実在hashを添えた。以後の記録commitはlog/worklogのみで、runtime/config/testsは変更しない。
+- 最新SHA CIは未実行、担当はpushしない。clean状態とexactHEADのtask/PR宣言結果を親へ引き渡し、PR #25の更新と最終SHA CIは親が行う。
+- docs生成時刻は実更新UTCを記録。README・対応表・instructionsと公式URLを独立reviewが確認し、event発火を成功と主張しない。
