@@ -3,6 +3,8 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+
+- **Update** 更新済み親のmain案内とGit/model/YAMLを保持して残る7コマンドを統合し、全10コマンドの所有元分離と履歴を保持した。 (`b933cca`)
 - **Update** refactor: extract init command with explicit scaffold ownership。 (`32499d7`)
 - **Update** refactor(cli): extract sync with explicit gate state and legacy callbacks。 (`855b9be`)
 - **Update** refactor(cli): extract render while retaining cleanup and factory owners。 (`8a1c814`)
