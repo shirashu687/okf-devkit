@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 初回配布のREADMEと導入案内を検証済み未公開Draftの状態へ合わせ、未公開PyPI例を固定ソース導入へ修正し、公開後の3asset取得・照合とlocal/global選択を明記した。既存配布物は変更しない。 (`e234d78`, `a2720ed`)
 - **Creation** v0.1.0の日本語公開予定ノートとPreRelease準備手順を整え、既存Draft検証・別承認公開・同一配布物の境界を明記した。タグ・Release公開は未実行。 (`c4b453f`)
 - **Update** AIの日常操作ガイドを既存コマンド仕様の入口として整備し、helpと生成案内のPython/Node回帰を検証した。 (`33b2311`)
 - **Creation** GitHub の固定版 tgz 配布・Draft Release workflow、AI 導入更新復旧ガイドと配布担当者向け手順を追加。公開操作は未実行（Issue #34、`a043c6c2`）。

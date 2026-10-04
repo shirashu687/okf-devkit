@@ -5,3 +5,5 @@
 READMEの古いDraftPR時制と未公開PyPI取得例2箇所を修正。既存GitHub配布物の3asset取得予定URL、manifest/repository/tag/version/commit/size/hash/SHA256SUMS照合、local/global明示選択、固定ソースPython、initforce禁止/lockfile復旧を案内。guideは以前195252導入実測の履歴を保持し、現在12cとの区別と未実施consumerを明記。既存検証済みtgz同梱READMEは旧版のままで、今回の変更はそのバイトへ反映されない。タグ移動/再pack/asset更新で修復しない。rootがこの差と案内優先を説明する。
 
 runtime/workflow/tests/version/政策/保護対象は変更しない。元repo/venv/global設定を変更しない。authorは編集commit/freezeのみ、rootがDraftPR/push/CI/独立レビュー。source固定後fullPython/Nodecompat/releaseguards/package/docs/affected/checker、hashlog後必須Pythonを実行し、未実行CI/公開と区別する。
+
+追加許容範囲:READMEのリンク先notesとrelease手順に残った未タグ/未Draftの現在時制だけを更新、実物検証済みDraftと未公開/未consumerを区別した。新機能や公開操作なし。sourcee234d78+a2720edの実hashでshared節目logを先に記録する。全製品文書固定後にmandatoryfullを1回実行し、最後はjournal結果のみ。
