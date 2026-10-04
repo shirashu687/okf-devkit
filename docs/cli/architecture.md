@@ -7,9 +7,10 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:11:42Z
+  at: 2026-10-04T09:27:05Z
 code_globs:
   - src/okf_devkit/cli.py
+  - src/okf_devkit/yamlio.py
   - src/okf_devkit/errors.py
   - src/okf_devkit/fsutil.py
   - tests/test_cli_context.py
@@ -21,11 +22,13 @@ related:
 
 # CLI の処理構造
 
-Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootとYAML backendはこの段階ではcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
+Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootはcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
 
 Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`init` は Bundle を作る前に処理し、それ以外は Bundle の存在を確認して `cmd_*` に振り分ける。
 
 ## 設定と文書モデル
+
+第2段階ではparser・内蔵YAML subset・scalar/flow serializerを `yamlio.py` へ移す。通常のDoc/frontmatterとBundle/configは `yamlio.parse_yaml` を呼び、現在の `yamlio._pyyaml` がbackendを決める。旧 `cli.parse_yaml` は旧 `cli._pyyaml` を明示backendとして渡す互換アダプターなので、直接呼出しの差替えと通常経路の所有者を区別する。例外・serializer・内蔵parserの旧cli名前は同じ実装を再exportする。
 
 `--root`、`--config` の親、自動探索の順でルートを決める。自動探索は最も近い `okf.yml` を優先し、Git のトップディレクトリへフォールバックする。`load_merged_config()` は同梱 `defaults.yml` とプロジェクト設定を合成する。辞書は再帰マージし、リストとスカラーは置き換える。
 

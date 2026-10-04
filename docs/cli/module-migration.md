@@ -7,9 +7,10 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:11:42Z
+  at: 2026-10-04T09:27:05Z
 code_globs:
   - src/okf_devkit/cli.py
+  - src/okf_devkit/yamlio.py
   - src/okf_devkit/errors.py
   - src/okf_devkit/fsutil.py
   - tests/test_cli_context.py
@@ -98,3 +99,9 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 統合対象 `fc84eaa47d601cbfab3241fa5e61a600508a516d` では#4の実装本文と#5の自リポジトリdocs CIがmainにある。以後の分割は [CLI の処理構造](/cli/architecture.md) と [コマンド仕様](/cli/commands.md) の根拠コードを移動先へ合わせ、self-checkのlint/index/render検査を維持する。初回調査の先行Issue記述は当時のスナップショットとして扱う。
 
 Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動のstrict renderとは終了値の契約が異なる。CLIの移動でadapter/hookの振る舞いを統合・削除せず、入力を実行しない、失敗時にエージェントをブロックしない、実HTMLの連続生成、strict/advisoryの違いを既存の `tests/test_repo_hooks.py` と関連Nodeテストで維持する。実エージェントイベントの観測とローカルadapterテストは区別する。
+
+## 実装済み段階1・2と残る移行
+
+固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
+
+`yamlio.parse_yaml(text, source)` は省略backendなら実owner `yamlio._pyyaml` を使い、keyword backendの明示Noneは内蔵parserを選ぶ。旧 `cli.parse_yaml` は旧 `cli._pyyaml` を明示して渡す薄いadapterとして残す。通常Doc/Bundleはこの旧aliasに依存せずyamlioを直接利用する。helpersの保存・復元とYaml/context testsは実ownerへ移行し、内蔵constructorとPyYAML.safe_loadの呼出しを観測する。`python -S` の新processでsite-packagesを外し、PyYAMLのimportが実際に利用できない状態で同じconfig/frontmatterと拒否構文を確認する。
