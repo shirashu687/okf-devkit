@@ -40,6 +40,7 @@
 
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| IMP-0011 | 却下 | 2026-10-03 | 1 | automated checks | 低 | 自リポジトリdocs追加の手書きログで日付順warnとhashなしによるlog追記拒否を検出した。 | 最終確認にlintと対象範囲log実行を含める候補 | docs/ の変更履歴更新 | lint warn0とlog --writeの終了値・対象版を照合 | 未定（試行未開始） | [Issues 4 / 5 worklog](state/journal/issues-4-5-self-docs.md)。修正済み、恒久採用なし。  Priority rejection 2026-10-04: low one-off log ordering/hash omission corrected before completion, no recurrence/trial/adoption. Retain source and reevaluate this ID on recurrence; prioritize current viewer/hook and cleanup safety observations. |
 | IMP-0002 | 却下 | 2026-09-06 | 1 | agent instructions | 低 | T-0004から引き継いだ `verify-report.md` の完了報告欄に、T-0006で解消すべき「retro手順が未設置なら」という古い分岐が残っていた。静的確認で検出し、完了前に現行手順への参照へ修正した。 | 未定（入口・config・verify-report・CONTEXTの状態文言を接続変更時に照合する方法を次回同種作業で確認） | okf-devkitのハーネス入口と手順文書 | 同種の接続変更で古い未設置分岐の残存を対象版・diff・参照検査で比較する | 未定（試行未開始） | 本タスクの必須修正として反映済み。再発防止効果・採用承認なし。根拠: 本worklogの静的確認と `verify-report.md`。 |
 | IMP-0008 | 却下 | 2026-10-03 | 1 | automated checks | 低 | Issue #6の新規回帰テストが既存API引数とhelperのbundle固定に合わず初回検証で失敗した。 | 追加テストの呼出引数とcustom bundle対応を既存helperと照合する候補 | init shared log回帰テスト | default/custom bundleをPython/Nodeで検証 | 未定（試行未開始） | [Issue #6 worklog](state/journal/issue-6-shared-log.md)。テスト修正後Python170/Node12/互換7成功、恒久採用なし。 |
 
@@ -174,3 +175,13 @@
 - 候補・重要度: automated checks / 高。旧新の分離という安全条件に直結する。OS固有の別名、同一実体、manifestの大小文字重複をCLI check/実行双方と全fixture snapshotで検証する候補。
 - 本件対応: Windows path比較、末尾dot/space拒否、実体alias/入れ子拒否、case-only manifest重複拒否、全fixture不変検証を追加。実ユーザーの生成物では実行していない。
 - 状態・期限・判断: 観測、試行未開始、期限未定。評価9/10、試行0/3、採用0。今回の安全修正を恒久改善効果や採用承認へ読み替えない。最終検証はworklog/PRの最新SHA参照。
+
+### IMP-0011
+
+- Priority rejection 2026-10-04: low resolved one-off, no recorded recurrence/trial/adoption; retain all original evidence and reconsider same ID if recurring.
+
+- 状態: 却下（2026-10-04）。2026-10-03 の1作業における同一ログ更新、再検査を独立発生として増やさない。
+- 事実: sharedログの最新日付を末尾に足しlint L8 warn1。日付順を修正後warn0。各層の手書きエントリがhashなしのため、baseline未設定でlog --writeは書込を中止した。実装コミット036d60aのhashを記録後、4層すべて「追記すべき変更なし」でexit0。
+- 原因仮説: 手書きログ作成時にlint規則とlogの二重追記防止契約を一緒に確認しなかった可能性。
+- 候補: automated checks / 低。文書履歴に限定、通常検査で検出し修正済み。対象範囲のlog実行とlint確認を併用する候補で、恒久ルールは採用しない。
+- 未確認: CIと独立reviewはworklogで別に記録する。試行なし、採用判断待ちなし。

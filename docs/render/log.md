@@ -3,9 +3,11 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** レンダラーAPIの隣接配置とCLIの_site既定を出力境界の説明でも区別した。 (`20ff40d`)
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)
 
 ## 2026-10-03
+- **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
 - **Creation** feat(render): add hierarchical navigation and source metadata。 (`9162553`)
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
