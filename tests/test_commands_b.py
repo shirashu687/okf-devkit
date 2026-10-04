@@ -115,3 +115,17 @@ class RemainingCommandTest(OkfTestCase):
         os.utime(state, (old, old))
         with patch.object(cli, 'GATE_TTL', 0):
             self.assertEqual(1, cli.gate_bump(None, 'same'))
+
+    def test_init_uses_explicit_project_and_packaged_scaffold_owner(self):
+        from okf_devkit.commands import init
+        prior = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', prior)
+        args = ns(layer=[], bundle_root='knowledge', site_name='Owner', force=False)
+        with patch.object(cli, 'SCAFFOLD_DIR', self.repo / 'missing-scaffold'), patch.object(init, '_scaffold_text', wraps=init._scaffold_text) as reader, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(0, init.cmd_init(self.repo, args))
+        self.assertTrue(reader.called)
+        self.assertTrue((self.repo / 'okf.yml').is_file())
+        self.assertTrue((self.repo / 'knowledge/_templates/reference.md').is_file())
+        self.assertTrue((self.repo / '.okf/hooks/render_hook.ps1').is_file())
+        self.assertFalse((self.repo / 'different').exists())
