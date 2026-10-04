@@ -120,7 +120,7 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 | 状態 | 実コマンド | 結果・根拠 |
 | --- | --- | --- |
 | 成功 | 指定python `-m unittest discover -s tests -p test_repo_hooks.py -v` | 作者5/5・skip0（6.164秒）、独立cleanup_python5/5・skip0（6.134秒）。Git Bash/PS5.1の実子コマンド0/1/2、各登録launcher、payload非実行/非表示、実Node CLI生成2回と不正configstrict1/advisory0を確認。 |
-| 成功 | `PYTHONUTF8=1; PYTHONPATH=<worktree>/src; <既存venv>/python.exe tests/run_all.py` | 最終204件、失敗0/エラー0/skip1（既存Windows symlink権限）。workspace外の `issue25-python-final.txt` に実出力。初回203は5番目実fixture追加前、最終成功と区別。 |
+| 成功 | `PYTHONUTF8=1; PYTHONPATH=<worktree>/src; <既存venv>/python.exe tests/run_all.py` | 最終204件、失敗0/エラー0/skip1（既存Windows symlink権限）。repo外の作業workspaceにある `issue25-python-final.txt` に実出力。初回203は5番目実fixture追加前、最終成功と区別。 |
 | 成功 | `npm ci` | added8/audited9、vulnerabilities0。hook内でinstallを行わない。 |
 | 成功 | `npm test` | Node28 pass28/fail0/skip0、`issue25-node.txt`。 |
 | 成功 | `OKF_TEST_PYTHON=<既存venv>/python.exe; PYTHONPATH=<worktree>/src; npm run test:compat` | 12 pass12/fail0/skip0、`issue25-compat.txt`。 |
@@ -140,3 +140,5 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - 実装commit: `4f2663a49bdbb67bdd27a20367ee1d0cbeca70cc`。前記ローカル検証の対象code/config/testsをこの版へ固定し、docs/shared+cli層logに実在hashを添えた。以後の記録commitはlog/worklogのみで、runtime/config/testsは変更しない。
 - 最新SHA CIは未実行、担当はpushしない。clean状態とexactHEADのtask/PR宣言結果を親へ引き渡し、PR #25の更新と最終SHA CIは親が行う。
 - docs生成時刻は実更新UTCを記録。README・対応表・instructionsと公式URLを独立reviewが確認し、event発火を成功と主張しない。
+
+- hashed docs/log・docs/cli/log追記後、`db260cdfec13397555890f8adf03a5bcfd290172`+worklog訂正のみの版で必須full Pythonを再実行:204件/失敗0/エラー0/skip1（既存Windows symlink制約）、repo外の作業workspace `issue25-python-final-logs.txt` に出力。Node28/compat12の対象コード・設定・testsは4f2663aから不変。最終両lint/indexcheck/rendercheckは22page/warn0。独立reviewerはhash付き層log、四値記録、fullretro、code4f2663a→記録版差分を確認しblocking0。
