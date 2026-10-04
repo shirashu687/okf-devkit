@@ -100,13 +100,14 @@ def insert_log_entries(text: str, entries_by_date: dict[str, list[str]]) -> str:
 
 def log_baseline_sha(bundle: Bundle, *, repo_root: Path | None = None, runner=None) -> str | None:
     """`log.baseline` を full SHA に解決する。未設定なら None。"""
+    repo_root = bundle.repo_root if repo_root is None else repo_root
     raw = bundle.log_cfg.get("baseline")
     if raw is None:
         return None
     ref = str(raw).strip()
     if not ref:
         return None
-    sha = gitutil.resolve_commit((bundle.repo_root if repo_root is None else repo_root), ref, runner=runner)
+    sha = gitutil.resolve_commit(repo_root, ref, runner=runner)
     if sha is None:
         raise OkfError(
             f"config.yml の log.baseline を解決できません: {ref}"
@@ -116,12 +117,13 @@ def log_baseline_sha(bundle: Bundle, *, repo_root: Path | None = None, runner=No
 
 
 def cmd_log(bundle: Bundle, args, *, repo_root: Path | None = None, runner=None, writer=None) -> int:
-    if not gitutil.git_available((bundle.repo_root if repo_root is None else repo_root), runner=runner):
+    repo_root = bundle.repo_root if repo_root is None else repo_root
+    if not gitutil.git_available(repo_root, runner=runner):
         raise OkfError("git リポジトリが見つかりません。リポジトリ内で実行してください。")
-    if not gitutil.has_commits((bundle.repo_root if repo_root is None else repo_root), runner=runner):
+    if not gitutil.has_commits(repo_root, runner=runner):
         print("コミットがまだありません（log.md には何も追記しません）。")
         return 0
-    if gitutil.is_shallow((bundle.repo_root if repo_root is None else repo_root), runner=runner):
+    if gitutil.is_shallow(repo_root, runner=runner):
         print(
             "[okf log] 警告: shallow clone です。取得済みの範囲しか走査できないため、"
             "古いコミットが log.md に反映されない可能性があります"
@@ -130,8 +132,8 @@ def cmd_log(bundle: Bundle, args, *, repo_root: Path | None = None, runner=None,
         )
 
     baseline = log_baseline_sha(bundle, repo_root=repo_root, runner=runner)
-    web_url = gitutil.repo_web_url((bundle.repo_root if repo_root is None else repo_root), runner=runner)
-    commits = gitutil.collect_commits((bundle.repo_root if repo_root is None else repo_root), args.range, exclude=baseline, runner=runner)
+    web_url = gitutil.repo_web_url(repo_root, runner=runner)
+    commits = gitutil.collect_commits(repo_root, args.range, exclude=baseline, runner=runner)
     target_layers = [args.layer] if args.layer else bundle.log_layers()
     if args.layer and args.layer not in bundle.layers:
         raise OkfError(f"`--layer {args.layer}` は語彙表にありません（{', '.join(bundle.layers)}）")
@@ -146,7 +148,7 @@ def cmd_log(bundle: Bundle, args, *, repo_root: Path | None = None, runner=None,
                 continue
             leftovers = hashless_entries(read_text(log_path))
             if leftovers:
-                blockers.append(f"{rel_posix(log_path, (bundle.repo_root if repo_root is None else repo_root))}（{len(leftovers)} 件）")
+                blockers.append(f"{rel_posix(log_path, repo_root)}（{len(leftovers)} 件）")
         if blockers:
             raise OkfError(
                 "config.yml の log.baseline が未設定で、コミットハッシュを持たない既存エントリがあります: "
@@ -187,7 +189,7 @@ def cmd_log(bundle: Bundle, args, *, repo_root: Path | None = None, runner=None,
             existing = f"# {heading}{layer}\n"
         content = insert_log_entries(existing, entries_by_date)
 
-        rel = rel_posix(log_path, (bundle.repo_root if repo_root is None else repo_root))
+        rel = rel_posix(log_path, repo_root)
         results.append(f"{rel}: {added} 件")
         if args.dry_run:
             print(f"--- {rel} (dry-run) ---")

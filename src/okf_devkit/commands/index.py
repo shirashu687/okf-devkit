@@ -223,6 +223,7 @@ def split_markers(text: str, start: str, end: str, where: str) -> tuple[str, str
 
 def render_index(bundle: Bundle, directory: Path, block: str, *, repo_root: Path | None = None) -> str:
     """既存 index.md のマーカー間だけを置換した全文を返す。"""
+    repo_root = bundle.repo_root if repo_root is None else repo_root
     icfg = bundle.index_cfg
     start = str(icfg.get("start_marker", "<!-- okf:auto:start -->"))
     end = str(icfg.get("end_marker", "<!-- okf:auto:end -->"))
@@ -241,7 +242,7 @@ def render_index(bundle: Bundle, directory: Path, block: str, *, repo_root: Path
         return f"{head}# {heading}\n\n{auto}"
 
     text = read_text(index_path)
-    where = rel_posix(index_path, (bundle.repo_root if repo_root is None else repo_root))
+    where = rel_posix(index_path, repo_root)
     parts = split_markers(text, start, end, where)
     if parts is not None:
         pre, post = parts
@@ -266,6 +267,7 @@ def _plan_index(bundle: Bundle, *, repo_root: Path | None = None) -> tuple[list[
 
 
 def cmd_index(bundle: Bundle, args, *, repo_root: Path | None = None, writer=None) -> int:
+    repo_root = bundle.repo_root if repo_root is None else repo_root
     plan, marker_errors = _plan_index(bundle, repo_root=repo_root)
     if marker_errors:
         # 1 件でも壊れていたら「どのファイルも書かない」。
@@ -279,7 +281,7 @@ def cmd_index(bundle: Bundle, args, *, repo_root: Path | None = None, writer=Non
         current = read_text(index_path) if index_path.exists() else None
         if current == content:
             continue
-        changed.append(rel_posix(index_path, (bundle.repo_root if repo_root is None else repo_root)))
+        changed.append(rel_posix(index_path, repo_root))
         if args.write:
             (write_if_changed if writer is None else writer)(index_path, content)
 

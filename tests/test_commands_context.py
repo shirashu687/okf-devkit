@@ -52,3 +52,20 @@ class CommandContextTest(OkfTestCase):
             self.assertEqual(0, cli.cmd_log(bundle, ns(write=True, range=None, layer=None, dry_run=False)))
         self.assertTrue(runner.called)
         self.assertTrue(writer.called)
+
+    def test_lint_owner_resolves_resources_against_bundle_root(self):
+        from okf_devkit.commands import lint
+        from okf_devkit import gitutil
+        from helpers import doc_text
+        config = self.make_config()
+        self.write('src/a.ts', 'code')
+        self.write('docs/reference.md', doc_text(type_='Reference', layer='shared'))
+        bundle = cli.Bundle(config)
+        original_root = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', original_root)
+        with patch.object(gitutil, 'resolve_resource', wraps=gitutil.resolve_resource) as resolver:
+            findings = lint.run_lint(bundle)
+        self.assertTrue(resolver.called)
+        self.assertTrue(all(call.args[0] == bundle.repo_root for call in resolver.call_args_list))
+        self.assertFalse(any(f.rule == 'L4' and 'src/a.ts' in f.message for f in findings))
