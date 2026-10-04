@@ -23,6 +23,10 @@
 
 ドメイン語・設計判断を扱うときは [CONTEXT.md](CONTEXT.md) と関連ADRを読む。single-contextの配置規約は [ドメイン文書案内](docs/agents/domain.md) にある。
 
+## OKFの日常操作
+
+コード変更後の文書更新、新規文書、読み取り点検、閲覧を選ぶときは [日常操作ガイド](docs/agents/operate-okf.md) を読む。これは開発者向けharnessや初回導入手順を置き換えず、詳細な引数・副作用の正本は [コマンド仕様](docs/cli/commands.md) とする。
+
 ## 文書と検証
 
 - 変更後は、READMEの誤字修正など小さな文書変更も含め、[プロジェクト設定の既存テスト](harness/project/config.md#検証の実行場所とコマンド) を実行する。小作業の省略対象は計画・仕様化などの工程であり、この検証は省略しない。

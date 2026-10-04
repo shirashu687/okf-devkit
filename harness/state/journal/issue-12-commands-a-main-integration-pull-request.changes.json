@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "3010fa0ac55f8e2b5981c3354c7e0568448ccf34",
+  "worklog": "harness/state/journal/issue-12-commands-a-main-integration.md",
+  "changes": [
+    {
+      "path": "tests/test_commands_context.py",
+      "reason": "Preserve approved canonical command/root/writer/Git callback and L10 missing-resource contrast regression coverage during updated-parent integration; no assertion weakening."
+    }
+  ]
+}

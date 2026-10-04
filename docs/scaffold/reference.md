@@ -7,7 +7,7 @@ status: stable
 layer: scaffold
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:57:43Z
+  at: 2026-10-04T10:30:21Z
 code_globs:
   - src/okf_devkit/gitutil.py
   - tests/test_gitutil.py
@@ -43,6 +43,10 @@ Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジ�
 `--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。既存ファイルは通常スキップし、`--force` を指定した場合だけ置き換える。
 
 init は本文ドキュメントや目次を完成させない。配置後に語彙と layer_map を確認し、`okf new doc` で本文を作り、`okf index --write` と lint を実行する。hooks はリポジトリへ置くのみで、グローバルなエージェント設定への自動登録は行わない。
+
+## 配布する日常操作案内
+
+生成するAGENTSは目的からコード変更後・新規文書・読み取り点検・閲覧・初回導入・backlogへ案内する。詳細なコマンド仕様は上流の参照表へ接続し、版差は利用するCLIのhelpと照合する。`affected`未カバーとバンドル外文書の影響、syncの書き込み/logスキップ、stale/gateの終了0の限界を明示する。ローカルNodeの実CLIを優先し、利用者の既存案内は通常initで保持する。開発者向けharnessを利用先へコピーしない。
 
 ## 既定設定
 
