@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** Python/Nodeのコマンド別helpを揃え、newのhelpを副作用なく利用可能にし、日常の書込・診断判定を既存仕様へ接続した。 (`33b2311`)
 - **Update** 本体の npm 公開を抑止し、指定版導入と実 tgz 検証・同一配布物の PR CI を追加。CLI 実装と既存テストは保持（Issue #34、`a043c6c2`）。
 - **Update** CLI分割設計のmain本文・docs CIとadvisory終了hookの所有境界を補足した。 (`e5ec5a0`)
 - **Update** CLI分割設計に、mainの状態別Backlog表示とcleanupの所有境界を補足した。 (`8c5085e`)
