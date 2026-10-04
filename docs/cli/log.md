@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** Integrated the updated pure-helper parent and AI operation/help guidance with YAML ownership extraction; retained normal-owner/legacy-adapter tests and all historical records. (`92f7870`)
 - **Update** mainのAI操作案内・helpとCLI共通helper分離を統合し、双方の仕様・テスト・生成案内・変更履歴を保持した。 (`b0d938c`)
 - **Update** Python/Nodeのコマンド別helpを揃え、newのhelpを副作用なく利用可能にし、日常の書込・診断判定を既存仕様へ接続した。 (`33b2311`)
 - **Update** YAML解析・内蔵subset・serializerをyamlioへ分離し、通常Doc/configの実ownerと旧CLI直接呼出しadapterを区別した。backend差替え・実PyYAML不在・例外identityの回帰を維持する（Issue #12 stage2、`e27a64d`）。
