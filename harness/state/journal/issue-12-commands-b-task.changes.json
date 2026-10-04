@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task",
+  "base": "3c97cf0383652b8ca072540fe59e6877383dbbd2",
+  "worklog": "harness/state/journal/issue-12-commands-b.md",
+  "changes": [
+    {
+      "path": "tests/test_commands_b.py",
+      "reason": "Canonical command root/cache/factory ownership and observed legacy callback regression tests; no existing assertions weakened."
+    }
+  ]
+}
