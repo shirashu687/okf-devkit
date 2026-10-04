@@ -89,3 +89,5 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 
 - Authorized UI scope: read-only grouped states, optional same-DOM kanban, done/dropped disclosures, title-first cards/source ID, configured priority/effort only. Search autoopens matches and restores actual pre-search disclosure; no editing/schema/server/generated.at semantics changes. Cleanup code unchanged.
 - Initial focused Python renderer tests and Node28 passed; full Python/compat/docs checks and independent real-browser review pending. Historical screenshots retained; parent owns new screenshots/review/push/CI.
+
+- Grouped view implementation9e49dbac84eb82514f1d3debac8f5ee6c2f67325: full Python199 / failure0 / error0 / skip1 known symlink unavailable; Node28 native passed; compatibility12 passed with configured metadata/customstate fixture parity. lint error0/warn0, index generation/check, render --check21pages write0 delete0 warn0, task declaration check passed. Independent specification/standard preliminary review blocking0, browser review pending. Following log/doc corrections do not change runtime; parent performs final artifact/SHA verification.
