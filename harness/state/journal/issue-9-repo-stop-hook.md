@@ -182,3 +182,31 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - 親が2phase同期を承認。まず62bf→main4f72の通常mergeをcheckpointとしてcommitし、その後段のverification/bookkeeping taskはcheckpointを固定baseにする。前段62bf→mergeの保護変更はmainから取り込むtests3pathを専用宣言で全指定、実main bytes比較と独立reviewで確認するが、別baseのhistorical task宣言も同scopeに選択されるため前段自動task検査はinvalid/検証不能と記録し、成功と報告しない。
 - 後段には保護対象の追加変更を行わず、checkpoint→最終SHAのtaskチェックを実行する。実PR比較元は最新main4f72固定で全hook保護3pathを宣言・検証する。過去task宣言と作業記録の元path参照を保持する。
 - ローカル初回fullPython205/失敗0/エラー0/skip1（既存Windows symlink制約）、npmci added8/audited9/vulnerabilities0、Node30/30・互換13/13成功。実コマンド/版を最終結果表に固定する。Node/compat対象runtime/assets/testsはmain4f72と一致し、hook側OS gateも62bfから不変。
+
+### 同期後の固定版・最終検証
+
+- 通常merge checkpoint: `d7edb2d230210a9e84cd68d1cb5c737c27b6280f`、parentsは62bf9f0とmain4f72。後段verification/bookkeeping taskの固定baseはこのcheckpoint。後段は本worklogの機械的結果追記のみで、製品・設定・テスト・docs本文・ledgerを変更しない。
+- Python全件の対象はcheckpointそのもの。docs/cli/node-runtimeの双方body保持とactualUTC generated.at更新後に最終全件を再実行し、完了を確認した。Node30/互換13の実対象runtime/config/testsはcheckpointから差分なし。
+
+| 状態 | 実コマンド・対象版 | 実結果・根拠 |
+| --- | --- | --- |
+| 成功 | 指定既存venv `tests/run_all.py`、PYTHONUTF8=1/PYTHONPATH=issue9/src、checkpoint d7edb2d | `Ran 205 tests in 62.440s` / `OK (skipped=1)`、失敗0/エラー0。skipは既存Windows symlink権限。repo外作業workspace `issue25-main-python-final.txt`。初回205成功はtimestamp更新前の別結果であり最終結果と区別。 |
+| 成功 | `npm ci` / `npm test` / 指定OKF_TEST_PYTHON・PYTHONPATHで `npm run test:compat` | npmci added8/audited9/vulnerabilities0、Node30 pass30/fail0/skip0、互換13 pass13/fail0/skip0。`issue25-main-node.txt` / `issue25-main-compat.txt`。 |
+| 成功 | Python+Node `index --check`, `lint`, `render --check` | 両index最新、lint error0/warn0、render23page/warn0/書込0削除0。 |
+| 成功 | exactPR `check_changes.py --scope pull-request --base 4f72e4172936d84932d831d55860331ea5455a1c --head d7edb2d...` | result=ok。PR全保護変更はClaude設定、Codex設定、新規repo hooks testの3pathで全宣言。 |
+| 成功 | main4f72とcheckpointのsource bytes比較、62bfとcheckpointのhook bytes比較 | main由来runtime/assetsとnav tests3pathが同一、hook設定/ラッパー/OSgateが62bfから同一。incoming過去task宣言2も原名/原bytesのままmainと同一。下表参照。 |
+| 失敗（既知の検査制約） | 前段 `check_changes.py --base 62bf9f0a4da0ec4ce739cbe959cf1a4cdc3c1cfc --head d7edb2d...` | result=invalid。mainから来た別base historical task宣言との同scope衝突・重複。`issue25-main-integration-task.txt`。新taskの正確な3path宣言と独立byte reviewで前段保護範囲を別確認し、自動task成功とは主張しない。checker/historyは改変しない。 |
+| 未実行 | 同期後最終SHA CI、実agent終了イベント/モデルターン | rootが最終独立review後normalpush/CI/PRmergeを排他的に行う。実agentターンは追加しない。main4f72自体のCI成功と本PRの新SHAを区別。 |
+| 実行不能 | 前段task一括自動検証 | 前記historical宣言制約。後段taskはcheckpoint固定baseで最終exactSHAを別検証する。その他必須ローカル検証にblockerなし。 |
+
+main由来原bytes SHA256（checkpointとの完全一致）:
+
+| path | SHA256 |
+| --- | --- |
+| `tests/test_render.py` | `92d77aa6dce53d2b97454ba21096e97f23eecf3fc812bb71b1ae4963f1706fb0` |
+| `tests/node/native.test.mjs` | `05045791ff5ee7d0aba92771aa8261f3681fab5129c2f308fff394ff9b64d59d` |
+| `tests/node/compatibility.test.mjs` | `1ea0255983de50eef0b89cd246a0bd50cd7ca5c44459033beae6e8154eb2ce2c` |
+| `harness/state/journal/issue-16-viewer-navigation.changes.json` | `c2305731d1984512d03b13b514f113c9b4be3087d9759bfcca2166edda7f1e0a` |
+| `harness/state/journal/restore-30-main.changes.json` | `082f8ac1d4b4f6fc4410efec0a847ff211031854a2cd07711b5d2ccf4414edbb` |
+
+ledgerは評価10/10・試行0/3・採用0、IMP0008は低重要度の修正済み独立1回として根拠付き却下へ移し、元ID/症状/詳細/回数を保持。現行IMP0013/0010、IMP0005/0012の再発2回、cleanup安全IMP0014/0015を保持し、既存IMP0002却下行は単一のまま保存。台帳ルール採用や新観測の発行なし。
