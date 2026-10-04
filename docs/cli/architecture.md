@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T10:20:56Z
 code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
@@ -25,6 +25,8 @@ related:
 Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootはcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
 
 Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`init` は Bundle を作る前に処理し、それ以外は Bundle の存在を確認して `cmd_*` に振り分ける。
+
+`--help` と各サブコマンドのhelpは引数・用途・実行例を表示し、設定読取やBundle構築より前に終了する。`new --help` はkind一覧、`new doc --help` / `new backlog --help` は各操作の引数を示す。Python/Nodeのhelpと非書込みを共通入力で検証する。
 
 ## 設定と文書モデル
 
@@ -48,6 +50,6 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 
 ## エラーと hook
 
-通常の `OkfError` は標準エラーへ表示し exit 1。`sync --gate` の運用エラーは exit 2。gate の状態はユーザーのキャッシュ領域に置き、セッション識別子と指摘の fingerprint を使う。HTML の Stop hook 入口は `render --hook` で、成功時は空の JSON を返す。
+通常の `OkfError` は標準エラーへ表示し exit 1。`sync --gate` は初回のlint errorでexit 2、同じerror集合の再検出ではexit 0になり得る。終了値だけをlint合格判定にしない。gate の状態はユーザーのキャッシュ領域に置き、セッション識別子と指摘の fingerprint を使う。HTML の Stop hook 入口は `render --hook` で、成功時は空の JSON を返す。
 
 Node の独立実装と対応範囲は [Node ランタイム](/cli/node-runtime.md) を参照する。

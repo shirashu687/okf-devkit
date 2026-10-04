@@ -1,28 +1,30 @@
 ---
 type: Reference
 title: コマンド仕様
-description: Python CLI のコマンドごとの入出力と検査モードの仕様。
+description: PythonとNode CLIのコマンドごとの入出力と検査モードの仕様。
 tags: [cli, implementation]
 status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:27:05Z
+  at: 2026-10-04T10:20:56Z
 code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
+  - node/*.mjs
   - .github/workflows/ci.yml
 related:
   - /cli/architecture.md
   - /render/architecture.md
   - /scaffold/reference.md
+  - /agents/operate-okf.md
 ---
 
 # コマンド仕様
 
+目的別の短い入口は [AIの日常操作](/agents/operate-okf.md)。この文書を入出力・書き込み・終了状態の参照表として保守する。
+例の `okf` は選んだランタイムの実CLIに読み替える。共通引数 `--root` / `--config` はサブコマンドの前へ置く。詳細なオプション一覧は `okf <command> --help`、新規作成は `okf new doc --help` / `okf new backlog --help` を参照する。
 純粋helpersの分離後も、この表の引数・終了値・書き込み条件は維持する。連続呼出しや別CWDからの絶対 `--root` / `--config` 指定は対象リポジトリに従い、Git時刻cacheもそのrootへ切り替わる。
-
-共通引数 `--root` / `--config` はサブコマンドの前へ置く。詳細なオプション一覧は `okf <command> --help` を参照する。
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|
@@ -36,7 +38,15 @@ related:
 | new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
 | status | backlog の state を集計 | なし。text/json 出力 |
 | render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 既定は `_site/`。`--output docs` で従来の隣接配置を指定。`--check` / hook 時はブラウザを起動しない |
-| sync | index → log → lint → stale をまとめて実行 | index/log 更新。`--gate` は hook 用の差戻し判定 |
+| sync | index → log → lint → stale をまとめて実行 | index/log 更新。log失敗は警告で継続し得る。`--gate` は差戻し判定で状態を書き込む |
+
+## 結果と書き込みの境界
+
+`affected` は対応文書に加えて未カバーパスも読む。`code_globs` がない文書とバンドル外のREADME等は自動逆引きの保証外なので、変更内容から別途確認する。
+`sync` のlogはGitのコミット済み履歴だけを扱う。未コミット変更はlogに記録せず、logの警告・スキップを確認する。index更新や最終exit0からlog追記成功を推定しない。
+`stale` の指摘と `sync --gate` の同じlint error再検出はexit0になり得る。gateは初回errorでexit2、同一error集合の再検出ではexit0としてループを抑える。指摘が解消したことやCI成功を意味しない。
+`render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
+`init --force` は既存ファイル全体を置換する。設定の部分更新や新しい案内の移行には使わず、既存ファイルとの必要な差分だけを確認して更新する。
 
 ## 新規文書の根拠コードと検査
 

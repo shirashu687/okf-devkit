@@ -2321,7 +2321,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_lint.add_argument("--strict", action="store_true", help="warn も exit 1 の対象にする")
 
     p_stale = sub.add_parser("stale", help="陳腐化レポート")
-    p_stale.add_argument("--format", choices=["text", "json"], default="text")
+    p_stale.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
     p_affected = sub.add_parser("affected", help="更新すべきドキュメントを列挙する")
     p_affected.add_argument("--base", default="main", help="比較対象のブランチ（既定: main）")
@@ -2331,22 +2331,22 @@ def build_parser() -> argparse.ArgumentParser:
     new_sub = p_new.add_subparsers(dest="kind", required=True)
 
     p_new_backlog = new_sub.add_parser("backlog", help="backlog アイテムを作る")
-    p_new_backlog.add_argument("--title", required=True)
-    p_new_backlog.add_argument("--layer", default="shared")
-    p_new_backlog.add_argument("--priority", default="medium")
-    p_new_backlog.add_argument("--effort", default="M")
+    p_new_backlog.add_argument("--title", required=True, help="アイテムのタイトル")
+    p_new_backlog.add_argument("--layer", default="shared", help="設定済みのレイヤー（既定: shared）")
+    p_new_backlog.add_argument("--priority", default="medium", help="設定済みの優先度（既定: medium）")
+    p_new_backlog.add_argument("--effort", default="M", help="設定済みの工数（既定: M）")
     p_new_backlog.add_argument("--slug", help="ファイル名の slug（日本語タイトル時に指定する）")
 
     p_new_doc = new_sub.add_parser("doc", help="通常ドキュメントを作る")
-    p_new_doc.add_argument("--layer", required=True)
-    p_new_doc.add_argument("--type", required=True)
-    p_new_doc.add_argument("--title", required=True)
+    p_new_doc.add_argument("--layer", required=True, help="設定済みのレイヤー")
+    p_new_doc.add_argument("--type", required=True, help="設定済みのドキュメント型")
+    p_new_doc.add_argument("--title", required=True, help="ドキュメントのタイトル")
     p_new_doc.add_argument("--dir", help="層ディレクトリ配下のサブディレクトリ")
     p_new_doc.add_argument("--code-globs", nargs="+", help="根拠コードのパス/glob（複数可、コード由来の型では必須）")
     p_new_doc.add_argument("--slug", help="ファイル名の slug")
 
     p_status = sub.add_parser("status", help="backlog の集計")
-    p_status.add_argument("--format", choices=["text", "json"], default="text")
+    p_status.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
     p_render = sub.add_parser("render", help="Bundle の Markdown を閲覧用 HTML に変換する")
     p_render.add_argument("--output", help="出力先（既定: _site。旧配置は bundle_root を指定（例: docs））")
@@ -2356,9 +2356,39 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_render.add_argument("--cleanup-from", metavar="OLD", help="Move verified old renderer artifacts to backups; --check prints the plan")
     p_sync = sub.add_parser("sync", help="index → log → lint → stale を一括実行する")
-    p_sync.add_argument("--gate", action="store_true", help="hook 用。error があれば exit 2")
+    p_sync.add_argument("--gate", action="store_true", help="hook 専用。error の初回は exit 2、同じ error の2回目は exit 0")
     p_sync.add_argument("--session-id", help="gate のセッション識別子（既定: 環境変数 / stdin JSON）")
 
+    examples = {
+        "init": "okf init --site-name MyProject",
+        "index": "okf index --check",
+        "log": "okf log --dry-run",
+        "lint": "okf lint --strict",
+        "stale": "okf stale --format json",
+        "affected": "okf affected --base main",
+        "new": "okf new doc --help / okf new backlog --help",
+        "new doc": 'okf new doc --layer shared --type "Reference" --title "Guide" --code-globs "src/**"',
+        "new backlog": 'okf new backlog --title "Follow-up"',
+        "status": "okf status --format json",
+        "render": "okf render --check",
+        "sync": "okf sync",
+    }
+    common = ("共通オプション（サブコマンドの前に指定）:\n"
+              "  --root DIR     プロジェクトルート\n"
+              "  --config FILE  設定ファイルのパス")
+
+    def describe(command_parser, command_actions, prefix=""):
+        for action in command_actions:
+            name = f"{prefix}{action.dest}"
+            child = command_parser.choices[action.dest]
+            child.description = action.help
+            child.formatter_class = argparse.RawDescriptionHelpFormatter
+            child.epilog = f"{common}\n\n例: {examples[name]}"
+            for nested in child._actions:
+                if isinstance(nested, argparse._SubParsersAction):
+                    describe(nested, nested._choices_actions, f"{name} ")
+
+    describe(sub, sub._choices_actions)
     return parser
 
 
