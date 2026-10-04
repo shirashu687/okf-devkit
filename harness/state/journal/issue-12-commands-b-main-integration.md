@@ -9,3 +9,5 @@ Six conflicts were documentation-only: metadata/glob unions, both layer logs, an
 npm ci success (8 added,9 audited,0 vulnerabilities). Preliminary Python lint0/0,index current,render32 warnings/writes/deletes0; exact-parent task/PR scope checks0. Full source/docs freeze and independent reviews pending; no local result interpreted as remote CI. No new retro trigger or adoption/ledger change; existing integration observations already handled by prior staged work.
 
 Source merge b933cca0630b5bd0c46c03887ee687c287874b1f (parents original2eaf821 and updatedb019). Source hash log added before mandatory suite; source/tests/product docs now freeze. Only final verification journal may change after results, without repeating suite if payload unchanged.
+
+Initial frozen integration retained original current cli538 numeric text in commands/migration, but updated parent help adds30 lines; actual synced CLI568. Parent/review caught this, corrected product docs to current568 before final acceptance and mandatory full rerun. Native31/compat14 exit0 from unchanged source/test payload; initial Python257 result belongs to prior docs snapshot. No assertion or runtime change.
