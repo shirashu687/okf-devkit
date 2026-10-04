@@ -18,3 +18,16 @@ Merge source commit b0f350bca94aa1fcc4dd1d3f92799ecd6a3e824b preserves originalm
 Spec preceding review:runtime/tests no blockers; P2 historical stage2 migration paragraphs retained but lacked temporal qualification. Added explicit stage2 snapshot111f04/as-of qualification and currentstage3 pointer without rewriting historical measurements/wording. Prior final-full process started before this doc clarification; do not claim it as after-last-change proof. New final full Python starts after correction.
 
 Final after-last-doc-clarification fullPython: Ran 236 tests in 69.726s; failures0/errors0/skip1, exit0. Evidence issue12-model-main-python-freeze.txt. Both runtimes lint0/0,index latest,render32pages/warn0/write0/delete0; actuala8fbe task/PRscope checks0 and diffcheckclean; all inherited parent declarations byte-identical. Final evidence commit includes CLI merge-hash log, temporal doc qualification and this journal only. Source/tests/published assets remain unchanged. Native31/compat14 proofs apply to same source. Standards0/blocking0,Specruntime/tests0 and P2doc temporal issue corrected; parent finalexacthead review/remoteCI next. Freeze with no later edits.
+
+## Sequential main adoption of PR40
+
+User authorized sequential adoption after independent reviews/CI. Original immutable author497fe05d813c1b5ecd0da3a39c410129614fcc33 remains the source/test/productdoc contract. PR38 and PR39 now merged; actual PR comparatorM39=16b340bc7ea34e07104669fe686a8febccf42ae1. Own latest PR declaration updated before normal merge, exactly tests/test_doc.py and tests/test_config.py; original task basea8fbe29f7e4e5c8b02090a59901a2fa345424334 unchanged. Inherited adoption declarations will be preserved from updated main. Final validation/independent review pending. No remote write performed by author.
+
+Adoption source freeze045360afedfcba505a45a37131f8a1dc75d90f04 normalmerge M39 after prior PRdeclcommit32bab56. All original497 source/tests/Node/productdocs Git blobs preserved; all inherited M39 journal/declaration blobs match main. Original task declaration a8fbe bytes unchanged. Source fixed before tests. npm ci --ignore-scripts exit0; fullPython236/fail0/error0/skip1 exit0 (test_render_cleanup.CleanupTests.test_symlink_rejected: Windows symlink unavailable); Node31/compat14 passfail0/skip0 exit0. docs indexwrite/check latest, lint0/0, rendercheck32/write0/delete0/warn0. taska8fbe/PRM39 scopes0; completebase diff whitespace0. Final commit is this adoption-record evidence only; product files stay byte-identical, no redundant full rerun required. Exact-final independent reviews and remoteCI remain parent-owned pending. Live PR40 read-only capture OPEN/original497 verified; Japanese body prepared externally for parent retarget/push. No remote writes.
+
+Evidence SHA256:
+- issue12-merge40-npmci.txt: 38ecdf3a635a1ca05672c2f54fed0eb43307b25036f3f790e6f93a68ca41b7b3
+- issue12-merge40-python.txt: 9c9a62808a847cff69ba9590ce68edc758e85682aceccc6de0528630a00db864
+- issue12-merge40-node.txt: aeb4c7cff8c1a444c06c4341ca84c149773bc791e11ae2f9ecb00dabd9a0e6ee
+- issue12-merge40-compat.txt: 802f1f91acee30ee306da20a0653b62f2e87996ca0a90f719c8c71e8782c01c9
+- issue12-merge40-affected.txt: d836f1fc45432c795268284d81dd7d3f09718f098f5116bf9d33edfe76a17df2
