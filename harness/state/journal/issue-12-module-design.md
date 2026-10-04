@@ -69,3 +69,14 @@ Nodeコード・依存・hook変更なし、追加Nodeローカル検証は適�
 
 - Skipの限界確認：cleanupだけをverboseで再実行（19件、失敗0、skip1、session70182 exit0）。test_symlink_rejected は 'symlink unavailable' でskip。Windows alias拒否テストは実行された。親へ全件196のskip1を通知した。証拠 ../issue27-cleanup-verbose.txt。
 - 記録訂正：初回の検証メモにskip0と転記したが、raw unittestのOK(skipped=1)確認後に訂正commit d7dc6c6を作成。未実行境界を成功として最終報告しない。retroの原因仮説は総件数行だけを先に確認したこと、候補は結果サマリーとverbose skip理由の照合（automated checks）。親指定のledger保存方針に従いmain9rowを改変せず、追加観測/試行/採用を確定しない。親へ事象を引継ぎ、最終の独立reviewは未実行と保持する。
+
+## PR #27 grouped Backlog main integration (2026-10-04)
+
+- 開始b7443c376a1086d075748ba504da7a840adf536f、working tree clean。指定exact main c09c6eea9756c05904c6dc2f27f3f832d28e283f を8c5085eb704d0919344446e3aae6e0290539c9a4で通常merge。競合cli/logのみで、研究履歴とmainの2026-10-04 grouped更新・2026-10-03 Backlog作成/cleanup履歴をすべて保存した。
+- mainのrenderer/共有assets/cleanup/CLI/テスト/CI/docs/宣言を保存。research文書は初回survey SHAを保持した上で、c09mainのBacklog表示をrenderer/assetsが所有し、commands/statusへ移さない境界とread-only/検索開閉復元/manifest非変更契約を補足。分割実装未完了を維持。
+- ローカル対象8c5085eのclean treeで、既存venv＋PYTHONPATH worktree/src＋PYTHONUTF8=1を使用。fullPythonとNode/compatの証拠は ../issue27-grouped-python.txt、../issue27-grouped-node.txt、../issue27-grouped-compat.txt。Node npm ci --ignore-scripts exit0、native28/pass28/fail0、compat12/pass12/fail0。Node cleanup suitesを含む。OKF_TEST_PYTHON既存venvを明示。
+- OKF: affected exactc09mainで影響0（journal未カバー）、index --write/--check最新、lint0/0、render --check22pages/_site/書込0削除0warn0。PRscope exactc09main→8c5085eは4ordinarypathsでexit0、保護actualdiffなし。既存task/PR宣言を保持し空宣言を作らない。
+- main ledgerはbyte-equivalentで10row/試行0/採用0を保持。新規観測・試行・恒久規則は作らない。markers/unmerged/diffcheckなし。今回の独立review/remoteCIは未実行、親がreview後にpushを担当する。ローカルcommitのみ、PR更新/force/npm既存branch変更なし。
+- Retroゲートは予定されたmain統合として差分・依頼・検証を照合。今回の新規失敗/回帰/要件取りこぼしなし。前回のsymlink unavailableは既処理限界として保持し重複観測しない。次はrootの独立reviewと最新SHA CI。
+
+- fullPython最終結果：199件、fail0/error0/skip1、OK(skipped=1)、session89947 exit0。1件は既知のsymlink unavailable境界（前回verbose確認）としてskipを成功件数へ含めない。残る変更は本検証証拠とhash付き層logだけでruntime変更なし。
