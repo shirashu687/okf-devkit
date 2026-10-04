@@ -3,9 +3,12 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** CLI分割設計に、mainの状態別Backlog表示とcleanupの所有境界を補足した。 (`8c5085e`)
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)
 
 ## 2026-10-03
+- **Update** CLI分割設計の初回調査SHAを明示し、mainの出力整理module・安全条件・cleanup検証との接続を補足した。 (`b6baac0`)
+- **Update** CLI分割の可変状態・互換interfaceと段階的移行を調査した。 ([Issue #12](https://github.com/shirashu687/okf-devkit/issues/12), `2c6eeea`)
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
 
