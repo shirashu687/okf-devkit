@@ -7,7 +7,7 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T11:43:53Z
+  at: 2026-10-04T11:48:21Z
 code_globs:
   - src/okf_devkit/compat.py
   - src/okf_devkit/parser.py
@@ -130,7 +130,7 @@ Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動�
 
 ## 段階1・2当時の記録（段階2時点の記録）
 
-以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。現在の段階3では上部に記載したDoc/config分離が実装済みであり、以下の「未実装」「subsequent」は段階2時点を指す。現在の第5a段階ではindex/log/lintの3コマンドを分離済みで、残る7コマンドと200行以下の入口は後続作業である。
+以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。段階3当時はDoc/config分離が実装済みとなり、段階5a当時はindex/log/lintの3コマンドを分離済みだった。以下の「未実装」「subsequent」は段階2時点を指し、残る7コマンドと入口が後続作業だったのは段階5a時点である。現在は第6段階まで完了し、全10コマンドとparser/compatを分離した98行の入口を持つ。
 
 段階2当時は、固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
 
