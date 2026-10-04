@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "17761730842870127b37a911297e128e4b852779",
+  "worklog": "harness/state/journal/issue-12-main-integration.md",
+  "changes": [
+    {
+      "path": "tests/test_cli_context.py",
+      "reason": "Preserve stage1 pure-helper/root regression tests while integrating main containing AI operations/help; no assertion weakening or feature changes."
+    },
+    {
+      "path": "tests/test_fsutil.py",
+      "reason": "Preserve stage1 pure-helper/root regression tests while integrating main containing AI operations/help; no assertion weakening or feature changes."
+    }
+  ]
+}

@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:36:06Z
+  at: 2026-10-04T09:11:42Z
 code_globs:
   - src/okf_devkit/render_cleanup.py
   - src/okf_devkit/renderer.py
@@ -23,6 +23,8 @@ related:
 ---
 
 # 生成済みHTMLを別の出力先へ整理する
+
+CLIの共通例外・純粋helpersを分離しても、この整理手順と安全境界は維持する。従来の `cli.OkfError` は共通例外classの再exportであり、手動strict実行とadvisory hookの契約は変更しない。
 
 `render --output` は生成先の指定であり、以前の出力先を自動で移動・削除しない。`--cleanup-from` を明示したときだけ、確認できた旧生成物を退避する。PythonとNodeで同じ手順を使う。Markdownを正本として保持し、整理対象にしない。
 

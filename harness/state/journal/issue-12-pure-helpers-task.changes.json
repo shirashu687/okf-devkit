@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "base": "d539e28c51c2a562f9729a07854c0fbf236438d0",
+  "scope": "task",
+  "worklog": "harness/state/journal/issue-12-pure-helpers.md",
+  "changes": [
+    {
+      "path": "tests/test_cli_context.py",
+      "reason": "Stage0/1 regression coverage for root/backend/cache ownership and pure helper/class reexports."
+    },
+    {
+      "path": "tests/test_fsutil.py",
+      "reason": "Stage0/1 regression coverage for root/backend/cache ownership and pure helper/class reexports."
+    }
+  ]
+}

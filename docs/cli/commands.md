@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:04:08Z
+  at: 2026-10-04T09:11:42Z
 code_globs:
   - src/okf_devkit/cli.py
   - node/*.mjs
@@ -23,6 +23,7 @@ related:
 
 目的別の短い入口は [AIの日常操作](/agents/operate-okf.md)。この文書を入出力・書き込み・終了状態の参照表として保守する。
 例の `okf` は選んだランタイムの実CLIに読み替える。共通引数 `--root` / `--config` はサブコマンドの前へ置く。詳細なオプション一覧は `okf <command> --help`、新規作成は `okf new doc --help` / `okf new backlog --help` を参照する。
+純粋helpersの分離後も、この表の引数・終了値・書き込み条件は維持する。連続呼出しや別CWDからの絶対 `--root` / `--config` 指定は対象リポジトリに従い、Git時刻cacheもそのrootへ切り替わる。
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|

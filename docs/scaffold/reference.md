@@ -19,6 +19,8 @@ related:
 
 # 初期化と同梱雛形
 
+CLIの純粋helpers分離後も、initの配置物・設定と同梱素材の解決位置は維持する。素材位置はパッケージから解決し、現在のCWDや利用者rootへ移さない。
+
 Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジェクトへファイルを配置する。Node の対応処理は `node/scaffold.mjs` にある。雛形素材と `defaults.yml` は両ランタイムが共有する。
 
 ## 配置物

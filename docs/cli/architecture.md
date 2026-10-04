@@ -10,12 +10,18 @@ generated:
   at: 2026-10-04T09:15:06Z
 code_globs:
   - src/okf_devkit/cli.py
+  - src/okf_devkit/errors.py
+  - src/okf_devkit/fsutil.py
+  - tests/test_cli_context.py
+  - tests/test_fsutil.py
 related:
   - /cli/commands.md
   - /cli/node-runtime.md
 ---
 
 # CLI の処理構造
+
+Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootとYAML backendはこの段階ではcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
 
 Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`init` は Bundle を作る前に処理し、それ以外は Bundle の存在を確認して `cmd_*` に振り分ける。
 
