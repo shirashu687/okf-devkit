@@ -40,6 +40,7 @@ IMP-0002 was rejected by priority on 2026-10-04; original evidence and detail re
 
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| IMP-0002 | 却下 | 2026-09-06 | 1 | agent instructions | 低 | T-0004から引き継いだ `verify-report.md` の完了報告欄に、T-0006で解消すべき「retro手順が未設置なら」という古い分岐が残っていた。静的確認で検出し、完了前に現行手順への参照へ修正した。 | 未定（入口・config・verify-report・CONTEXTの状態文言を接続変更時に照合する方法を次回同種作業で確認） | okf-devkitのハーネス入口と手順文書 | 同種の接続変更で古い未設置分岐の残存を対象版・diff・参照検査で比較する | 未定（試行未開始） | 本タスクの必須修正として反映済み。再発防止効果・採用承認なし。根拠: 本worklogの静的確認と `verify-report.md`。  Priority rejection 2026-10-04: isolated stale instruction fixed in T0006, no recorded recurrence/trial/adoption; prioritize safety IMP0014/15 and runtime IMP0011/12. Reevaluate original ID on recurrence. |
 
 ## 詳細
 
