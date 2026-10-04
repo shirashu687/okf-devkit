@@ -139,17 +139,11 @@ okf render --open   # 生成後にトップページをブラウザで開く
 `--code-globs` は複数のパス/globを受け取る。Project Overview / Architecture / Reference / How-To 型では必須で、既存の自動化もこの引数を追加する必要がある。
 それ以外の型は省略でき、空の code_globs / related リストを生成する。指定globが存在するコードに一致し、索引を更新した状態で lint --strict を確認する。
 
-### 開発中の典型的な流れ
+### AIの日常操作
 
-```bash
-# 1. コードを変更したあと ── 探索せず、対象をスクリプトに聞く
-okf affected --base main
-
-# 2. 出力されたファイルだけを開いて本文と generated.at を更新する
-
-# 3. まとめて整合させる
-okf sync
-```
+[目的別の短いガイド](docs/agents/operate-okf.md)から、コード変更後・新規文書・読み取り点検・閲覧・初回導入・backlogを選べる。全コマンドの副作用と終了状態は [コマンド仕様](docs/cli/commands.md) を参照する。
+最小経路は `affected --base <固定SHA>` → 対象と未カバーを判断 → 本文更新 → `sync` の各診断確認。code_globs未設定やバンドル外の文書も照合し、generated.atだけを更新しない。syncはindex/logを書き、未コミット変更はlogに記録しない。
+読み取りだけなら `lint` / `index --check` / `stale` / `render --check`。終了0だけで指摘なし・CI成功と判断しない。ローカルNode版など、選んだ実CLIで実行する。
 
 ## 設定
 
