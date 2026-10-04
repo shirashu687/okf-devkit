@@ -5,10 +5,7 @@
 `okf-devkit` は、OKF v0.2 バンドルを**ソフトウェア開発リポジトリで運用する**ための CLI。
 「ドキュメントを書く」ことではなく、**書いたドキュメントがコードから乖離しないようにする**ことに重心がある。
 
-```bash
-pip install okf-devkit
-okf init --layer client=src/client/** --layer server=src/server/**
-```
+Node.js 22+・npm・Gitを用意して、[AI向け導入手順](docs/agents/install-okf.md)をAIへ渡すと、対象repoに合う固定版の導入から検証まで依頼できる。Python版の導入方法も下に掲載する。
 
 ---
 
@@ -55,7 +52,12 @@ Python 3.11+ / Windows・macOS・Linux 対応。依存は `markdown-it-py` と `
 ### Python がない環境（Node.js 版）
 
 Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を扱う `log` / `affected --base` とhookにはGitも必要。
-Node.js版はこのリポジトリから利用できる。npmレジストリへの公開は未実施。
+本体はGitHubから固定版で導入し、npmレジストリには公開しない。依存の取得にはnpmを使う。
+標準はrepo-local、globalは明示選択。Node同梱exeと自動更新は提供しない。
+GitHub Releaseの配布workflowはこのDraft PRで追加するが、実タグでの実行・Release公開は未実施。公開前は確認済み完全Git SHAまたはチェックアウトからのtgzを使う。
+配布担当者は [タグ・Draft検査・公開の手順](docs/agents/release-node.md) を参照する。
+
+**AIに任せる入口**: [導入・更新・rollbackの手順と貼り付け用依頼文](docs/agents/install-okf.md)。環境確認、管理方式の選択、固定版導入、初期化、実CLI検証を順に扱う。インストールと `init` は別操作で、既存ファイルは `init` でスキップする。更新に `init --force` を使わない。
 
 ```powershell
 # このリポジトリ内で実行（PowerShell / bash 共通）
@@ -77,13 +79,16 @@ node node/cli.mjs --root "C:/path/to/project" render
 npm pack
 
 # 導入先プロジェクトで実行（tgzのパスは置き換える）
-npm install --save-dev "C:/path/to/okf-devkit/okf-devkit-0.1.0.tgz"
-npm exec -- okf init --layer "app=src/**"
-npm exec -- okf index --write
-npm exec -- okf lint
+npm.cmd install --save-dev --save-exact --ignore-scripts "C:/path/to/okf-devkit/okf-devkit-0.1.0.tgz"
+node node_modules/okf-devkit/node/cli.mjs --help
+# 初期化を依頼した場合だけ（layerは対象repoに合わせる）
+node node_modules/okf-devkit/node/cli.mjs init --layer "app=src/**"
+node node_modules/okf-devkit/node/cli.mjs index --write
+node node_modules/okf-devkit/node/cli.mjs lint
 ```
 
 Python本体の取得・起動は行わない。設定・テンプレート・HTMLアセットはPython版と共用し、生成物の比較テストを持つ。
+POSIXでは `npm.cmd` を `npm` に読み替える。ローカルtgzの保存先はCI/他端末でも利用できる方式に合わせる。
 詳細な対応範囲と既存hookの更新方法は [Node.js版の利用手順](docs/cli/node-runtime.md) を参照する。
 
 ## クイックスタート

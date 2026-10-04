@@ -20,11 +20,14 @@
   "scripts": {
     "okf": "node node/cli.mjs",
     "test": "node --test tests/node/native.test.mjs tests/node/render-cleanup.test.mjs",
-    "test:compat": "node --test tests/node/compatibility.test.mjs tests/node/cleanup-compatibility.test.mjs"
+    "test:compat": "node --test tests/node/compatibility.test.mjs tests/node/cleanup-compatibility.test.mjs",
+    "test:release": "node --test scripts/release-guards.test.mjs",
+    "test:package": "node --test tests/node/package-distribution.test.mjs"
   },
   "dependencies": {
     "markdown-it": "^14.1.0",
     "yaml": "^2.8.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "private": true
 }

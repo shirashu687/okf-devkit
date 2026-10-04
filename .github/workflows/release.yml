@@ -1,0 +1,119 @@
+name: Verified GitHub distribution
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-distribution-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Release tests (${{ matrix.os }} / node${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, node: '22', python: '3.11'}
+          - {os: ubuntu-latest, node: '24', python: '3.13'}
+          - {os: windows-latest, node: '22', python: '3.11'}
+          - {os: windows-latest, node: '24', python: '3.13'}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verify tag, version and main ancestry
+        run: |
+          git fetch origin +refs/heads/main:refs/remotes/origin/main
+          node scripts/release-bundle.mjs source
+      - run: npm ci --ignore-scripts
+      - run: python -m pip install -e .
+      - run: python tests/run_all.py
+      - run: npm test
+      - name: Compare both runtimes
+        run: >-
+          python -c "import os, subprocess, sys; env = dict(os.environ, OKF_TEST_PYTHON=sys.executable); raise SystemExit(subprocess.run(['node', '--test', 'tests/node/compatibility.test.mjs', 'tests/node/cleanup-compatibility.test.mjs'], env=env).returncode)"
+      - run: node --test scripts/release-guards.test.mjs
+      - run: okf lint
+      - run: okf index --check
+      - run: okf render --check
+
+  bundle:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: git fetch origin +refs/heads/main:refs/remotes/origin/main
+      - run: npm ci --ignore-scripts
+      # Only this job packs. Consumers download these exact bytes.
+      - run: node scripts/release-bundle.mjs prepare dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-bundle
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  install:
+    needs: bundle
+    name: Same archive install (${{ matrix.os }} / node${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-release-bundle
+          path: dist/
+      - run: node scripts/release-bundle.mjs smoke dist
+
+  draft:
+    needs: [bundle, install]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-release-bundle
+          path: dist/
+      - run: git fetch origin +refs/heads/main:refs/remotes/origin/main
+      - name: Create or resume draft without replacing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-github.mjs dist

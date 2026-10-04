@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "195252d3354acece9c72c987a9f0ab6559db6aa3",
+  "worklog": "harness/state/journal/issue-34-github-distribution.md",
+  "changes": [
+    {
+      "path": ".github/workflows/release.yml",
+      "reason": "Issue #34 approved GitHub distribution workflow and meaningful packed-artifact checks; preserve existing test coverage and installation behaviour."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "Issue #34 approved GitHub distribution workflow and meaningful packed-artifact checks; preserve existing test coverage and installation behaviour."
+    },
+    {
+      "path": "package.json",
+      "reason": "Issue #34 approved GitHub distribution workflow and meaningful packed-artifact checks; preserve existing test coverage and installation behaviour."
+    },
+    {
+      "path": "tests/node/package-distribution.test.mjs",
+      "reason": "Issue #34 approved GitHub distribution workflow and meaningful packed-artifact checks; preserve existing test coverage and installation behaviour."
+    }
+  ]
+}

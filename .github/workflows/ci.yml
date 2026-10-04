@@ -11,7 +11,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  package:
+    name: Pack shared CI archive once
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/ci-package.mjs prepare ci-package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shared-ci-package
+          path: ci-package/
+          if-no-files-found: error
+          retention-days: 7
+
   node:
+    needs: package
     name: Node (${{ matrix.os }} / node${{ matrix.node-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -34,8 +51,17 @@ jobs:
       - name: Compare Node and Python outputs
         run: >-
           python -c "import os, subprocess, sys; env = dict(os.environ, OKF_TEST_PYTHON=sys.executable); raise SystemExit(subprocess.run(['node', '--test', 'tests/node/compatibility.test.mjs', 'tests/node/cleanup-compatibility.test.mjs'], env=env).returncode)"
-      - name: Check npm distribution
-        run: npm pack --dry-run
+      - name: Verify release guards without GitHub writes
+        run: npm run test:release
+      - name: Verify packed installation and recovery
+        if: matrix.node-version == '22'
+        run: npm run test:package
+      - uses: actions/download-artifact@v4
+        with:
+          name: shared-ci-package
+          path: ci-package/
+      - name: Install the same verified archive on every OS and Node version
+        run: node scripts/ci-package.mjs smoke ci-package
 
   test:
     name: Test (${{ matrix.os }} / py${{ matrix.python-version }})

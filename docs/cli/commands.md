@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T11:53:12Z
+  at: 2026-10-04T07:26:56Z
 code_globs:
   - src/okf_devkit/cli.py
   - .github/workflows/ci.yml
@@ -48,3 +48,5 @@ related:
 `self-check` は完全な Git 履歴を取得して `okf lint`、`okf index --check`、`okf render --check` を実行する。古い index は差分検査で失敗する。`okf stale` は参考レポートとして表示し、指摘件数の閾値を設けない。warn を失敗扱いにする `lint --strict` は採用していない。
 
 `render --check` は全ページとアセットをメモリ内で生成できるかを検証する。既存 HTML との差分を比較するコマンドではなく、HTML 未生成のクリーン checkout でも使える。生成 HTML を Git に追加する必要はない。通常のテスト・一時バンドル smoke と並行して、実際の docs バンドルを検査する。
+
+配布用の変更検査は通常の PR CI でも `npm run test:release` と `npm run test:package` を実行する。GitHub に書き込まない Release ガードと、一時 prefix での実 tgz 導入・復旧を確認する。タグ起点の Draft Release 手順は [GitHub 配布の判断](/project/decisions/0002-github-node-distribution.md) を参照する。

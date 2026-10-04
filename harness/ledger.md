@@ -20,7 +20,7 @@
 | IMP-0010 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #9のshared log追記で新しい日付を末尾に置き、lint L8 warn1を検出した。 | 既存日付の降順を追記前に確認する候補 | OKF logの手動更新 | lintのL8と新規日付の位置を照合 | 未定（試行未開始） | 日付を先頭へ移して再lint error0/warn0。[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。恒久採用は未判断。 |
 | IMP-0012 | 観測 | 2026-10-03 | 2 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)と[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。2026-10-04に実HTML hook fixtureの必須config不足を追加観測。修正確認済み、恒久採用なし。 |
 | IMP-0001 | 観測 | 2026-09-06 | 1 | automated checks | 中 | T-0004の作業記録に、検査スクリプトの期待文言不一致による初回2回の失敗と、期待条件修正後の再実行成功が記録されている。 | 未定（期待条件を対象文書と同期する方法と、失敗履歴を保持する負担を次回同形式の検証で確認） | okf-devkitの文書契約・検証プローブ | 同形式の検証で、期待条件の不一致と再試行を対象版・出力つきで比較する | 未定（試行未開始） | T-0004 worklogから得た実作業の観測要約と根拠参照のみ。演習の入力・出力は保存していない。試行・改善効果・採用承認なし。 |
-| IMP-0005 | 観測 | 2026-09-10 | 2 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 |
+| IMP-0005 | 観測 | 2026-09-10 | 3 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 Issue #34: inherited npm global/prefix settings could defeat temporary install isolation; fixed before publication and verified with a hostile-environment sentinel. [Distribution worklog](state/journal/issue-34-github-distribution.md). |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
 | IMP-0009 | 観測 | 2026-10-03 | 1 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
@@ -50,7 +50,9 @@
 
 ### IMP-0005
 
-- 状態: 観測。初回2026-09-10、初回登録時は独立発生1回（現在は下記再発を含め2回）。B-0007の再試行は別回数に数えない。
+- Issue #34 observation (2026-10-04): independent review identified inherited npm configuration overriding fixture installation scope. This is a third independent environment-initialization boundary observation. Case-insensitive environment isolation and explicit temporary local/global prefixes were verified by a hostile-prefix sentinel; no real user-global modification occurred. No trial or permanent-rule adoption. Evidence: [worklog](state/journal/issue-34-github-distribution.md).
+
+- 状態: 観測。初回2026-09-10、初回登録時は独立発生1回（現在は下記再発を含め3回）。B-0007の再試行は別回数に数えない。
 - 事実・根拠: [B-0007 worklog](state/journal/B-0007-node-runtime.md)のnative初回失敗、互換比較、二軸reviewと修正確認。PowerShell 5.1によるBOMなしUTF-8の解釈、npm symlink経由のentry判定、Pythonのみ導入済みcheckoutの探索順に問題があった。
 - 原因仮説: コマンド機能の移植に加えて導入状態の組合せも検証する必要があった。全環境を網羅できたとは扱わない。
 - 分類・重要度: automated checks / 中。既存Python利用者のhookが失敗する回帰をレビューで検出した。
