@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:40:44Z
+  at: 2026-10-04T10:30:21Z
 code_globs:
   - tests/test_config.py
   - tests/test_doc.py
@@ -32,6 +32,8 @@ Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存
 
 Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`init` は Bundle を作る前に処理し、それ以外は Bundle の存在を確認して `cmd_*` に振り分ける。
 
+`--help` と各サブコマンドのhelpは引数・用途・実行例を表示し、設定読取やBundle構築より前に終了する。`new --help` はkind一覧、`new doc --help` / `new backlog --help` は各操作の引数を示す。Python/Nodeのhelpと非書込みを共通入力で検証する。
+
 ## 設定と文書モデル
 
 第2段階ではparser・内蔵YAML subset・scalar/flow serializerを `yamlio.py` へ移す。通常のDoc/frontmatterとBundle/configは `yamlio.parse_yaml` を呼び、現在の `yamlio._pyyaml` がbackendを決める。旧 `cli.parse_yaml` は旧 `cli._pyyaml` を明示backendとして渡す互換アダプターなので、直接呼出しの差替えと通常経路の所有者を区別する。例外・serializer・内蔵parserの旧cli名前は同じ実装を再exportする。
@@ -54,6 +56,6 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 
 ## エラーと hook
 
-通常の `OkfError` は標準エラーへ表示し exit 1。`sync --gate` の運用エラーは exit 2。gate の状態はユーザーのキャッシュ領域に置き、セッション識別子と指摘の fingerprint を使う。HTML の Stop hook 入口は `render --hook` で、成功時は空の JSON を返す。
+通常の `OkfError` は標準エラーへ表示し exit 1。`sync --gate` は初回のlint errorでexit 2、同じerror集合の再検出ではexit 0になり得る。終了値だけをlint合格判定にしない。gate の状態はユーザーのキャッシュ領域に置き、セッション識別子と指摘の fingerprint を使う。HTML の Stop hook 入口は `render --hook` で、成功時は空の JSON を返す。
 
 Node の独立実装と対応範囲は [Node ランタイム](/cli/node-runtime.md) を参照する。

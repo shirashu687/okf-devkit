@@ -7,10 +7,11 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:19:54Z
+  at: 2026-10-04T09:04:08Z
 related:
   - /CONVENTIONS.md
   - /agents/issue-tracker.md
+  - /agents/operate-okf.md
 ---
 
 # docs ディレクトリの歩き方
@@ -39,58 +40,20 @@ related:
 | `_templates/` | テンプレート集。**バンドル対象外**（index にも lint にも出ない） | 手書き |
 | `_assets/` / `*.html` | `okf render` の閲覧用生成物。**バンドル対象外・Git管理外** | 手で編集しない |
 
-## 3. 作業パターン別の手順
+## 3. 目的から操作を選ぶ
 
-### A. 新しいドキュメントを作る
+日常の短い入口は [AIの日常操作](/agents/operate-okf.md)、各コマンドの入出力・副作用・終了状態は [コマンド仕様](/cli/commands.md) を正本とする。
 
-1. `_templates/` から該当するテンプレートを選ぶ（下表）
-2. `okf new doc --layer <layer> --type "<type>" --title "<title>" --code-globs "<根拠コードのpath/glob>"` で雛形を生成してもよい
-3. 本文を書く。**frontmatter の `code_globs` に必ず根拠コードのパス/glob を書く**（これが更新検知の起点になる）
-4. `okf index --write` で目次を更新する
+- コード変更後: `affected --base <固定SHA>` の対象と未カバーを確認し、code_globs未設定・バンドル外も照合する。本文を更新し、`sync` のindex/log/lint/staleを個別に確認する。
+- 新規文書: `new doc` で根拠コードを指定し、本文を補完して `index --write` → `lint`。型とテンプレートは執筆規約を参照する。
+- 読み取り点検: `lint` / `index --check` / `stale` / `render --check`。syncは書き込むため使わない。
+- 閲覧: `render`（既定 `_site/`）、必要時 `--open`。旧HTMLの整理は別の明示操作。
+- 初回導入・更新: [導入ガイド](/agents/install-okf.md)。installとinitを分け、既存編集を保つ。
+- backlog利用: 利用先規約を確認する。このrepoの新規課題は [GitHub Issues](/agents/issue-tracker.md) で管理し、docs/backlogへ起票しない。
 
-| 書きたいもの | type | テンプレート |
-|---|---|---|
-| 構造・データフロー・図 | `Architecture` | `_templates/architecture.md` |
-| 一覧・仕様（API / コンポーネント / テーブル） | `Reference` | `_templates/reference.md` |
-| 手順書・使い方 | `How-To` | `_templates/how-to.md` |
-| 設計判断の記録（なぜそうしたか） | `Decision Record` | `_templates/decision-record.md` |
-| 用語集 | `Glossary` | `_templates/glossary.md` |
-| プロジェクト全体像 | `Project Overview` | — |
-| 執筆規約 | `Convention` | — |
-
-### B. コードを変更したあと（最重要）
-
-**探索しないこと。** 更新すべきドキュメントはスクリプトが教えてくれる。
-
-```bash
-okf affected --base main
-```
-
-出力されたファイル**だけ**を開いて本文を更新し、`generated.at` を現在時刻に更新する。そのうえで:
-
-```bash
-okf sync
-```
-
-これで `index.md` 再生成 → `log.md` 追記 → lint → 陳腐化チェックまで一括で走る。
-
-### C. ユーザーが「やりたいこと」を言ったとき
-
-このリポジトリの作業項目は GitHub Issues で管理する（[課題管理規約](/agents/issue-tracker.md)）。
-
-```bash
-gh issue create --title "<やりたいこと>" --label needs-triage
-```
-
-LLM は背景・進め方・完了条件を調査して Issue 本文に記入する。`docs/backlog/` には起票しない。
-
-### D. 作業が完了したとき — 完了の定義
-
-次の3点が揃って初めて「完了」とする。1つでも欠けていたら完了ではない。
-
-1. 影響ドキュメントの本文更新（対象は `okf affected` が出力するもの）
-2. 該当層 `docs/<layer>/log.md` への追記（`okf log --write` で生成）
-3. 対応する GitHub Issue の更新（完了ならクローズ）
+`okf` は選んだCLIの実体を確認して使う。ローカルNode版は `node node_modules/okf-devkit/node/cli.mjs` 等を明示し、未導入のnpxで別パッケージを取得しない。
+本文更新または更新不要の根拠、log追記の結果、未検証・要対応を区別する。generated.atだけを更新して完了にしない。syncのlog警告・未コミットスキップ、stale/gateのexit0を文書更新完了やCI成功と取り違えない。
+課題の更新・closeは受け入れ条件と操作の許可を確認して行う。
 
 ## 4. やってはいけないこと
 
@@ -100,20 +63,7 @@ LLM は背景・進め方・完了条件を調査して Issue 本文に記入す
 - ❌ 巨大な1ファイルに追記し続ける。分割して `related` で繋ぐ
 - ❌ `docs/` の外に恒久ドキュメントを置く
 
-## 5. コマンド早見表
+## 5. 詳細が必要なとき
 
-```bash
-okf index --write            # 全 index.md を再生成
-okf log --write              # git 履歴から log.md に追記
-okf lint                     # OKF 適合 + 語彙検証
-okf stale                    # 陳腐化レポート
-okf affected --base main     # 更新すべきドキュメントを列挙
-okf render                   # _site/ に閲覧用 HTML を生成
-okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
-okf render --cleanup-from docs --check # 旧生成物の退避計画のみ（実配置に合わせる）
-okf sync                     # index → log → lint → stale を一括
-```
-
-旧生成HTMLを整理する場合は、上の計画を確認してから `--check` を外す。新出力成功後、未編集と確認できた生成物だけを `.okf/render-backups/` へ退避する。手書き・編集済み・識別不能の旧版HTMLは残す。ソースMarkdownとユーザーの既存ファイルを上書きせず、`--hook` に整理オプションを設定しない。[整理手順](/render/output-cleanup.md) の範囲・復元条件を確認する。
-
-生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はプロジェクトの `.gitignore` に追加する。旧出力の整理は明示オプションと計画確認に限定し、生成ヘッダーだけを根拠に削除しない。
+[コマンド仕様](/cli/commands.md)、[終了hook](/agents/completion-hooks.md)、[生成済みHTMLの整理](/render/output-cleanup.md) を参照する。
+生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はGit管理外にする。旧出力の整理は計画確認後の明示操作に限定し、手書き・編集済み・識別不能ファイルは保つ。

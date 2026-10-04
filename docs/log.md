@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** AIの日常操作ガイドを既存コマンド仕様の入口として整備し、helpと生成案内のPython/Node回帰を検証した。 (`33b2311`)
 - **Creation** GitHub の固定版 tgz 配布・Draft Release workflow、AI 導入更新復旧ガイドと配布担当者向け手順を追加。公開操作は未実行（Issue #34、`a043c6c2`）。
 - **Creation** repo共通のadvisory終了アダプターとCopilot/Codex設定を追加し、Claudeも同じ処理へ接続。strict手動生成を保持し、対応表・信頼・二重生成と実イベント未検証の範囲を明記した（Issue #9、`4f2663a`）。
 

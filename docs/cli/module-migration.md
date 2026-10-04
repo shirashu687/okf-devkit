@@ -7,7 +7,7 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:40:44Z
+  at: 2026-10-04T10:30:21Z
 code_globs:
   - tests/test_config.py
   - tests/test_doc.py
@@ -111,3 +111,7 @@ Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動�
 固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
 
 `yamlio.parse_yaml(text, source)` は省略backendなら実owner `yamlio._pyyaml` を使い、keyword backendの明示Noneは内蔵parserを選ぶ。旧 `cli.parse_yaml` は旧 `cli._pyyaml` を明示して渡す薄いadapterとして残す。通常Doc/Bundleはこの旧aliasに依存せずyamlioを直接利用する。helpersの保存・復元とYaml/context testsは実ownerへ移行し、内蔵constructorとPyYAML.safe_loadの呼出しを観測する。`python -S` の新processでsite-packagesを外し、PyYAMLのimportが実際に利用できない状態で同じconfig/frontmatterと拒否構文を確認する。
+
+## Updated-parent integration for YAML phase
+
+The YAML author snapshot `111f04ea2ee827e6c6652d24775fbb5c450d4227` is integrated with the pure-helper parent `aa398085622bd0a4396b03b8c46ff1d6f645fcb9`. The original stage1 measurement and stage2 backend contracts above remain historical evidence. This integration preserves the incoming AI operations guide, command help, shared errors/fsutil/root cache ownership, and the YAML owner/legacy adapter distinction. Doc/config and command extraction remain subsequent stages.
