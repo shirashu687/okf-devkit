@@ -7,8 +7,13 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:40:22Z
+  at: 2026-10-04T10:49:10Z
 code_globs:
+  - src/okf_devkit/commands/__init__.py
+  - src/okf_devkit/commands/index.py
+  - src/okf_devkit/commands/log.py
+  - src/okf_devkit/commands/lint.py
+  - tests/test_commands_context.py
   - src/okf_devkit/gitutil.py
   - tests/test_gitutil.py
   - tests/test_config.py
@@ -27,6 +32,8 @@ related:
 ---
 
 # CLI の処理構造
+
+第5a段階では index、log、lint の実装と専用helpersを `commands/index.py`、`commands/log.py`、`commands/lint.py` へ分離した。canonical commandはBundleの `.repo_root` を使い、CLIや可変rootをimportしない。予約文書のDoc構築にもrootを明示する。旧CLI入口は現在のrootと必要なwriter/Git/resource/index/linter callbackを渡す薄いadapterで保持する。残る7コマンドと引数入口は未分離で、Issue #12全体の200行以下という条件はまだ満たしていない。
 
 更新済み親のAI案内・helpとモデル/YAMLを統合後も、第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
 第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
@@ -50,8 +57,9 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 
 | 処理 | 入口と根拠 |
 |---|---|
-| index | `_plan_index()` が生成内容を計画し `cmd_index()` が表示・書込・差分検査を選ぶ |
-| lint | `run_lint()` が Finding を集め、`cmd_lint()` が終了値を決める |
+| index | `commands/index.py` の `_plan_index()` が生成内容を計画し `cmd_index()` が表示・書込・差分検査を選ぶ |
+| log | `commands/log.py` が明示project rootでGit履歴を集め、baselineと記録済みhashを照合する |
+| lint | `commands/lint.py` の `run_lint()` が Finding を集め、`cmd_lint()` が終了値を決める |
 | affected | `changed_paths()` または明示パスを `compute_affected()` の `code_globs` 照合へ渡す |
 | stale | `run_stale()` が期日、検証情報、コード最終更新時刻を調べる |
 | render | `cmd_render()` が renderer を遅延 import して Bundle と Doc を渡す |

@@ -3,6 +3,10 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 更新済みGit/model/YAML親とmainのhelp・AI案内へindex/log/lintの3コマンド分離を統合し、明示root・旧callback・Finding・テスト・両履歴を保持した。 (`4f38b74`)
+- **Update** refactor(cli): extract lint command with bundle-owned paths。 (`60b9b89`)
+- **Update** refactor(cli): extract log command with explicit Git root。 (`e21a724`)
+- **Update** refactor(cli): extract index command with explicit project root。 (`25a9a05`)
 - **Update** 更新済みモデル/YAML親とmainのhelp・AI案内を通常mergeし、Git分離・root/cache・旧runner契約と両側の既存テストを保持。 (`7171733`)
 - **Update** refactor: extract explicit-root Git helpers with legacy adapters。 (`d1fd3c9`)
 - **Update** 更新済みmain・YAML親と明示rootのDoc/configモデルを統合し、AI案内・help・既存constructor・型・root別cache・両変更履歴を保持した。 (`b0f350b`)
