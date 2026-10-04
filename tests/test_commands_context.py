@@ -68,4 +68,7 @@ class CommandContextTest(OkfTestCase):
             findings = lint.run_lint(bundle)
         self.assertTrue(resolver.called)
         self.assertTrue(all(call.args[0] == bundle.repo_root for call in resolver.call_args_list))
-        self.assertFalse(any(f.rule == 'L4' and 'src/a.ts' in f.message for f in findings))
+        self.assertFalse(any(f.rule == 'L10' and 'src/a.ts' in f.message for f in findings))
+        (self.repo / 'src/a.ts').unlink()
+        missing = lint.run_lint(bundle)
+        self.assertTrue(any(f.rule == 'L10' and 'src/a.ts' in f.message for f in missing))

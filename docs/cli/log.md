@@ -3,6 +3,9 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** refactor(cli): extract lint command with bundle-owned paths。 (`60b9b89`)
+- **Update** refactor(cli): extract log command with explicit Git root。 (`e21a724`)
+- **Update** refactor(cli): extract index command with explicit project root。 (`25a9a05`)
 - **Update** refactor: extract explicit-root Git helpers with legacy adapters。 (`d1fd3c9`)
 - **Update** Doc/frontmatterとBundle/configを明示repo_rootのモデルへ分離。旧CLI constructor・Doc型・root別cache・YAML所有者と同梱defaultsを保持した。 (`0fd9627`)
 - **Update** YAML解析・内蔵subset・serializerをyamlioへ分離し、通常Doc/configの実ownerと旧CLI直接呼出しadapterを区別した。backend差替え・実PyYAML不在・例外identityの回帰を維持する（Issue #12 stage2、`e27a64d`）。

@@ -7,8 +7,12 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:00:12Z
+  at: 2026-10-04T10:26:23Z
 code_globs:
+  - src/okf_devkit/commands/index.py
+  - src/okf_devkit/commands/log.py
+  - src/okf_devkit/commands/lint.py
+  - tests/test_commands_context.py
   - src/okf_devkit/gitutil.py
   - tests/test_gitutil.py
   - tests/test_config.py
@@ -31,6 +35,8 @@ related:
 ---
 
 # CLI 分割の移行設計
+
+第5a段階では index、log、lint の実装と専用helpersを `commands/index.py`、`commands/log.py`、`commands/lint.py` へ分離した。canonical commandはBundleの `.repo_root` を使い、CLIや可変rootをimportしない。予約文書のDoc構築にもrootを明示する。旧CLI入口は現在のrootと必要なwriter/Git/resource/index/linter callbackを渡す薄いadapterで保持する。残る7コマンドと引数入口は未分離で、Issue #12全体の200行以下という条件はまだ満たしていない。
 
 第4段階の実装は `gitutil.py` を所有者とし、rootと時刻cacheを明示する。`CommitTimesCache` はrootが変わると再計算し、同root内の更新は呼出元がmappingをNoneへ戻して無効化する。旧cliのroot・git runner・時刻map/reset adapterと同一Commit/parser exportを保持する。実2repo・特殊名・runner失敗・resource glob・gateを新所有者で検証する。commandsと200行以下の入口はまだ未完了。
 第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commandsとcli 200行以下は未完了である。
