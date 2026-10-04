@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "base": "50380b3d3a22507b2bd2e329e1d206141ce2432e",
+  "base": "c09c6eea9756c05904c6dc2f27f3f832d28e283f",
   "scope": "pull-request",
   "worklog": "harness/state/journal/issues-4-5-self-docs.md",
   "changes": [

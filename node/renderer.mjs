@@ -131,6 +131,40 @@ function prepare(doc, b, md) {
     outbound: new Set(),
   };
 }
+function backlogState(page) {
+  const value = page.doc.get("state");
+  return value !== null && String(value) ? String(value) : "未設定";
+}
+function backlogProgress(pages, current, b) {
+  const directory = rel(b.backlogDir(), b.root);
+  if (!["index.md", `${directory}/index.md`].includes(current.source)) return "";
+  const items = pages.filter(p => p.doc.type === "Backlog Item" && path.posix.dirname(p.source) === directory);
+  const states = [...new Set([...(b.backlog.state_order?.length ? b.backlog.state_order : ["doing", "todo", "done", "dropped"]), ...(b.backlog.states || [])].map(String))];
+  states.push(...[...new Set(items.map(backlogState))].filter(s => !states.includes(s)).sort(compare));
+  const chunks = ['<section class="backlog-progress" aria-label="Backlog 進捗"><h2>Backlog 進捗</h2>',
+    `<p>全 ${items.length} 件 · <code>${escape(directory)}/</code></p>`, '<ul class="backlog-counts">'];
+  for (const state of states) chunks.push(`<li><span class="badge state">${escape(state)}</span> ${items.filter(p => backlogState(p) === state).length} 件</li>`);
+  chunks.push('</ul>');
+  if (!items.length) chunks.push('<p>Backlog Item はありません。</p>');
+  else {
+    chunks.push('<div class="backlog-tools" hidden><button type="button" class="backlog-view-toggle" aria-pressed="false">カンバン表示</button><label>Backlog を検索 <input class="backlog-search" type="search" placeholder="タイトル・ID・状態"></label><p class="backlog-search-status" aria-live="polite"></p></div><div class="backlog-groups">');
+    for (const state of states) {
+      const group = items.filter(p => backlogState(p) === state).sort((a,b) => compare(a.source,b.source));
+      const opened = !['done','dropped'].includes(state);
+      chunks.push(`<details class="backlog-group" data-default-open="${opened}"${opened ? ' open' : ''}><summary><span class="badge state">${escape(state)}</span> ${group.length} 件</summary><ul class="backlog-items">`);
+      for (const p of group) {
+        const href = encodeURI(relativeHtml(current.output, p.source)).replaceAll('#','%23').replaceAll('?','%3F');
+        const metadata = ['priority','effort'].filter(key => p.doc.fm[key] && (b.backlog[key === 'priority' ? 'priorities' : 'efforts'] || []).includes(p.doc.fm[key])).map(key => `<span>${key}: ${escape(String(p.doc.fm[key]))}</span>`).join('');
+        const search = [p.doc.title,p.source,state,p.doc.fm.priority || '',p.doc.fm.effort || ''].join(' ').toLowerCase();
+        chunks.push(`<li class="backlog-card" data-backlog-search="${escape(search)}"><a class="backlog-title" href="${escape(href)}">${escape(p.doc.title)}</a><div class="backlog-meta"><code>${escape(p.source)}</code>${metadata}</div></li>`);
+      }
+      chunks.push('</ul></details>');
+    }
+    chunks.push('</div>');
+  }
+  chunks.push('</section>');
+  return chunks.join('');
+}
 function navigation(pages, current) {
   const groups = new Map(),
     order = ["ルート", "project", "client", "server", "batch", "backlog"];
@@ -174,11 +208,14 @@ function navigation(pages, current) {
               p.doc.title,
               p.doc.description,
               p.doc.type,
+              p.source,
+              p.doc.type === "Backlog Item" ? backlogState(p) : "",
               Array.isArray(tags) ? tags.join(" ") : "",
             ]
               .join(" ")
               .toLowerCase();
-            return `<li data-search="${escape(search)}"><a href="${escape(relativeHtml(current.output, p.source))}"${active}>${escape(p.doc.title)}</a></li>`;
+            const progress = p.doc.type === "Backlog Item" ? `<small><code>${escape(path.posix.basename(p.source))}</code> · ${escape(backlogState(p))}</small>` : "";
+            return `<li data-search="${escape(search)}"><a href="${escape(relativeHtml(current.output, p.source))}"${active}>${escape(p.doc.title)}${progress}</a></li>`;
           })
           .join("") +
         "</ul></section>"
@@ -357,6 +394,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
       NAVIGATION: navigation(pages, p),
       TOC: toc(p.headings),
       CONTENT: p.body,
+      BACKLOG: backlogProgress(pages, p, b),
       RELATED: related(p, sources),
       BACKLINKS: backlinks(p, pages),
     };

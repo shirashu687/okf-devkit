@@ -217,6 +217,25 @@ test("HTML golden parity and idempotence on shared Markdown and assets", (t) => 
 });
 
 
+test("Python and Node render identical readonly backlog progress sections", t => {
+  const py = temp(t), js = temp(t);
+  init(py, "python"); init(js);
+  for (const root of [py, js]) put(root, "docs/index.md", "# Docs\n");
+  for (const root of [py, js]) {
+    const config = fs.readFileSync(path.join(root, "okf.yml"), "utf8");
+    put(root, "okf.yml", config + "\nbacklog:\n  dir: work/tasks\n  states: [queued, doing, done, dropped]\n  state_order: [done, queued, doing, dropped]\n  priorities: [urgent]\n  efforts: [small]\n");
+    put(root, "docs/work/tasks/index.md", "# Tasks\n");
+    for (const [index, state] of ["queued", "doing", "done", "dropped", "unexpected", null].entries())
+      put(root, `docs/work/tasks/B-000${index + 1}-x #%.md`, document((state ? `state: ${state}\n` : "")+"priority: urgent\neffort: small\n").replace("type: Reference", "type: Backlog Item"));
+  }
+  ok(run(py, ["render", "--output", "_site"], {runtime: "python"}));
+  ok(run(js, ["render", "--output", "_site"]));
+  for (const file of ["index.html", "work/tasks/index.html"]) {
+    const summary = root => fs.readFileSync(path.join(root, "_site", file), "utf8").split('<section class="backlog-progress"')[1].split('</section>')[0];
+    assert.equal(summary(py), summary(js));
+  }
+});
+
 test("default render output and explicit legacy layout agree across runtimes", (t) => {
   const root = temp(t);
   init(root);

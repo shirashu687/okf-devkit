@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:19:54Z
+  at: "2026-10-04T01:48:12Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -52,6 +52,8 @@ YAML 1.1の解釈には `yaml`、HTML変換にはPython側と同系統の `markd
 新しいhookはローカルnpmパッケージも探索する。既存hookは手順に従いコピーして更新する。
 npm公開は別作業であり、この変更の成果はチェックアウトと `npm pack` によるローカル配布である。
 
+Backlog の HTML 進捗表示も両実装で同じ設定・一覧・件数を扱い、比較テストで主要表示の一致を確認する。共通アセットは引き続き共有する。
+
 `render --open` も両実装で提供し、check / hook 時にはブラウザを起動しない。Node.js 版は標準の child_process でOSのブラウザ起動コマンドへfile URLを引数として渡し、shell評価を行わない。
 
 CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ変更する。--outputで従来配置を選べ、低レベルrender関数の隣接既定は保持する。
@@ -61,3 +63,5 @@ CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ
 `new doc` の必須型は両実装で `--code-globs`（複数指定可）を要求する。任意型の省略は維持し、プレースホルダのrelatedとcode_globsは空リストへ置換する。
 
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
+
+Backlogの閲覧は状態別の折り畳みリストを既定とし、同じ項目を任意のカンバン表示へ切り替える。専用検索は表示のみを変更し、元Markdownとcleanupの安全契約は保持する。Python/Nodeは同じHTMLと共通アセットを利用する。

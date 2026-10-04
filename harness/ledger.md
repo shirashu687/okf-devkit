@@ -9,7 +9,7 @@
 - 評価中件数: 10 / 10
 - 試行中件数: 0 / 3
 - 採用済み件数: 0
-- 最終確認日: 2026-10-03
+- 最終確認日: 2026-10-04
 - 次回確認: 各作業の開始・再開時、および台帳更新時。定時自動確認は設置していない。
 
 ## 評価中（観測・候補・試行）
@@ -17,12 +17,12 @@
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | IMP-0011 | 観測 | 2026-10-03 | 1 | automated checks | 低 | 自リポジトリdocs追加の手書きログで日付順warnとhashなしによるlog追記拒否を検出した。 | 最終確認にlintと対象範囲log実行を含める候補 | docs/ の変更履歴更新 | lint warn0とlog --writeの終了値・対象版を照合 | 未定（試行未開始） | [Issues 4 / 5 worklog](state/journal/issues-4-5-self-docs.md)。修正済み、恒久採用なし。 |
+| IMP-0012 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)。修正確認済み、恒久採用なし。 |
 | IMP-0008 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #6の新規回帰テストが既存API引数とhelperのbundle固定に合わず初回検証で失敗した。 | 追加テストの呼出引数とcustom bundle対応を既存helperと照合する候補 | init shared log回帰テスト | default/custom bundleをPython/Nodeで検証 | 未定（試行未開始） | [Issue #6 worklog](state/journal/issue-6-shared-log.md)。テスト修正後Python170/Node12/互換7成功、恒久採用なし。 |
 | IMP-0005 | 観測 | 2026-09-10 | 1 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
 | IMP-0001 | 観測 | 2026-09-06 | 1 | automated checks | 中 | T-0004の作業記録に、検査スクリプトの期待文言不一致による初回2回の失敗と、期待条件修正後の再実行成功が記録されている。 | 未定（期待条件を対象文書と同期する方法と、失敗履歴を保持する負担を次回同形式の検証で確認） | okf-devkitの文書契約・検証プローブ | 同形式の検証で、期待条件の不一致と再試行を対象版・出力つきで比較する | 未定（試行未開始） | T-0004 worklogから得た実作業の観測要約と根拠参照のみ。演習の入力・出力は保存していない。試行・改善効果・採用承認なし。 |
-| IMP-0002 | 観測 | 2026-09-06 | 1 | agent instructions | 低 | T-0004から引き継いだ `verify-report.md` の完了報告欄に、T-0006で解消すべき「retro手順が未設置なら」という古い分岐が残っていた。静的確認で検出し、完了前に現行手順への参照へ修正した。 | 未定（入口・config・verify-report・CONTEXTの状態文言を接続変更時に照合する方法を次回同種作業で確認） | okf-devkitのハーネス入口と手順文書 | 同種の接続変更で古い未設置分岐の残存を対象版・diff・参照検査で比較する | 未定（試行未開始） | 本タスクの必須修正として反映済み。再発防止効果・採用承認なし。根拠: 本worklogの静的確認と `verify-report.md`。 |
 | IMP-0009 | 観測 | 2026-10-03 | 1 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
 | IMP-0014 | 観測 | 2026-10-03 | 1 | coding standards / review | 高 | 旧生成物退避の独立reviewで復元hash・receipt原子的保存とpartialcopy識別の不足を検出した。 | 障害境界ごとの復旧証拠を実装と注入テストで照合する候補 | Python/Node render cleanup | copy/unlink/receipt/restore各失敗で原本保持と記録を照合 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。公開前に本件修正、恒久採用なし。 |
 | IMP-0015 | 観測 | 2026-10-03 | 1 | automated checks | 高 | Windowsの大小文字/末尾dot・space別名により旧新出力が同じ実ディレクトリになり得る境界を追加点検で検出した。 | OSのパス同一性と拒否後の全fixture不変を照合する候補 | render cleanupのルート・manifest境界 | Windows別名指定をCLI check/実行双方で拒否し生成物保持を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。同PRで安全修正、恒久採用なし。 |
@@ -36,7 +36,7 @@
 
 ## 却下・廃止の履歴
 
-現時点で該当項目はない。却下・廃止したIDも再利用せず、後日同じ症状が再発した場合は元IDの詳細へ追記する。
+IMP-0002 was rejected by priority on 2026-10-04; original evidence and detail retained. 却下・廃止したIDも再利用せず、後日同じ症状が再発した場合は元IDの詳細へ追記する。
 
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -68,6 +68,8 @@
 - 結果・反映先: 実観測を評価中の台帳へ登録しただけ。改善効果、採用、撤去の実績はない。
 
 ### IMP-0002
+
+- Priority rejection 2026-10-04: evaluation cap reached at main integration. Low one-off instruction mismatch already corrected in T0006, no recorded recurrence, trial or adoption. Retain all source/date/count/history; reevaluate this ID on recurrence. Ten active observations retain cleanup safety and current runtime scope.
 
 - 状態: `観測`
 - 初回 / 回数: `2026-09-06` / `1`
@@ -119,6 +121,13 @@
 - 原因仮説: 手書きログ作成時にlint規則とlogの二重追記防止契約を一緒に確認しなかった可能性。
 - 候補: automated checks / 低。文書履歴に限定、通常検査で検出し修正済み。対象範囲のlog実行とlint確認を併用する候補で、恒久ルールは採用しない。
 - 未確認: CIと独立reviewはworklogで別に記録する。試行なし、採用判断待ちなし。
+### IMP-0012
+
+- 症状・根拠: [Issue21 worklog](state/journal/issue-21-backlog-progress.md)の検証履歴。新規compat fixtureがroot indexなしでENOENT、Actor machine:codexでwarn1。既存native scriptが単一file指定のため新規testを既存fileへ統合した。
+- 原因仮説: initだけではroot indexを生成しない前提とActor表記をfixture/文書作成時に見落とした。成果物の回帰や誤った成功報告は確認されていない。
+- 分類・重要度: automated checks / 低。テスト自身の不足と文書警告を実装完了前に解消。
+- 対処案・確認方法: 必要なroot indexを明示しnpm test/compatで新規test名・pass数、lint error0/warn0を確認。恒久ルールの採用や試行は実施しない。期限未定（観測のみ）。
+
 ### IMP-0009
 
 - 症状: Issue #11の独立reviewで新規logにCreationとcommit参照がなく、Nodeがspawn以降の失敗を検知しないのにREADMEで起動失敗を広く説明していた。
