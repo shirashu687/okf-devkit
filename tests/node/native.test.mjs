@@ -581,3 +581,13 @@ test("backlog search opens matches, restores user disclosure and toggles only pr
   search.value='task';input();assert.equal(group.open,true);assert.equal(status.textContent,'1 件が一致');
   search.value='';input();assert.equal(group.open,true);assert.equal(group.hidden,false);assert.equal(card.hidden,false);
 });
+
+test("new help describes kinds without initializing a repository", (t) => {
+  const root = temp(t);
+  for (const args of [["new", "--help"], ["new", "-h"], ["new", "doc", "--help"], ["new", "backlog", "--help"]]) {
+    const output = ok(run(root, args));
+    assert.match(output, /usage:/i);
+    assert.deepEqual(fs.readdirSync(root), []);
+  }
+  assert.notEqual(run(root, ["new", "unknown", "--help"]).status, 0);
+});

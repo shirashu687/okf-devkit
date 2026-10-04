@@ -29,6 +29,165 @@ const commands = {
   render: "output cleanup-from check! hook! open!",
   sync: "gate! session-id",
 };
+// Command help mirrors the Python CLI; runtime parsing remains independent.
+const helpPages = {
+  "init": {
+    purpose: "OKF バンドルと設定一式を生成する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--bundle-root BUNDLE_ROOT", "バンドルのルート（既定: docs）", false],
+      ["--site-name SITE_NAME", "ドキュメントの表示名（既定: ルートのディレクトリ名）", false],
+      ["--layer NAME=GLOB[:DIR]", "層とコード配置の対応（例: client=src/client/**）。複数指定可", false],
+      ["--force", "既存ファイルを上書きする", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf init --site-name MyProject",
+    kinds: [],
+  },
+  "index": {
+    purpose: "index.md を再生成する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--write", "実際に書き込む", false],
+      ["--check", "差分があれば exit 1（CI 用）", false],
+      ["--quiet", "変更が無いときは何も出力しない", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf index --check",
+    kinds: [],
+  },
+  "log": {
+    purpose: "git 履歴から log.md に追記する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--write", "実際に書き込む", false],
+      ["--range RANGE", "git のリビジョン範囲（例: A..B）", false],
+      ["--layer LAYER", "対象の層を限定する", false],
+      ["--dry-run", "書き込まずに内容を表示する", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf log --dry-run",
+    kinds: [],
+  },
+  "lint": {
+    purpose: "OKF 適合 + 語彙の検証",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--strict", "warn も exit 1 の対象にする", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf lint --strict",
+    kinds: [],
+  },
+  "stale": {
+    purpose: "陳腐化レポート",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--format {text,json}", "出力形式: text / json（既定: text）", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf stale --format json",
+    kinds: [],
+  },
+  "affected": {
+    purpose: "更新すべきドキュメントを列挙する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--base BASE", "比較対象のブランチ（既定: main）", false],
+      ["--paths PATHS ...", "変更パスを直接指定する", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf affected --base main",
+    kinds: [],
+  },
+  "new backlog": {
+    purpose: "backlog アイテムを作る",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--title TITLE", "アイテムのタイトル", true],
+      ["--layer LAYER", "設定済みのレイヤー（既定: shared）", false],
+      ["--priority PRIORITY", "設定済みの優先度（既定: medium）", false],
+      ["--effort EFFORT", "設定済みの工数（既定: M）", false],
+      ["--slug SLUG", "ファイル名の slug（日本語タイトル時に指定する）", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf new backlog --title \"Follow-up\"",
+    kinds: [],
+  },
+  "new doc": {
+    purpose: "通常ドキュメントを作る",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--layer LAYER", "設定済みのレイヤー", true],
+      ["--type TYPE", "設定済みのドキュメント型", true],
+      ["--title TITLE", "ドキュメントのタイトル", true],
+      ["--dir DIR", "層ディレクトリ配下のサブディレクトリ", false],
+      ["--code-globs CODE_GLOBS ...", "根拠コードのパス/glob（複数可、コード由来の型では必須）", false],
+      ["--slug SLUG", "ファイル名の slug", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf new doc --layer shared --type \"Reference\" --title \"Guide\" --code-globs \"src/**\"",
+    kinds: [],
+  },
+  "new": {
+    purpose: "雛形を生成する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf new doc --help / okf new backlog --help",
+    kinds: ["backlog", "doc"],
+  },
+  "status": {
+    purpose: "backlog の集計",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--format {text,json}", "出力形式: text / json（既定: text）", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf status --format json",
+    kinds: [],
+  },
+  "render": {
+    purpose: "Bundle の Markdown を閲覧用 HTML に変換する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--output OUTPUT", "出力先（既定: _site。旧配置は bundle_root を指定（例: docs））", false],
+      ["--open", "生成後にトップページをブラウザで開く（check / hook 時は無効）", false],
+      ["--check", "書き込まず、全ページを生成できるか検証する", false],
+      ["--hook", "Stop hook 用。成功時は空の JSON だけを返す", false],
+      ["--cleanup-from OLD", "Move verified old renderer artifacts to backups; --check prints the plan", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf render --check",
+    kinds: [],
+  },
+  "sync": {
+    purpose: "index → log → lint → stale を一括実行する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--gate", "hook 専用。error の初回は exit 2、同じ error の2回目は exit 0", false],
+      ["--session-id SESSION_ID", "gate のセッション識別子（既定: 環境変数 / stdin JSON）", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf sync",
+    kinds: [],
+  },
+  "": {
+    purpose: "OKF v0.2 バンドルを開発リポジトリで運用する CLI",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--config CONFIG", "設定ファイルのパス（既定: プロジェクトルートの okf.yml）", false],
+      ["--root ROOT", "プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）", false],
+    ],
+    epilog: "",
+    kinds: ["init", "index", "log", "lint", "stale", "affected", "new", "status", "render", "sync"],
+  },
+};
+function commandHelp(args) {
+  const name = args.command in commands ? [args.command, args.kind].filter(Boolean).join(" ") : "";
+  const page = helpPages[name];
+  let text = `usage: okf${name ? " " + name : " [--root DIR] [--config FILE] <command>"} [options]\n\n${page.purpose}\n`;
+  if (page.kinds.length) {
+    text += "\ncommands:\n" + page.kinds.map(kind => {
+      const key = [name, kind].filter(Boolean).join(" ");
+      return `  ${kind.padEnd(12)} ${helpPages[key].purpose}`;
+    }).join("\n") + "\n";
+  }
+  text += "\noptions:\n" + page.options.map(([flag, description, required]) =>
+    `  ${flag.padEnd(30)} ${description}${required ? "（必須）" : ""}`
+  ).join("\n");
+  if (page.epilog) text += "\n\n" + page.epilog;
+  return text;
+}
 const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 function parse(argv) {
   const args = {},
@@ -50,7 +209,12 @@ function parse(argv) {
     return { ...args, help: true };
   if (!(args.command in commands))
     throw new OkfError(`未知のコマンド: ${args.command}`);
-  if (args.command === "new") args.kind = rest.shift();
+  if (args.command === "new") {
+    if (["--help", "-h"].includes(rest[0])) return { ...args, help: true };
+    args.kind = rest.shift();
+    if (!["doc", "backlog"].includes(args.kind))
+      throw new OkfError("new doc / new backlog を指定してください");
+  }
   const spec = new Map(
     commands[args.command]
       .split(" ")
@@ -232,19 +396,7 @@ export async function main(argv = process.argv.slice(2)) {
     return argv.includes("--hook") ? 1 : 2;
   }
   if (args.help) {
-    console.log(
-      "okf [--root DIR] [--config FILE] <command> [options]\n\n" +
-        Object.entries(commands)
-          .map(
-            ([name, opts]) =>
-              `${name.padEnd(10)} ${opts
-                .split(" ")
-                .map((s) => "--" + s.replace(/[!*+]$/, ""))
-                .join(" ")}`,
-          )
-          .join("\n") +
-        "\n\nnew doc: --title TITLE --layer LAYER --type TYPE [--code-globs GLOB ...]\nnew backlog: --title TITLE [--layer shared]",
-    );
+    console.log(commandHelp(args));
     return 0;
   }
   try {
