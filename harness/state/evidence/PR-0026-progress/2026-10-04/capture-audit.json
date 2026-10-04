@@ -312,7 +312,12 @@
       },
       "theme": "light",
       "javascript": false,
-      "sha256": "6d156c8a2ee4286f08b66e3831573b858d785b5d8b652839fc2fe2aac45b13e2"
+      "sha256": "6d156c8a2ee4286f08b66e3831573b858d785b5d8b652839fc2fe2aac45b13e2",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      }
     }
   ],
   "pageErrors": [],
