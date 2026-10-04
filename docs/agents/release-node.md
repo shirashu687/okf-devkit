@@ -7,26 +7,29 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T07:28:01Z
+  at: 2026-10-04T13:44:39Z
 code_globs:
   - .github/workflows/release.yml
   - scripts/release-*.mjs
   - scripts/package-smoke.mjs
   - package.json
   - package-lock.json
+  - pyproject.toml
 related:
   - /project/decisions/0002-github-node-distribution.md
   - /agents/install-okf.md
+  - /project/releases/v0.1.0.md
 ---
 
 # Node.js配布物をDraft Releaseで検査して公開する
 
 配布担当者向けの手順。利用者repoへの導入・初期化・更新は [導入ガイド](/agents/install-okf.md) を使う。
-この手順はIssue #34のDraft PR内のworkflowを対象とする。実タグのpush、GitHub上の配布workflow、Draft作成、公開はこのPRの検証として実行しておらず、公開済みReleaseはまだない。
+この手順はmainに統合済みの配布workflowを対象とする。公開予定版は **v0.1.0のPreRelease**。2026-10-04時点では未公開で、v0.1.0タグもReleaseも存在しないことを読み取り確認している。実タグのpush、タグ用Actions、Draft生成、PreRelease公開は今回の準備では実行しない。
+日本語の公開予定内容は [v0.1.0リリースノート](/project/releases/v0.1.0.md)。準備PRのレビュー・main統合・その最終SHAのCI成功を済ませ、その後のタグ作成と公開を別途承認された工程として進める。文書の作成や準備PRの成功は公開の許可にならない。
 
 ## 1. レビュー済みの版とコミットを選ぶ
 
-配布対象はこのrepoのmainに含まれるレビュー済みコミット。完全SHAとpackage.jsonの版、package-lock.jsonのルート版を照合する。
+配布対象はこのrepoのmainに含まれるレビュー済みコミット。完全SHAとpackage.json、package-lock.jsonのトップレベル・ルートpackage、pyproject.tomlの版を照合する。現在はいずれも0.1.0であり、準備のための版更新は不要。
 タグは `v<package version>` と一致させる。workflowはrepo-source、タグが指す実コミット、対象版、origin/mainの祖先であることを検査する。
 版を変更するならレビュー用PRでmanifestとlockfileを更新し、必須検証を通してからmainへ統合する。`npm version <新しい版> --no-git-tag-version` 等の版更新はそのPRの工程として扱い、配布作業中に現行0.1.0へ機械的に再適用したり、勝手に版・タグ・コミットを生成しない。
 
@@ -62,6 +65,10 @@ workflowは `v*` タグのpushで動く。GITHUB_TOKENによる操作は後続wo
 通常jobの権限はcontents:read、最後のdraft jobだけcontents:write。workflowはnpm publishやRelease公開を行わない。
 artifactは `verified-release-bundle` として30日保存される。必要な検査・再開は保存期間内に行い、同名ファイルをローカルで再packして同じ成果と扱わない。
 
+実行されるjobはvalidateの4環境、bundle、installの4環境、draftの計10件。main/準備PRのCIとは別のタグ用runであり、初回の実行結果を対象タグと完全SHAで記録する。ローカルのrelease guardsやpackage検証成功をこの初回runの成功と扱わない。
+tgz検査は必須28パスを確認する。このうち共通資産は16パス（defaults1、閲覧assets3、scaffold12）で、ほかにNodeモジュール9とpackage.json・LICENSE・READMEがある。導入検査はローカルdevDependencyと一時的な専用prefixのglobal導入を扱い、実利用者のglobal設定を変更しない。WindowsでもUbuntuのbundle jobが作った同一tgzを使い、Windowsでpackし直さない。
+Release assetはNode向けnpm tgzであり、Python wheel/sdistやnpm/PyPI公開物を作る経路ではない。Python版はソース導入と既存CLIの検証対象として継続し、[導入ガイド](/agents/install-okf.md) のPython経路を参照する。
+
 ## 4. 全job終了後、Draftを人が検査して公開する
 
 workflow全体が完了し、必要な全jobが成功したことを対象タグ/SHAで確認する。DraftのID・タグ・target_commitishが完全SHAと一致し、assetが期待する次の3個だけであることを確認する。
@@ -72,7 +79,15 @@ workflow全体が完了し、必要な全jobが成功したことを対象タグ
 
 認可された取得経路でDraftのassetを読み、manifestの対象版、tgzサイズ/hash、SHA256SUMS、Actions artifactとのバイト一致を照合する。checksumと固定SHAは対象・取得バイトの照合手段で、配布者を信頼してよい証明ではない。
 private repoの認証情報はURL・文書・ログへ埋め込まない。公開範囲を拡げない。
-内容を確認した人が明示的にPublishする。AIがこの手順を読んだことを公開の許可と扱わない。
+内容を確認した人が明示的に公開を承認した後、**PreReleaseとして公開し、Latestには設定しない**。Draftは非公開の準備状態、公開済みPreReleaseは利用者が取得する試行版であり、同じ状態ではない。AIがこの手順を読んだことを公開の許可と扱わない。
+
+公開前に、レビュー済みの日本語ノートからRelease本文を準備する。OKF frontmatterは本文へ含めず、予定状態の注記は実際の公開状況と照合する。公開対象の完全SHA・版・検証結果を確認してから、承認された操作として既存Draftだけを変更する。次は未実行の例であり、レビュー済み本文ファイルのパスを指定する。
+
+```text
+gh release edit v0.1.0 --repo shirashu687/okf-devkit --verify-tag --draft=false --prerelease --latest=false --notes-file REVIEWED_RELEASE_NOTES
+```
+
+この操作でタグ、target、assetを変更・再アップロードしない。直前にDraftのID・タグ・完全SHA・3asset・全job完了を再確認し、公開後は`draft=false`、`prerelease=true`、対象タグ・asset不変を読み取り確認して結果を記録する。承認前はこのコマンドを実行しない。
 
 upload helperは各upload直前にDraft状態・ID・タグ・対象コミット・asset・sourceを再確認する。ただしGitHub APIには「Draftの場合だけuploadする」原子的条件がなく、同時publishとの競合を完全に防止できない。人はworkflow全jobが終了してからassetを確認し、それまではPublishしない。
 
@@ -87,4 +102,5 @@ helperは同名Draft・同じsourceに対し、既存assetの名前・状態・�
 ## 公式資料
 
 - [GitHub Releaseの管理](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+- [GitHub CLIのRelease編集・Draft公開・PreRelease指定](https://cli.github.com/manual/gh_release_edit)
 - [GITHUB_TOKENからのworkflow起動制約](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow)

@@ -7,7 +7,7 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:15:06Z
+  at: 2026-10-04T13:44:39Z
 code_globs:
   - package.json
   - package-lock.json
@@ -18,6 +18,7 @@ code_globs:
   - scripts/package-smoke.mjs
 related:
   - /project/decisions/0002-github-node-distribution.md
+  - /project/releases/v0.1.0.md
   - /cli/node-runtime.md
   - /agents/completion-hooks.md
   - /render/output-cleanup.md
@@ -27,7 +28,7 @@ related:
 
 明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
 本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
-この文書のRelease経路は配布workflow実装・人による公開後に使う。初回公開前は実在を確認した完全Git SHA経路を選び、URLを捏造しない。
+この文書のRelease経路は配布workflowの検証・別途承認された公開後に使う。公開予定のv0.1.0はPreReleaseで、現在未公開。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。初回公開前は実在を確認した完全Git SHA経路を選び、URLを捏造しない。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
 
 ## 1. 環境と既存状態を読む
