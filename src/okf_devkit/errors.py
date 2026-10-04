@@ -6,5 +6,3 @@ class OkfError(Exception):
 
 class MarkerError(OkfError):
     """index.md の自動生成マーカーが壊れている。"""
-
-

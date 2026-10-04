@@ -195,4 +195,3 @@ def path_matches(path: str, pattern: str) -> bool:
         rx = glob_to_regex(pattern)
         _GLOB_CACHE[pattern] = rx
     return bool(rx.match(path))
-
