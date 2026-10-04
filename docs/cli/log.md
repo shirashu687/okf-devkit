@@ -4,11 +4,15 @@
 
 ## 2026-10-04
 - **Update** CLI分割設計に、mainの状態別Backlog表示とcleanupの所有境界を補足した。 (`8c5085e`)
+- **Update** repo終了hookの実shell起動、入力非実行、実HTML連続生成と不正設定のstrict/advisory終了値を検証する5テストを追加した（Issue #9、`4f2663a`）。
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)
 
 ## 2026-10-03
 - **Update** CLI分割設計の初回調査SHAを明示し、mainの出力整理module・安全条件・cleanup検証との接続を補足した。 (`b6baac0`)
 - **Update** CLI分割の可変状態・互換interfaceと段階的移行を調査した。 ([Issue #12](https://github.com/shirashu687/okf-devkit/issues/12), `2c6eeea`)
+- **Update** new doc の4必須型、複数の --code-globs、生成後の本文補完と index → lint の手順を現行仕様へ合わせた。 (`189eae4`)
+- **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
+- **Creation** feat(render): add hierarchical navigation and source metadata。 (`9162553`)
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
 

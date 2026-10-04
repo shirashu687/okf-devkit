@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.okf/hooks/agent_stop.sh\"",
+            "commandWindows": "powershell -NoProfile -Command \"& (Join-Path (git rev-parse --show-toplevel) '.okf/hooks/agent_stop.ps1')\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

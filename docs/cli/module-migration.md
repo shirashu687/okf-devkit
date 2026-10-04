@@ -7,7 +7,7 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T03:14:08Z
+  at: 2026-10-04T06:18:19Z
 code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/renderer.py
@@ -86,3 +86,9 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 統合対象 `c09c6eea9756c05904c6dc2f27f3f832d28e283f` はHTMLの状態別リスト、任意カンバン、表示検索と開閉復元をPython/Node共通資産へ追加している。この表示処理はrendererと共有assetsが所有し、CLIのmodule分割時にcommands/statusへ移さない。ファイル型Backlogの集計とHTMLの表示interfaceを区別し、読み取り専用、設定語彙/順序、本文リンク、検索前の開閉復元、JavaScriptなしのリスト表示を維持する。
 
 分割後も現行Python renderテスト、Node nativeとcompat、およびcleanup suiteをすべて実行する。表示だけの操作でMarkdownやcleanup manifestを変更しない契約は、既存の共通資産側で保つ。ここでのmain統合は分割実装の完了を示さず、最初の調査SHAの測定値は保持する。
+
+## 自リポジトリ本文・終了 hook との接続
+
+統合対象 `fc84eaa47d601cbfab3241fa5e61a600508a516d` では#4の実装本文と#5の自リポジトリdocs CIがmainにある。以後の分割は [CLI の処理構造](/cli/architecture.md) と [コマンド仕様](/cli/commands.md) の根拠コードを移動先へ合わせ、self-checkのlint/index/render検査を維持する。初回調査の先行Issue記述は当時のスナップショットとして扱う。
+
+Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動のstrict renderとは終了値の契約が異なる。CLIの移動でadapter/hookの振る舞いを統合・削除せず、入力を実行しない、失敗時にエージェントをブロックしない、実HTMLの連続生成、strict/advisoryの違いを既存の `tests/test_repo_hooks.py` と関連Nodeテストで維持する。実エージェントイベントの観測とローカルadapterテストは区別する。
