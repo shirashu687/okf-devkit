@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** 生成するAI向け入口を目的別の短い案内へ整理し、未カバー文書とsync/logの診断、既存ファイル保持を明記した。 (`33b2311`)
 - **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)
 
 ## 2026-10-03

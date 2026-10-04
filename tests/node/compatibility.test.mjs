@@ -266,3 +266,37 @@ test("default render output and explicit legacy layout agree across runtimes", (
     assert.equal(fs.existsSync(path.join(root, output, "index.html")), true);
   }
 });
+
+test("command help has Python/Node option and purpose parity without writes", (t) => {
+  const root = temp(t);
+  init(root);
+  ok(run(root, ["index", "--write"]));
+  ok(run(root, ["render"]));
+  const capture = () => {
+    const files = {};
+    const visit = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name === ".git") continue;
+        const file = path.join(dir, entry.name);
+        if (entry.isDirectory()) visit(file);
+        else files[path.relative(root, file)] = fs.readFileSync(file).toString("base64");
+      }
+    };
+    visit(root);
+    return files;
+  };
+  const before = capture();
+  const commands = [[], ["init"], ["index"], ["log"], ["lint"], ["stale"],
+    ["affected"], ["new"], ["new", "doc"], ["new", "backlog"], ["status"], ["render"], ["sync"]];
+  const flags = text => [...new Set(text.match(/--[a-z][a-z-]*/g))].sort();
+  for (const command of commands) {
+    const args = ["--config", path.join(root, "does-not-exist.yml"), ...command, "--help"];
+    const py = ok(run(root, args, { runtime: "python" }));
+    const js = ok(run(root, args));
+    assert.deepEqual(flags(js), flags(py), command.join(" "));
+    const purpose = py.split("\n\n")[1].trim();
+    assert.ok(js.includes(purpose), command.join(" "));
+    if (command.length) assert.match(js, /例:/);
+    assert.deepEqual(capture(), before);
+  }
+});
