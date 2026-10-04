@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-04
+- **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)
+
 ## 2026-10-03
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
 - **Update** AI向けに旧HTML整理の計画確認・未知生成物保持・退避復元とignore設定を案内。 (`59a0bb5`)
