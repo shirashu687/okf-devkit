@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "83ab5e83eca90d1b601c227da8407055604c4552",
+  "worklog": "harness/state/journal/issue-12-yaml-main-integration.md",
+  "changes": [
+    {
+      "path": "tests/helpers.py",
+      "reason": "Integrate existing YAML ownership extraction with updated pure-helper parent; preserve existing tests and actual backend/absence routes without weakening."
+    },
+    {
+      "path": "tests/test_yaml.py",
+      "reason": "Integrate existing YAML ownership extraction with updated pure-helper parent; preserve existing tests and actual backend/absence routes without weakening."
+    },
+    {
+      "path": "tests/test_cli_context.py",
+      "reason": "Integrate existing YAML ownership extraction with updated pure-helper parent; preserve existing tests and actual backend/absence routes without weakening."
+    }
+  ]
+}

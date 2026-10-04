@@ -7,11 +7,12 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:11:42Z
+  at: 2026-10-04T10:20:56Z
 code_globs:
   - src/okf_devkit/render_cleanup.py
   - src/okf_devkit/renderer.py
   - src/okf_devkit/cli.py
+  - src/okf_devkit/yamlio.py
   - node/render-cleanup.mjs
   - node/renderer.mjs
   - node/cli.mjs
@@ -56,3 +57,7 @@ manifestのない旧版は、旧出力先で現在のレンダラーが作る計
 receiptの旧パス、退避パス、記録したハッシュを確認し、復元先にファイルがない場合だけ元へ戻す。既存ファイルやMarkdownを上書きしない。判別できない旧HTMLの扱いや退避物の保持期間は、実ファイルを確認して別途決める。
 
 `.gitignore` へ `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` を追加する。HTML・manifest・退避ファイルをソース文書として管理しない。低水準のrenderer APIの既定出力・通常動作は維持し、整理はCLIの明示指定で行う。
+
+## YAML module分離との境界
+
+CLIの設定解析は `yamlio.py` を使う。今回の分離でcleanup計画・manifest・退避/復元の所有者や引数は移さず、通常render、checkの非書込み、hookの整理併用拒否という安全契約を維持する。YAML例外は従来のCLI例外classへ接続する。

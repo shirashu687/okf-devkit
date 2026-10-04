@@ -16,7 +16,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from okf_devkit import cli as okf  # noqa: E402
+from okf_devkit import cli as okf, yamlio  # noqa: E402
 
 
 CONFIG_TEMPLATE = """\
@@ -127,7 +127,8 @@ class OkfTestCase(unittest.TestCase):
         self.repo = Path(tempfile.mkdtemp(prefix="okf-test-")).resolve()
         self.addCleanup(shutil.rmtree, str(self.repo), True)
         self._orig_root = okf.REPO_ROOT
-        self._orig_pyyaml = okf._pyyaml
+        self._orig_pyyaml = yamlio._pyyaml
+        self._orig_cli_pyyaml = okf._pyyaml
         okf.REPO_ROOT = self.repo
         self.addCleanup(self._restore)
         self.reset_caches()
@@ -136,7 +137,8 @@ class OkfTestCase(unittest.TestCase):
 
     def _restore(self) -> None:
         okf.REPO_ROOT = self._orig_root
-        okf._pyyaml = self._orig_pyyaml
+        yamlio._pyyaml = self._orig_pyyaml
+        okf._pyyaml = self._orig_cli_pyyaml
         self.reset_caches()
 
     @staticmethod

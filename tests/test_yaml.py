@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from helpers import OkfTestCase, doc_text
-from okf_devkit import cli as okf
+from okf_devkit import cli as okf, yamlio
 
 
 EQUIVALENT_SNIPPETS = [
@@ -46,17 +47,17 @@ class YamlEquivalenceTest(unittest.TestCase):
     """PyYAML があるときと無いときで結果が同じであること。"""
 
     def parse_both(self, text: str):
-        original = okf._pyyaml
+        original = yamlio._pyyaml
         try:
-            okf._pyyaml = original
-            with_pyyaml = okf.parse_yaml(text, "<test>")
-            okf._pyyaml = None
-            without = okf.parse_yaml(text, "<test>")
+            yamlio._pyyaml = original
+            with_pyyaml = yamlio.parse_yaml(text, "<test>")
+            yamlio._pyyaml = None
+            without = yamlio.parse_yaml(text, "<test>")
         finally:
-            okf._pyyaml = original
+            yamlio._pyyaml = original
         return with_pyyaml, without
 
-    @unittest.skipIf(okf._pyyaml is None, "PyYAML が無い環境では比較できない")
+    @unittest.skipIf(yamlio._pyyaml is None, "PyYAML が無い環境では比較できない")
     def test_equivalent_snippets(self):
         for snippet in EQUIVALENT_SNIPPETS:
             with self.subTest(snippet=snippet):
@@ -64,33 +65,33 @@ class YamlEquivalenceTest(unittest.TestCase):
                 self.assertEqual(a, b)
 
     def test_mini_rejects_ambiguous_syntax(self):
-        original = okf._pyyaml
-        okf._pyyaml = None
+        original = yamlio._pyyaml
+        yamlio._pyyaml = None
         try:
             for label, snippet in REJECTED_BY_MINI:
                 with self.subTest(case=label):
                     with self.assertRaises(okf.OkfError, msg=f"{label} は拒否されるべき"):
-                        okf.parse_yaml(snippet, "<test>")
+                        yamlio.parse_yaml(snippet, "<test>")
         finally:
-            okf._pyyaml = original
+            yamlio._pyyaml = original
 
     def test_mini_timestamp_normalization(self):
-        original = okf._pyyaml
-        okf._pyyaml = None
+        original = yamlio._pyyaml
+        yamlio._pyyaml = None
         try:
-            data = okf.parse_yaml("at: 2026-08-16T10:00:00+09:00\nd: 2026-08-16\n", "<test>")
+            data = yamlio.parse_yaml("at: 2026-08-16T10:00:00+09:00\nd: 2026-08-16\n", "<test>")
         finally:
-            okf._pyyaml = original
+            yamlio._pyyaml = original
         self.assertEqual("2026-08-16T01:00:00Z", data["at"])
         self.assertEqual("2026-08-16", data["d"])
 
     def test_mini_yaml_11_booleans(self):
-        original = okf._pyyaml
-        okf._pyyaml = None
+        original = yamlio._pyyaml
+        yamlio._pyyaml = None
         try:
-            data = okf.parse_yaml("a: yes\nb: off\nc: TRUE\n", "<test>")
+            data = yamlio.parse_yaml("a: yes\nb: off\nc: TRUE\n", "<test>")
         finally:
-            okf._pyyaml = original
+            yamlio._pyyaml = original
         self.assertEqual({"a": True, "b": False, "c": True}, data)
 
 
@@ -109,11 +110,11 @@ class LintParserEquivalenceTest(OkfTestCase):
                    doc_text(title="C", sources="  - id: s\n    resource: missing/**/*.ts"))
 
     def findings_with(self, pyyaml_enabled: bool) -> list[str]:
-        okf._pyyaml = self._orig_pyyaml if pyyaml_enabled else None
+        yamlio._pyyaml = self._orig_pyyaml if pyyaml_enabled else None
         self.reset_caches()
         return [str(f) for f in okf.run_lint(self.bundle())]
 
-    @unittest.skipIf(okf._pyyaml is None, "PyYAML が無い環境では比較できない")
+    @unittest.skipIf(yamlio._pyyaml is None, "PyYAML が無い環境では比較できない")
     def test_same_findings(self):
         self.build_docs()
         with_pyyaml = self.findings_with(True)
@@ -130,7 +131,7 @@ class YamlScalarTest(unittest.TestCase):
                       '"quoted"', "a # b", "*star", "&amp", "[bracket]"]:
             with self.subTest(value=value):
                 text = f"title: {okf.yaml_scalar(value)}\n"
-                self.assertEqual({"title": value}, okf.parse_yaml(text, "<test>"))
+                self.assertEqual({"title": value}, yamlio.parse_yaml(text, "<test>"))
 
     def test_plain_values_stay_plain(self):
         self.assertEqual("サーバー API リファレンス", okf.yaml_scalar("サーバー API リファレンス"))
@@ -138,6 +139,47 @@ class YamlScalarTest(unittest.TestCase):
     def test_newline_is_rejected(self):
         with self.assertRaises(okf.OkfError):
             okf.yaml_scalar("a\nb")
+
+
+class YamlBackendOwnerTest(unittest.TestCase):
+    def test_default_backend_reads_current_owner_and_explicit_none_forces_mini(self):
+        backend = yamlio._pyyaml
+        if backend is None:
+            self.skipTest("PyYAML unavailable for the enabled-backend comparison")
+        with patch.object(backend, "safe_load", wraps=backend.safe_load) as loaded:
+            self.assertEqual({"key": "value"}, yamlio.parse_yaml("key: value"))
+        loaded.assert_called_once_with("key: value")
+        mini = yamlio._MiniYaml
+        with patch.object(yamlio, "_MiniYaml", wraps=mini) as observed, patch.object(backend, "safe_load", side_effect=AssertionError("explicit None must not use PyYAML")):
+            self.assertEqual({"key": "value"}, yamlio.parse_yaml("key: value", "explicit-source", backend=None))
+        observed.assert_called_once_with("key: value", "explicit-source")
+
+    def test_forced_owner_none_uses_actual_mini_constructor(self):
+        mini = yamlio._MiniYaml
+        with patch.object(yamlio, "_pyyaml", None), patch.object(yamlio, "_MiniYaml", wraps=mini) as observed:
+            self.assertEqual({"flag": True}, yamlio.parse_yaml("flag: yes", "owner-source"))
+            with self.assertRaises(okf.YamlSubsetError):
+                yamlio.parse_yaml("key: &anchor value", "rejected-source")
+        self.assertEqual(["owner-source", "rejected-source"], [call.args[1] for call in observed.call_args_list])
+
+    def test_legacy_cli_adapter_preserves_explicit_backend_override_and_exception_identity(self):
+        self.assertIs(okf.YamlSubsetError, yamlio.YamlSubsetError)
+        self.assertIs(okf.OkfError, yamlio.OkfError)
+        self.assertIs(okf._MiniYaml, yamlio._MiniYaml)
+        self.assertIs(okf.yaml_scalar, yamlio.yaml_scalar)
+        mini = yamlio._MiniYaml
+        with patch.object(okf, "_pyyaml", None), patch.object(yamlio, "_MiniYaml", wraps=mini) as observed:
+            with self.assertRaises(okf.YamlSubsetError):
+                okf.parse_yaml("key: &anchor value", "legacy-source")
+        observed.assert_called_once_with("key: &anchor value", "legacy-source")
+
+    def test_explicit_backend_is_used_even_when_owner_is_none(self):
+        backend = yamlio._pyyaml
+        if backend is None:
+            self.skipTest("PyYAML unavailable for explicit-backend test")
+        with patch.object(yamlio, "_pyyaml", None), patch.object(backend, "safe_load", wraps=backend.safe_load) as loaded:
+            self.assertEqual({"key": "value"}, yamlio.parse_yaml("key: value", backend=backend))
+        loaded.assert_called_once_with("key: value")
 
 
 if __name__ == "__main__":

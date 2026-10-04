@@ -7,9 +7,10 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:11:42Z
+  at: 2026-10-04T10:20:56Z
 code_globs:
   - src/okf_devkit/cli.py
+  - src/okf_devkit/yamlio.py
   - node/*.mjs
   - .github/workflows/ci.yml
 related:
@@ -62,3 +63,7 @@ related:
 `render --check` は全ページとアセットをメモリ内で生成できるかを検証する。既存 HTML との差分を比較するコマンドではなく、HTML 未生成のクリーン checkout でも使える。生成 HTML を Git に追加する必要はない。通常のテスト・一時バンドル smoke と並行して、実際の docs バンドルを検査する。
 
 配布用の変更検査は通常の PR CI でも `npm run test:release` と `npm run test:package` を実行する。GitHub に書き込まない Release ガードと、一時 prefix での実 tgz 導入・復旧を確認する。タグ起点の Draft Release 手順は [GitHub 配布の判断](/project/decisions/0002-github-node-distribution.md) を参照する。
+
+## YAML処理の所有者
+
+設定・frontmatterの解析とnewのscalar/flow生成は `yamlio.py` が所有する。コマンドの引数・終了値・生成文字列は維持し、通常のDoc/Bundleはyamlioの現在backendを読む。旧 `cli.parse_yaml` の直接呼出しは旧backend差替えの互換adapterを通る。YAMLを省略した環境では従来の厳格なsubsetと拒否メッセージを使う。
