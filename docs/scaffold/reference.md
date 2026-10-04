@@ -7,7 +7,7 @@ status: stable
 layer: scaffold
 generated:
   by: codex/gpt-6
-  at: 2026-10-02T23:59:03Z
+  at: 2026-10-04T09:11:42Z
 code_globs:
   - src/okf_devkit/scaffold/**
   - src/okf_devkit/defaults.yml
@@ -18,6 +18,8 @@ related:
 ---
 
 # 初期化と同梱雛形
+
+CLIの純粋helpers分離後も、initの配置物・設定と同梱素材の解決位置は維持する。素材位置はパッケージから解決し、現在のCWDや利用者rootへ移さない。
 
 Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジェクトへファイルを配置する。Node の対応処理は `node/scaffold.mjs` にある。雛形素材と `defaults.yml` は両ランタイムが共有する。
 
