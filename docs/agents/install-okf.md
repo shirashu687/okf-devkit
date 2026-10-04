@@ -7,7 +7,7 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T07:20:15Z
+  at: 2026-10-04T09:15:06Z
 code_globs:
   - package.json
   - package-lock.json
@@ -25,7 +25,7 @@ related:
 
 # AIにokf-devkitの導入と更新を依頼する
 
-明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [Issue #32](https://github.com/shirashu687/okf-devkit/issues/32) の別ガイド対象とし、自動アップデータを設置しない。
+明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
 本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
 この文書のRelease経路は配布workflow実装・人による公開後に使う。初回公開前は実在を確認した完全Git SHA経路を選び、URLを捏造しない。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。

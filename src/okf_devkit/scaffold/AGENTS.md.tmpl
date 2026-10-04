@@ -39,57 +39,27 @@ related:
 | `_templates/` | テンプレート集。**バンドル対象外**（index にも lint にも出ない） | 手書き |
 | `_assets/` / `*.html` | `okf render` の閲覧用生成物。**バンドル対象外・Git管理外** | 手で編集しない |
 
-## 3. 作業パターン別の手順
+## 3. 日常の最小操作
 
-### A. 新しいドキュメントを作る
+まず利用先repoの指示とCONVENTIONS.mdを読む。以下の `okf` は選んだCLIに読み替える。repo-local Node版ならrepoルートから `node node_modules/okf-devkit/node/cli.mjs`、Python版なら確認済み環境の `python -m okf_devkit.cli` 等を明示する。PATHの別版や未導入のnpxで取り違えない。
 
-1. `_templates/` から該当するテンプレートを選ぶ（下表）
-2. `okf new doc --layer <layer> --type "<type>" --title "<title>" --code-globs "<根拠コードのpath/glob>"` で雛形を生成してもよい
-3. 本文を書く。**frontmatter の `code_globs` に必ず根拠コードのパス/glob を書く**（これが更新検知の起点になる）
-4. `okf index --write` で目次を更新する
+| 目的 | 操作 |
+|---|---|
+| コード変更後 | `affected --base <固定SHA>` → 対象と未カバーを照合 → 本文更新 → `sync` の各診断を確認 |
+| 新規文書 | `new doc --layer <layer> --type Reference --title "<title>" --code-globs "<実コードglob>"` → 本文補完 → `index --write` → `lint` |
+| 読み取り点検 | `lint` / `index --check` / `stale` / `render --check`。ファイルを書かない |
+| 閲覧 | `render` は `_site/` に書く。必要なら `render --open` |
+| 初回導入・更新 | 環境・CLI・生成先を確認し、installとinitを分ける。既存ファイルは保持 |
+| backlog採用時 | `new backlog --title "<title>" --layer <layer>` で雛形 → 背景・進め方・完了条件を補完。`status` で集計 |
 
-| 書きたいもの | type | テンプレート |
-|---|---|---|
-| 構造・データフロー・図 | `Architecture` | `_templates/architecture.md` |
-| 一覧・仕様（API / コンポーネント / テーブル） | `Reference` | `_templates/reference.md` |
-| 手順書・使い方 | `How-To` | `_templates/how-to.md` |
-| 設計判断の記録（なぜそうしたか） | `Decision Record` | `_templates/decision-record.md` |
-| やりたいこと | `Backlog Item` | `_templates/backlog-item.md` |
-| 用語集 | `Glossary` | `_templates/glossary.md` |
-| プロジェクト全体像 | `Project Overview` | — |
-| 執筆規約 | `Convention` | — |
+`affected` の対象だけでなく、未カバーパス、code_globs未設定文書、README等バンドル外も影響を確認する。出力ゼロを更新不要の証明にしない。本文を実コードに合わせ、更新不要の根拠や未検証を区別する。generated.atだけを新しくして完了にしない。
+`sync` はindex/logを書き、log失敗は警告で継続し得る。Gitの未コミット変更はlogへ記録しない。各段階の結果を確認し、必要ならコミット後に承認済み範囲で `log --write` を実行する。
+`stale` は指摘があってもexit0、`sync --gate` は同じlint error再検出でもexit0になり得る。exit0だけで指摘解消・全更新完了・CI成功と判断しない。
+`render --check` は既存HTML差分ではなく生成可否の非書き込み検査。`render --hook` は書き込みを伴う終了hook用操作で、advisory adapterのexit0も成功証明ではない。sync/gateを読み取り点検に使わない。
 
-### B. コードを変更したあと（最重要）
-
-**探索しないこと。** 更新すべきドキュメントはスクリプトが教えてくれる。
-
-```bash
-okf affected --base main
-```
-
-出力されたファイル**だけ**を開いて本文を更新し、`generated.at` を現在時刻に更新する。そのうえで:
-
-```bash
-okf sync
-```
-
-これで `index.md` 再生成 → `log.md` 追記 → lint → 陳腐化チェックまで一括で走る。
-
-### C. ユーザーが「やりたいこと」を言ったとき
-
-```bash
-okf new backlog --title "<やりたいこと>" --layer <layer>
-```
-
-ID 採番と frontmatter はスクリプトが埋める。LLM は `## 背景・現状` `## 進め方` `## 完了条件` を調査して記入する。
-
-### D. 作業が完了したとき — 完了の定義
-
-次の3点が揃って初めて「完了」とする。1つでも欠けていたら完了ではない。
-
-1. 影響ドキュメントの本文更新（対象は `okf affected` が出力するもの）
-2. 該当層 `{{BUNDLE_ROOT}}/<layer>/log.md` への追記（`okf log --write` で生成）
-3. 対応する `{{BUNDLE_ROOT}}/backlog/*.md` の `state:` 更新（完了なら `state: done` + `done_at`）
+新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。
+エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は全体置換なので更新用に使わない。
+詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `okf <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
 
 ## 4. やってはいけないこと
 
@@ -99,21 +69,8 @@ ID 採番と frontmatter はスクリプトが埋める。LLM は `## 背景・�
 - ❌ 巨大な1ファイルに追記し続ける。分割して `related` で繋ぐ
 - ❌ `{{BUNDLE_ROOT}}/` の外に恒久ドキュメントを置く
 
-## 5. コマンド早見表
+## 5. 出力の安全境界
 
-```bash
-okf index --write            # 全 index.md を再生成
-okf log --write              # git 履歴から log.md に追記
-okf lint                     # OKF 適合 + 語彙検証
-okf stale                    # 陳腐化レポート
-okf affected --base main     # 更新すべきドキュメントを列挙
-okf new backlog --title "..." --layer shared
-okf status                   # backlog 集計
-okf render                   # _site/ に閲覧用 HTML を生成
-okf render --output docs     # 従来の Markdown 隣接配置（bundle_root に合わせる）
-okf sync                     # index → log → lint → stale を一括
-```
-
-生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はプロジェクトの `.gitignore` に追加する。
-出力先の変更だけでは旧HTMLを整理しない。整理するときは `okf render --output _site --cleanup-from docs --check` で計画を確認し、その後 `--check` を外す（旧出力先は実配置に合わせる）。新出力成功後、未編集と確認できた生成物だけを退避する。手書き・編集済み・版違いで識別不能なHTMLは残す。`--hook` と整理オプションは併用しない。
-退避先 `.okf/render-backups/<id>/` のreceiptと元パスを確認し、復元先に既存ファイルがある場合は上書きしない。実ユーザーの出力を整理する操作は、依頼・計画・対象を確認してから行う。
+生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はGit管理外とする。
+出力先の変更だけでは旧HTMLを整理しない。`render --output _site --cleanup-from {{BUNDLE_ROOT}} --check` で計画を確認し、対象と依頼を確認してからcheckを外す。新出力成功後、識別できる未編集生成物だけを退避する。手書き・編集済み・識別不能ファイルは保ち、hookに整理を設定しない。
+復元はreceiptと元パスを確認し、既存ファイルを上書きしない。詳細は [upstreamの整理手順](https://github.com/shirashu687/okf-devkit/blob/main/docs/render/output-cleanup.md) を導入済み版と照合する。

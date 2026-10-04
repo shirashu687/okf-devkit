@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T07:26:56Z
+  at: 2026-10-04T09:15:06Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -36,6 +36,10 @@ node node/cli.mjs --root "C:/path/to/project" lint
 
 導入先で `npm exec -- okf` を使うには、チェックアウトで `npm pack` を実行し、生成した `okf-devkit-0.1.0.tgz` を導入先の `npm install --save-dev <tgzのパス>` でインストールする。
 POSIX環境ではパスを書き換え、同じコマンドを利用する。
+
+## 日常操作とhelp
+
+目的別の短い経路は [日常操作ガイド](/agents/operate-okf.md) を使う。`<command> --help` はそのコマンドの目的・引数・例を表示し、`new --help` はkind一覧、`new doc --help` と `new backlog --help` は各kindの引数を表示する。helpは未初期化のrepoでも書き込まず終了する。共通オプションを前置すればPythonと同じ起動表記で使える。
 
 ## 対応機能
 
