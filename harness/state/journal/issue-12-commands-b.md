@@ -7,3 +7,6 @@ Canonical stale uses one invocation-local CommitTimesCache for all document reso
 
 ## affected
 Canonical affected obtains changed paths once before the document loop, using explicit Bundle.repo_root Git calls; matching uses the shared pure glob owner. Legacy changed_paths callback is retained. Owner Git and actual document/path mapping regression passed. Full Python 245 run, failures 0, errors 0, skipped 1; compatibility 13 pass. No Doc/Bundle constructors in this moved block. Evidence: task/issue12-commands-b-affected-python.log and -affected-compat.log.
+
+## new
+Canonical new uses Bundle.repo_root for output/error paths and keeps creation inside bundle.root. Template/path/writer callbacks preserve legacy CLI override seams. Canonical writer and output-root regression passed. Full Python 246 run, failures 0, errors 0, skipped 1; compatibility 13 pass. No Doc/Bundle constructors in the moved block. Evidence: task/issue12-commands-b-new-python.log and -new-compat.log.

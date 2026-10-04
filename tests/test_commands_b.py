@@ -40,3 +40,19 @@ class RemainingCommandTest(OkfTestCase):
         self.assertTrue(runner.called)
         self.assertTrue(all(c.args[0] == bundle.repo_root for c in runner.call_args_list))
         self.assertIn('docs/reference.md  <- app/client/first.ts', output.getvalue())
+
+    def test_new_writes_and_reports_bundle_owner_after_cli_root_change(self):
+        from okf_devkit.commands import new
+        config = self.make_config()
+        self.make_templates()
+        bundle = cli.Bundle(config)
+        prior = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', prior)
+        args = ns(kind='doc', layer='server', type='Reference', title='Owner', dir=None, slug='owner', code_globs=['app/server/api.py'])
+        with patch.object(new, 'write_if_changed', wraps=new.write_if_changed) as writer, contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(0, new.cmd_new(bundle, args))
+        self.assertTrue(writer.called)
+        self.assertEqual('docs/server/owner.md', output.getvalue().strip())
+        self.assertTrue((bundle.root / 'server/owner.md').is_file())
+        self.assertFalse((self.repo / 'different').exists())
