@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "3010fa0ac55f8e2b5981c3354c7e0568448ccf34",
+  "base": "32500998592ce468c84957ec3b9646797fa986c1",
   "worklog": "harness/state/journal/issue-12-commands-a-main-integration.md",
   "changes": [
     {
