@@ -7,8 +7,11 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T11:26:11Z
+  at: 2026-10-04T11:43:53Z
 code_globs:
+  - src/okf_devkit/compat.py
+  - src/okf_devkit/parser.py
+  - tests/test_cli_facade.py
   - src/okf_devkit/commands/stale.py
   - src/okf_devkit/commands/affected.py
   - src/okf_devkit/commands/new.py
@@ -41,7 +44,7 @@ related:
 
 # CLI の処理構造
 
-第5b段階で stale、affected、new、status、render、sync、init も `commands/` 配下へ分離し、全10コマンドの実装所有者を移した。canonical command は Bundle の `.repo_root` または明示した project root を使い、CLI の可変 root を import しない。stale は呼び出しごとの Git 時刻 cache を文書間で共有し、status/render の Doc factory に root を明示する。旧CLIは現在の root・helper・writer・factory・gate TTL を呼び出し時に渡す薄い adapter で維持する。引数解析と互換 export の最終分離は後続段階に残り、cli 200行以下という Issue #12 全体の完了条件はまだ満たしていない。
+第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。全10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
 
 更新済み親のAI案内・helpとモデル/YAMLを統合後も、第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
 第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
@@ -79,3 +82,9 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 通常の `OkfError` は標準エラーへ表示し exit 1。`sync --gate` は初回のlint errorでexit 2、同じerror集合の再検出ではexit 0になり得る。終了値だけをlint合格判定にしない。gate の状態はユーザーのキャッシュ領域に置き、セッション識別子と指摘の fingerprint を使う。HTML の Stop hook 入口は `render --hook` で、成功時は空の JSON を返す。
 
 Node の独立実装と対応範囲は [Node ランタイム](/cli/node-runtime.md) を参照する。
+
+## 旧APIの互換入口
+
+`compat.install_legacy_exports(ns)` は型と引数形を保った名前付きadapterをnamespaceへ登録する。root、YAML backend、Git cache、gate TTL、素材の場所、writerやDoc factoryは呼び出し時にnamespaceを読む。cacheの更新も同じnamespaceへ戻し、別のnamespaceを登録しても状態を混ぜない。通常のmodels/Git/commandsは明示rootを受け、旧CLIを参照しない。
+
+DocとBundleはCLIのトップレベルclassとして残し、旧import名とpickleのlookupを維持する。adapterのmodule/nameも登録先に合わせる。型注釈は登録時の実際のDoc/Bundle等で解決し、`typing.get_type_hints` の意味を保つ。従来のfuture annotation文字列は型objectへ解決されるため、注釈そのものの表示形式は変わるが、引数名・順序・default・kindと解決後の型は維持する。parserはproject stateや書き込みに依存せず、`build_parser`、`main`、`run` は旧入口として利用できる。

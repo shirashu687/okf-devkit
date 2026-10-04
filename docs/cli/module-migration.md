@@ -7,8 +7,11 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T11:30:28Z
+  at: 2026-10-04T11:48:21Z
 code_globs:
+  - src/okf_devkit/compat.py
+  - src/okf_devkit/parser.py
+  - tests/test_cli_facade.py
   - src/okf_devkit/commands/stale.py
   - src/okf_devkit/commands/affected.py
   - src/okf_devkit/commands/new.py
@@ -45,15 +48,15 @@ related:
 
 # CLI 分割の移行設計
 
-第5b段階で stale、affected、new、status、render、sync、init も `commands/` 配下へ分離し、全10コマンドの実装所有者を移した。canonical command は Bundle の `.repo_root` または明示した project root を使い、CLI の可変 root を import しない。stale は呼び出しごとの Git 時刻 cache を文書間で共有し、status/render の Doc factory に root を明示する。旧CLIは現在の root・helper・writer・factory・gate TTL を呼び出し時に渡す薄い adapter で維持する。引数解析と互換 export の最終分離は後続段階に残り、cli 200行以下という Issue #12 全体の完了条件はまだ満たしていない。
+第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。全10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
 
-第4段階時点の記録: 第4段階の実装は `gitutil.py` を所有者とし、rootと時刻cacheを明示する。`CommitTimesCache` はrootが変わると再計算し、同root内の更新は呼出元がmappingをNoneへ戻して無効化する。旧cliのroot・git runner・時刻map/reset adapterと同一Commit/parser exportを保持する。実2repo・特殊名・runner失敗・resource glob・gateを新所有者で検証する。commandsと200行以下の入口はまだ未完了。 現在は第5b段階で全10コマンドを分離済みで、残るのは引数解析・互換exportの入口分離である。更新済み親との統合後のcliは568行で、200行以下の最終条件は未達である。
-第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commands 分離は第5b段階で完了した。cli 200行以下は未完了である。
+第4段階時点の記録: 第4段階の実装は `gitutil.py` を所有者とし、rootと時刻cacheを明示する。`CommitTimesCache` はrootが変わると再計算し、同root内の更新は呼出元がmappingをNoneへ戻して無効化する。旧cliのroot・git runner・時刻map/reset adapterと同一Commit/parser exportを保持する。実2repo・特殊名・runner失敗・resource glob・gateを新所有者で検証する。commandsと200行以下の入口はまだ未完了。 第5b段階で全10コマンドを分離済みとなり、統合後のcliは568行だった。第6段階ではparser/compatを分離し、現在のcliは98行である。
+第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commands 分離は第5b段階で完了した。入口の最終分離は第6段階で完了し、現在のcliは98行である。
 
 
 この文書は Issue #12 の事前調査・技術設計と段階別の実装記録であり、Issue全体の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。
 
-段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。この記録は段階0/1時点の状態である。後続の段階4実装は冒頭の現況を参照し、commandsと200行以下の入口は未完了である。
+段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。この記録は段階0/1時点の状態である。現在までの後続実装は冒頭の現況を参照する。第6段階で全コマンドとparser/compatの分離を終え、cliは98行である。
 
 ## 現状の依存とテスト面
 
@@ -125,11 +128,11 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 
 Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動のstrict renderとは終了値の契約が異なる。CLIの移動でadapter/hookの振る舞いを統合・削除せず、入力を実行しない、失敗時にエージェントをブロックしない、実HTMLの連続生成、strict/advisoryの違いを既存の `tests/test_repo_hooks.py` と関連Nodeテストで維持する。実エージェントイベントの観測とローカルadapterテストは区別する。
 
-## 実装済み段階1・2と残る移行（段階2時点の記録）
+## 段階1・2当時の記録（段階2時点の記録）
 
-以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。現在の段階3では上部に記載したDoc/config分離が実装済みであり、以下の「未実装」「subsequent」は段階2時点を指す。現在の第5a段階ではindex/log/lintの3コマンドを分離済みで、残る7コマンドと200行以下の入口は後続作業である。
+以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。段階3当時はDoc/config分離が実装済みとなり、段階5a当時はindex/log/lintの3コマンドを分離済みだった。以下の「未実装」「subsequent」は段階2時点を指し、残る7コマンドと入口が後続作業だったのは段階5a時点である。現在は第6段階まで完了し、全10コマンドとparser/compatを分離した98行の入口を持つ。
 
-固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
+段階2当時は、固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
 
 `yamlio.parse_yaml(text, source)` は省略backendなら実owner `yamlio._pyyaml` を使い、keyword backendの明示Noneは内蔵parserを選ぶ。旧 `cli.parse_yaml` は旧 `cli._pyyaml` を明示して渡す薄いadapterとして残す。通常Doc/Bundleはこの旧aliasに依存せずyamlioを直接利用する。helpersの保存・復元とYaml/context testsは実ownerへ移行し、内蔵constructorとPyYAML.safe_loadの呼出しを観測する。`python -S` の新processでsite-packagesを外し、PyYAMLのimportが実際に利用できない状態で同じconfig/frontmatterと拒否構文を確認する。
 

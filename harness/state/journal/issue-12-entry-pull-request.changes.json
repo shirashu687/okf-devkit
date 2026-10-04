@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "5dbf27e8f17357fdb9f53889d260c0f1614a5ce6",
+  "worklog": "harness/state/journal/issue-12-entry.md",
+  "changes": [
+    {
+      "path": "tests/test_cli_facade.py",
+      "reason": "Regression tests for public facade metadata/type hints/pickle, live independent namespace ownership and readable CLI entry boundary; existing runtime assertions unchanged."
+    }
+  ]
+}
