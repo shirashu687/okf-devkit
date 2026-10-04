@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task",
+  "base": "0abf1af4b6b793da16635fb92da71c1af2ccc8ef",
+  "worklog": "harness/state/journal/issue-9-repo-stop-hook.md",
+  "changes": [
+    {
+      "path": "tests/test_repo_hooks.py",
+      "reason": "Match registered completion launcher tests to OS selection: Linux POSIX, Windows native PowerShell/cmd; preserve standalone pwsh adapter verification."
+    }
+  ]
+}
