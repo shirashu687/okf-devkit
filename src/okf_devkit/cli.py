@@ -325,55 +325,13 @@ def cmd_new(bundle: Bundle, args) -> int:
 # =============================================================================
 
 
-def backlog_docs(bundle: Bundle) -> list[Doc]:
-    directory = bundle.backlog_dir()
-    if not directory.exists():
-        return []
-    return [
-        Doc(p, bundle.root)
-        for p in sorted(directory.iterdir())
-        if p.is_file() and p.suffix == ".md" and p.name not in bundle.reserved
-    ]
+from .commands import status as _status
 
+def backlog_docs(bundle: Bundle) -> list[Doc]:
+    return _status.backlog_docs(bundle, repo_root=REPO_ROOT, doc_factory=Doc)
 
 def cmd_status(bundle: Bundle, args) -> int:
-    docs = backlog_docs(bundle)
-    states = list(bundle.backlog_cfg.get("state_order") or ["doing", "todo", "done", "dropped"])
-    priorities = list(bundle.backlog_cfg.get("priorities") or ["high", "medium", "low"])
-
-    by_state: dict[str, list[Doc]] = {s: [] for s in states}
-    for doc in docs:
-        by_state.setdefault(str(doc.fm.get("state") or "todo"), []).append(doc)
-
-    priority_counts = {
-        state: {p: sum(1 for d in items if str(d.fm.get("priority") or "") == p) for p in priorities}
-        for state, items in by_state.items()
-    }
-
-    if args.format == "json":
-        payload = {
-            "total": len(docs),
-            "states": {s: len(v) for s, v in by_state.items()},
-            "priorities": priority_counts,
-            "doing": [{"path": d.repo_rel, "title": d.title,
-                       "priority": d.fm.get("priority"), "effort": d.fm.get("effort")}
-                      for d in by_state.get("doing", [])],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0
-
-    print(f"backlog: 全 {len(docs)} 件")
-    for state in states + sorted(s for s in by_state if s not in states):
-        items = by_state.get(state) or []
-        detail = " ".join(f"{p}:{priority_counts.get(state, {}).get(p, 0)}" for p in priorities)
-        print(f"  {state:<8} {len(items):>3} 件  ({detail})")
-    doing = by_state.get("doing") or []
-    if doing:
-        print("\ndoing:")
-        for doc in doing:
-            chips = " ".join(f"`{doc.fm[k]}`" for k in ("priority", "effort") if doc.fm.get(k))
-            print(f"  - {doc.title} {chips} ({doc.repo_rel})")
-    return 0
+    return _status.cmd_status(bundle, args, reader=backlog_docs)
 
 
 # =============================================================================

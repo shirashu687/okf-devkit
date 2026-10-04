@@ -10,3 +10,6 @@ Canonical affected obtains changed paths once before the document loop, using ex
 
 ## new
 Canonical new uses Bundle.repo_root for output/error paths and keeps creation inside bundle.root. Template/path/writer callbacks preserve legacy CLI override seams. Canonical writer and output-root regression passed. Full Python 246 run, failures 0, errors 0, skipped 1; compatibility 13 pass. No Doc/Bundle constructors in the moved block. Evidence: task/issue12-commands-b-new-python.log and -new-compat.log.
+
+## status
+Status backlog construction passes explicit repo_root to its Doc factory; actual owner/factory observation confirms stable repo-relative paths after CLI root changes. Legacy current root/Doc factory/backlog reader callbacks remain available. The first auxiliary AST audit incorrectly classified every conditional function call as a Doc constructor and failed; the corrected Doc-specific audit passed. Product constructor root was present before execution. Full Python 247 run, failures 0, errors 0, skipped 1; compatibility 13 pass. Evidence: task/issue12-commands-b-status-python.log and -status-compat.log.

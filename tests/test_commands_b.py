@@ -56,3 +56,17 @@ class RemainingCommandTest(OkfTestCase):
         self.assertEqual('docs/server/owner.md', output.getvalue().strip())
         self.assertTrue((bundle.root / 'server/owner.md').is_file())
         self.assertFalse((self.repo / 'different').exists())
+
+    def test_status_constructs_backlog_docs_with_explicit_owner_root(self):
+        from okf_devkit.commands import status
+        config = self.make_config()
+        self.write('docs/backlog/B-0001-owner.md', doc_text(type_='Backlog Item', layer='shared', code_globs=None))
+        bundle = cli.Bundle(config)
+        prior = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', prior)
+        with patch.object(status, 'Doc', wraps=status.Doc) as factory:
+            docs = status.backlog_docs(bundle)
+        self.assertEqual(1, len(docs))
+        self.assertEqual('docs/backlog/B-0001-owner.md', docs[0].repo_rel)
+        self.assertEqual(bundle.repo_root, factory.call_args.kwargs['repo_root'])
