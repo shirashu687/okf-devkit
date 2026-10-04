@@ -17,7 +17,7 @@
 | ID | 状態 | 初回 | 回数 | 分類 | 重要度 | 症状 | 対処案 | 適用範囲 | 確認方法 | 期限 | 結果・反映先 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | IMP-0010 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #9のshared log追記で新しい日付を末尾に置き、lint L8 warn1を検出した。 | 既存日付の降順を追記前に確認する候補 | OKF logの手動更新 | lintのL8と新規日付の位置を照合 | 未定（試行未開始） | 日付を先頭へ移して再lint error0/warn0。[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。恒久採用は未判断。 |
-| IMP-0012 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)。修正確認済み、恒久採用なし。 |
+| IMP-0012 | 観測 | 2026-10-03 | 2 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)と[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。2026-10-04に実HTML hook fixtureの必須config不足を追加観測。修正確認済み、恒久採用なし。 |
 | IMP-0008 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #6の新規回帰テストが既存API引数とhelperのbundle固定に合わず初回検証で失敗した。 | 追加テストの呼出引数とcustom bundle対応を既存helperと照合する候補 | init shared log回帰テスト | default/custom bundleをPython/Nodeで検証 | 未定（試行未開始） | [Issue #6 worklog](state/journal/issue-6-shared-log.md)。テスト修正後Python170/Node12/互換7成功、恒久採用なし。 |
 | IMP-0005 | 観測 | 2026-09-10 | 1 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 |
 | IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
@@ -130,6 +130,9 @@
 - 原因仮説: initだけではroot indexを生成しない前提とActor表記をfixture/文書作成時に見落とした。成果物の回帰や誤った成功報告は確認されていない。
 - 分類・重要度: automated checks / 低。テスト自身の不足と文書警告を実装完了前に解消。
 - 対処案・確認方法: 必要なroot indexを明示しnpm test/compatで新規test名・pass数、lint error0/warn0を確認。恒久ルールの採用や試行は実施しない。期限未定（観測のみ）。
+
+- 2026-10-04、独立事象2: Issue #9の新規実HTML hook fixtureにokf.ymlを用意せず、実CLIが設定なしを拒否してsh/ps1双方で失敗。組込みdefaults.ymlの初期コピーと不正YAML検査後の復元で修正し、focused5を作者・独立reviewer双方が成功確認した。entrypoint guard、Windows診断のUTF-8、Node依存の準備も同fixtureで修正。根拠は[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。
+- 原因仮説:新規HTML fixtureの必須入力前提を設計時に列挙しなかった可能性。新規HTML表示テスト・OKF文書の前提不足という元IDの症状・適用範囲に一致するため統合。改善候補はfixture前提の明示（automated checks / 低）、確認方法はnpm ci後の実runtime生成・失敗fixtureとfocused/fullsuiteの照合。今回修正は確認済みだが、恒久ルール採用・改善試行・再発予防効果は未判定。観測の回数のみ1→2、評価10/10・試行0/3を維持。
 
 ### IMP-0009
 

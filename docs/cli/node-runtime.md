@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: "2026-10-04T01:48:12Z"
+  at: 2026-10-04T03:34:44Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -78,8 +78,10 @@ POSIXでは `cp` で同じ2ファイルをコピーする。探索順はロー�
 hook実行時にnpmレジストリへアクセスしない。Windows PowerShell 5.1でもUTF-8 BOMなしのhookを読めるよう、ps1のソースはASCIIで記述する。
 
 このリポジトリの `.okf/hooks/` も共有 scaffold と同じラッパーを使い、
-`.claude/settings.json` の Stop hook から呼ぶ。プロジェクト内の設定だけを管理し、
-利用者のグローバル hook 設定は変更しない。
+Claude、Copilot、Codexの終了設定は、この共通ラッパーをadvisoryアダプター経由で呼ぶ。
+手動の共通ラッパーは失敗時に非0を返し、終了イベント用アダプターは標準エラーへ診断を残して0と `{}` を返す。
+対応環境、信頼、二重生成の可能性、未検証の実イベントは [終了hookの手順](/agents/completion-hooks.md) を参照する。
+プロジェクト内の設定だけを管理し、利用者のグローバルhook設定は変更しない。
 
 ## 検証と互換性
 

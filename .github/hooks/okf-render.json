@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "sh \"$(git rev-parse --show-toplevel)/.okf/hooks/agent_stop.sh\"",
+        "powershell": "& (Join-Path (git rev-parse --show-toplevel) '.okf/hooks/agent_stop.ps1')",
+        "cwd": ".",
+        "timeoutSec": 60
+      }
+    ]
+  }
+}

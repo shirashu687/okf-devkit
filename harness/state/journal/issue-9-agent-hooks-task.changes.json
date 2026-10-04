@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "scope": "pull-request",
-  "base": "c09c6eea9756c05904c6dc2f27f3f832d28e283f",
+  "scope": "task",
+  "base": "cdb293a1dbe96573a526e67a94fff09f288cf997",
   "worklog": "harness/state/journal/issue-9-repo-stop-hook.md",
   "changes": [
     {

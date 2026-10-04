@@ -89,3 +89,48 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - Verification results appended after completion; independent review/push/final remote CI pending. Claude session remains outside scope. No merge/publish/Issue close.
 
 - Verification: Python196 tests, failure0/error0/skip1 (symlink unavailable on this Windows environment); Windows raw alias/manifest tests ran. npm ci successful; Node25/25, compatibility11/11 successful, including cleanup suites. Docs index --write/--check and lint error0/warn0 successful; render --check wrote/deleted0 files and reported warn0. npm pack --dry-run completed; cleanup implementation/tests/package scripts and CI compatibility entry retained. Affected report inspected: imported main documents retained; PR24 references aligned to current CLI semantics. Final committed-head PR-scope/diff/conflict checks below. Independent review and final CI pending.
+
+## 2026-10-04: Copilot/Codexを含む共通終了hook（承認済み追加範囲）
+
+- 開始点: `cdb293a1dbe96573a526e67a94fff09f288cf997`、PR比較点: main `c09c6eea9756c05904c6dc2f27f3f832d28e283f`。作業場所は既存の隔離worktree `issue9`、branch `codex/issue-9-repo-stop-hook`。開始時worktree clean。main取り込み済みのledger10件/試行0件/却下履歴は保持し、元のtask宣言と検証履歴を残す。
+- ユーザー承認: Claudeに依存せずCopilot・Codexというツールから共通生成処理を呼ぶ。repo内設定だけを対象とし、scaffold/init/配布、グローバル設定、信頼の迂回、モデルターン開始、公開は対象外。
+- 設計: strict `render_hook.sh` / `.ps1` を保持。`agent_stop` advisory adapterは子stdoutを抑え、成功/失敗とも0と `{}`、失敗診断をstderrへ残す。Copilot version1 agentStop / Codex Stop+commandWindows、既存Claude設定は同じadapterへ変更しplugin設定を保持。同期timeout60秒（Claude既存30秒）で生成の完了を待つ。
+- 調査: investigate担当が2026-10-04の公式GitHub/VSCode/Codex一次資料を確認。文書にURL・対応表・未検証環境を記録。installed versionのみ `codex --version` 0.159.0、`copilot --version` 1.0.25を実測。実CLI/IDE/cloud終了イベント・認証操作・モデルターンは未実行。
+- Copilot互換sourcesはadditive。親の設計判断でClaude機能を自動削除せず、二重生成の可能性・二つのtimeout・生成物の再書込みを明示。payload判別や重複抑止状態ファイルは追加しない。Markdown正本は保持し、通常renderのstale owned HTML削除は既存仕様どおり。
+- 新テストは実shellのmock子コマンド0/1/2、非JSONstdout抑制、stderr保持、payload非実行/非表示、空白を含むnested Gitrootと各登録launcherを検証する。実共通wrapperはNodeの実CLIへforwardするfixtureで2回成功と不正YAMLのstrict1/advisory0を別確認する。
+- 初回検証:4testのうちWindows cmd経由launcherテストが失敗。原因はPython argv listからcmdへ渡す引用符の表現で実コマンドが文字列として表示されたこと。raw config commandをshell経由で実行するテストへ修正、PowerShell経由とcmd経由の両方で成功。Git shellはPATH外なのでGit executableの隣接binを検出。検証失敗を省略しない。
+- 検証状態: 実行中。対象版は上記開始SHA+作業ツリー。full Python、npm ci、Node/compat、affected/index/lint/render/check、task/PR宣言検査と独立二軸reviewを完了後に結果表へ記録する。最新SHAのCIは未実行（親review後push担当へ引継ぎ）。
+- retro開始確認:ledgerは評価10/10、試行0/3、採用0、最終確認2026-10-04。期限付き試行/採用見直しなし。既存IDと却下履歴は書き換えない。今回のlauncher test初回失敗は既存IMP-0005のshell/runtime検証範囲として親へ報告し、完了時に処理範囲を確定する。
+
+- 実共通fixtureの初回検証は2失敗:forward moduleをimportするだけではentrypoint guardでmainが走らず、mainを明示呼出し後はfixtureの必須okf.ymlが欠けて実CLIが失敗した。組込みdefaults.ymlを初期configへコピーし、不正YAML検査後は元configを復元して修正。Windows標準encodingで診断が読めない再現もreviewerから報告され、subprocessをUTF-8/replaceに明示した。実CLI側の失敗判定は変更せず、assertionを弱めない。Node依存未準備のPython-only環境はrealNode fixtureのみ明示skipし、npm ci実行後は必ず検証する。
+
+### 追加範囲のfull retro（2026-10-04）
+
+- 確認範囲:親の承認仕様、開始版cdb293、変更したconfig/adapters/tests/docs、作者と独立reviewerの初回失敗・修正後focused成功、ローカル検証。latestCI/実agentイベントは未実行。
+- トリガー:意図したTDD red以外の新規HTML fixture必須config不足とWindows launcher/診断encoding失敗。実CLIの正しい拒否をfixture側が満たせず、誤った成功扱い前に修正。
+- 原因仮説:fixture必須設定・CLI entrypointとshell command transport前提の初期確認不足。原因は仮説であり、再発予防効果の証明ではない。
+- 候補/重要度/範囲:fixture前提の明示、automated checks/低、新規HTML表示テスト・OKF文書。Node依存未準備は必要前提として明示し、UTF-8診断と実shell経路の検証を保持。
+- 処理済み:元IMP-0012の新規HTML fixture前提不足と同じ症状・範囲へ2026-10-04の独立観測を統合、回数1→2。元rootindex/Actorの初回証拠を保持。台帳評価10/10、試行0/3、却下IMP-0002履歴を保持。改善試行や恒久ルール採用は行わない。
+- 未確認/次の一手:実agentイベント・cloudは対応表どおり未確認。親へclean commitを渡し独立review/最終SHA CI、必要時は各ツールの信頼設定を本人が確認する。
+
+### 追加範囲のローカル検証結果
+
+対象版: 開始cdb293a1dbe96573a526e67a94fff09f288cf997+全変更worktree（最終5test修正後）。以下はローカル結果でありCI結果ではない。指定既存venvのみを利用し、元repo/venvを変更していない。
+
+| 状態 | 実コマンド | 結果・根拠 |
+| --- | --- | --- |
+| 成功 | 指定python `-m unittest discover -s tests -p test_repo_hooks.py -v` | 作者5/5・skip0（6.164秒）、独立cleanup_python5/5・skip0（6.134秒）。Git Bash/PS5.1の実子コマンド0/1/2、各登録launcher、payload非実行/非表示、実Node CLI生成2回と不正configstrict1/advisory0を確認。 |
+| 成功 | `PYTHONUTF8=1; PYTHONPATH=<worktree>/src; <既存venv>/python.exe tests/run_all.py` | 最終204件、失敗0/エラー0/skip1（既存Windows symlink権限）。workspace外の `issue25-python-final.txt` に実出力。初回203は5番目実fixture追加前、最終成功と区別。 |
+| 成功 | `npm ci` | added8/audited9、vulnerabilities0。hook内でinstallを行わない。 |
+| 成功 | `npm test` | Node28 pass28/fail0/skip0、`issue25-node.txt`。 |
+| 成功 | `OKF_TEST_PYTHON=<既存venv>/python.exe; PYTHONPATH=<worktree>/src; npm run test:compat` | 12 pass12/fail0/skip0、`issue25-compat.txt`。 |
+| 成功 | Python `affected --base cdb293a1dbe96573a526e67a94fff09f288cf997` | 新completion-hooks文書がconfig/testsに対応。README/ledger/worklog/declarationsはbundle外管理資料として直接確認、node-runtimeも本文更新。 |
+| 成功 | Python `index --write` / Python+Node `lint`, `index --check`, `render --check` | agents/indexを1件生成、両lint error0/warn0、index最新、両rendercheck22page/warn0で書込0削除0。 |
+| 成功 | `check_changes.py --base cdb293a1dbe96573a526e67a94fff09f288cf997` / `--scope pull-request --base c09c6eea9756c05904c6dc2f27f3f832d28e283f` | task/PRともresult=ok。対象保護pathはClaude設定、Codex設定、新規testsのexact3件。歴史task宣言は保存。 |
+| 成功 | `git diff --check` | 空白不整合なし。 |
+| 失敗（修正後成功） | 初回focused検証 | cmd argv quoting、realCLI main未呼出し/必須config欠落の履歴は上記に保持。 |
+| 未実行 | 実Claude/Copilot/Codex CLI/IDE/cloudの終了イベント、認証操作/モデルターン | 承認範囲のrepo成果物・synthetic/実コマンド検証と区別。official discovery/trust/settings前提と未確認環境は公開文書に明記。 |
+| 未実行 | 最終commit SHA CI | この担当はcommit後親reviewへ渡し、pushしない。親が最終SHAで必要CIを確認する。 |
+| 実行不能 | 追加範囲の必須ローカル検証 | なし。既存symlinkケースの環境制約はskip理由に保持。 |
+
+独立review: cleanup_pythonが仕様と標準を別軸で全tracked/untracked差分、公式資料、実focused5再実行、ledger/fullretroを確認。stale ownedHTML削除の文言とfixture前提・encoding指摘を修正、製品blocking0。記録最終commitとexactSHA宣言の確認は次に行う。
