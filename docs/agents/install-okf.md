@@ -7,7 +7,7 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T14:52:21Z
+  at: 2026-10-04T14:59:46Z
 code_globs:
   - package.json
   - package-lock.json
@@ -29,6 +29,7 @@ related:
 明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
 本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
 この文書のRelease経路は別途承認された公開後に使う。v0.1.0はタグ用workflow全10jobと3assetの検証済みDraftがあるが、現在未公開。公開済みPreReleaseの取得・実利用者への導入は未実施。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。公開前は確認済み完全Git SHAのソース経路を選ぶ。
+既存v0.1.0の検証済みtgzはタグ対象12cdb44の固定バイトで、同梱READMEには修正前のPyPI例と古い公開状態の説明が残る。今回のリポジトリ文書修正はそのassetへ反映されないため、現在のこの導入ガイドを参照する。タグの移動、再pack、既存assetの差替えで案内を更新しない。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
 
 ## 1. 環境と既存状態を読む

@@ -57,6 +57,7 @@ Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を�
 標準はrepo-local、globalは明示選択。Node同梱exeと自動更新は提供しない。
 v0.1.0タグは完全SHA `12cdb44c2876b50bd7337a5ea20f7744a27d7802` を指し、配布workflowの全10job成功と3assetの照合を済ませたDraftがある。現在は未公開で、公開済みPreReleaseとしての導入確認はまだ行っていない。公開前は確認済み完全Git SHAのソース経路を使う。実利用者への導入は別工程である。
 配布担当者は [タグ・Draft検査・公開の手順](docs/agents/release-node.md) を参照する。
+既存v0.1.0の検証済みtgzはタグ対象12cdb44のまま固定しており、同梱READMEには修正前のPyPI例・古い公開状態の説明が残る。このリポジトリのREADME/導入ガイド修正は既存assetのバイトへ反映されない。導入時は現在の [導入ガイド](docs/agents/install-okf.md) を参照し、同じassetを差し替えたり再packしたりしない。
 
 **AIに任せる入口**: [導入・更新・rollbackの手順と貼り付け用依頼文](docs/agents/install-okf.md)。環境確認、管理方式の選択、固定版導入、初期化、実CLI検証を順に扱う。インストールと `init` は別操作で、既存ファイルは `init` でスキップする。更新に `init --force` を使わない。
 
@@ -85,7 +86,7 @@ node node_modules/okf-devkit/node/cli.mjs --help
 npm.cmd install --global --ignore-scripts "C:/verified/path/okf-devkit-0.1.0.tgz"
 ```
 
-上のlocal/globalは代替の選択肢で、両方を実行する手順ではない。POSIXでは`npm.cmd`を`npm`に読み替える。取得済みtgzの保持場所はCI/他端末でも使える方式を選ぶ。更新時はmanifest/lockfileと既存の検証済み配布物を保存し、復旧はその組と`npm ci --ignore-scripts`を使う。同じ0.1.0という版名だけで同じバイトと判断せず、既存assetの差替えや再packをしない。
+上のlocal/globalは代替の選択肢で、両方を実行する手順ではない。POSIXでは`npm.cmd`を`npm`に読み替える。取得済みtgzの保持場所はCI/他端末でも使える方式を選ぶ。repo-localの更新時はmanifest/lockfileと既存の検証済み配布物を保存し、復旧は保存したmanifest/lockfileを戻して`npm ci --ignore-scripts`を使う。globalでは`npm ci`を復旧手順とせず、保存した旧版tgzを`npm.cmd install --global --ignore-scripts "C:/saved/path/old-version.tgz"`で再導入し、`Get-Command okf`などで元の解決パスと版・実CLIの動作を確認する。同じ0.1.0という版名だけで同じバイトと判断せず、既存assetの差替えや再packをしない。
 
 ```powershell
 # このリポジトリ内で実行（PowerShell / bash 共通）
