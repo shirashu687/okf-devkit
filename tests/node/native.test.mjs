@@ -493,3 +493,37 @@ test("init shared log matches config and log write reuses it", (t) => {
     assert.match(fs.readFileSync(bundle.logPath("shared"), "utf8"), /Update shared source/);
   }
 });
+
+
+test("grouped backlog uses title-first cards, native disclosures and optional controls", t => {
+  const root=temp(t);init(root);put(root,'docs/index.md','# Docs\n');
+  put(root,'okf.yml',fs.readFileSync(path.join(root,'okf.yml'),'utf8')+'\nbacklog:\n  priorities: [high]\n  efforts: [small]\n');
+  for(const state of ['doing','todo','done','dropped'])
+    put(root,`docs/backlog/${state}.md`,document(`state: ${state}\npriority: high\neffort: small\n`).replace('type: Reference','type: Backlog Item'));
+  ok(run(root,['render']));
+  const page=fs.readFileSync(path.join(root,'_site/index.html'),'utf8');
+  assert.ok(page.includes('class="backlog-tools" hidden'));
+  assert.equal((page.match(/class="backlog-card"/g)||[]).length,4);
+  assert.equal((page.match(/data-default-open="false"/g)||[]).length,2);
+  assert.equal((page.match(/data-default-open="true" open/g)||[]).length,2);
+  assert.ok(page.includes('priority: high'));assert.ok(page.includes('effort: small'));
+});
+
+test("backlog search opens matches, restores user disclosure and toggles only presentation", async () => {
+  const vm=await import('node:vm');
+  let click,input;
+  const card={dataset:{backlogSearch:'done task b-1'},hidden:false};
+  const group={dataset:{defaultOpen:'false'},open:true,hidden:false,querySelectorAll:()=>[card]};
+  const button={setAttribute:(key,value)=>{button[key]=value;},addEventListener:(_,fn)=>{click=fn;}};
+  const search={value:'',addEventListener:(_,fn)=>{input=fn;}};
+  const status={textContent:''};
+  const tools={hidden:true,querySelector:s=>({'.backlog-view-toggle':button,'.backlog-search':search,'.backlog-search-status':status}[s])};
+  let board=false;
+  const progress={classList:{toggle:()=>{board=!board;return board;}},querySelector:()=>tools,querySelectorAll:()=>[group]};
+  const document={documentElement:{dataset:{}},querySelector:()=>null,querySelectorAll:s=>s==='.backlog-progress'?[progress]:[]};
+  vm.runInNewContext(fs.readFileSync(path.join(repo,'src/okf_devkit/assets/docs.js'),'utf8'),{document,localStorage:{getItem:()=>null},matchMedia:()=>({matches:false})});
+  assert.equal(tools.hidden,false);click();assert.equal(button['aria-pressed'],'true');click();assert.equal(button['aria-pressed'],'false');
+  search.value='absent';input();assert.equal(card.hidden,true);assert.equal(group.hidden,true);assert.equal(group.open,false);
+  search.value='task';input();assert.equal(group.open,true);assert.equal(status.textContent,'1 件が一致');
+  search.value='';input();assert.equal(group.open,true);assert.equal(group.hidden,false);assert.equal(card.hidden,false);
+});

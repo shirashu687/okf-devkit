@@ -84,3 +84,8 @@ implement skillとcode-review skillを読み適用。保護対象テスト変更
 - Start ad0521e475ddf76a401b7714a73d73510fd20bfe, merge exact main 50380b3d3a22507b2bd2e329e1d206141ce2432e as 274bdbbe6fe808e121f53ea22d2bd98797558979. Preserve cleanup manifest/hash/receipt/rollback/raw Windows alias checks and backlog tests. Screenshots unchanged, historical task declarations unchanged, PR declaration follows exact main. Ledger now 10 evaluating observations / cap10, no added occurrence.
 - npm ci succeeded; Python full 198 run / failure0 / error0 / skipped1 (focused cleanup run confirmed symlink unavailable on this Windows environment); Node26 / compatibility12 passed including cleanup suites. Symlink test is unverified locally, not successful. Windows alias tests executed; remote Ubuntu CI not inferred.
 - affected reports existing updated node-runtime / ADR / backlog-progress / output-cleanup docs. index --write generated current render index; lint error0 warn0 / index --check / render --check (21 pages, write0, delete0, warn0) / exact-main PR changecheck / marker scan / diffcheck succeeded. Final change after tests is index/worklog only. Parent owns independent review, push, final-SHA CI.
+
+### Grouped list and optional kanban implementation
+
+- Authorized UI scope: read-only grouped states, optional same-DOM kanban, done/dropped disclosures, title-first cards/source ID, configured priority/effort only. Search autoopens matches and restores actual pre-search disclosure; no editing/schema/server/generated.at semantics changes. Cleanup code unchanged.
+- Initial focused Python renderer tests and Node28 passed; full Python/compat/docs checks and independent real-browser review pending. Historical screenshots retained; parent owns new screenshots/review/push/CI.

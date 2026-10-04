@@ -6,15 +6,15 @@
   "changes": [
     {
       "path": "tests/test_render.py",
-      "reason": "Issue #21 read-only backlog state/count/link/configuration regression coverage; existing tests preserved"
+      "reason": "Read-only backlog state/group/list/kanban/search/metadata and runtime parity regression; existing tests preserved"
     },
     {
       "path": "tests/node/native.test.mjs",
-      "reason": "Issue #21 read-only backlog state/count/link/configuration regression coverage; existing tests preserved"
+      "reason": "Read-only backlog state/group/list/kanban/search/metadata and runtime parity regression; existing tests preserved"
     },
     {
       "path": "tests/node/compatibility.test.mjs",
-      "reason": "Issue #21 read-only backlog state/count/link/configuration regression coverage; existing tests preserved"
+      "reason": "Read-only backlog state/group/list/kanban/search/metadata and runtime parity regression; existing tests preserved"
     }
   ]
 }

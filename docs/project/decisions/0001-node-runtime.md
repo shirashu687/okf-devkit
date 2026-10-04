@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-03T10:19:54Z
+  at: "2026-10-04T01:48:12Z"
 code_globs:
   - node/*.mjs
   - package.json
@@ -63,3 +63,5 @@ CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ
 `new doc` の必須型は両実装で `--code-globs`（複数指定可）を要求する。任意型の省略は維持し、プレースホルダのrelatedとcode_globsは空リストへ置換する。
 
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
+
+Backlogの閲覧は状態別の折り畳みリストを既定とし、同じ項目を任意のカンバン表示へ切り替える。専用検索は表示のみを変更し、元Markdownとcleanupの安全契約は保持する。Python/Nodeは同じHTMLと共通アセットを利用する。

@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: process:codex
-  at: "2026-10-03T00:00:00Z"
+  at: "2026-10-04T01:48:12Z"
 code_globs:
   - src/okf_devkit/renderer.py
   - node/renderer.mjs
@@ -43,3 +43,11 @@ okf render --output _site
 ## 状態を反映する
 
 元 Markdown の frontmatter の `state` を更新して `okf render` を再実行すると、一覧・件数も更新される。生成・閲覧では元 Markdown を変更しない。画面からの編集・同期や別の管理データは持たない。このリポジトリ自身の課題管理は GitHub Issues を継続する。
+
+## 状態別リストとカンバン
+
+初期表示は状態別リスト。タイトルを主にし、元ファイルのIDと既存のpriority・effortを補助情報として表示する。doing・todoとカスタム状態は開いた状態、done・droppedは折り畳み、summaryをキーボードでも開閉できる。状態名・並び順・全対象件数は元の設定とMarkdownを基準にする。
+
+JavaScriptが有効なら「カンバン表示」で同じ項目を列状に切り替えられる。狭い画面では一列になる。Backlog専用検索はタイトル・ID・状態・補助情報で絞り込み、一致した完了項目も開いて表示する。検索を消すと検索開始前の開閉状態へ戻る。件数サマリーは全対象を表し、検索結果件数は別に読み上げる。JavaScriptが無効でも本文リンクとネイティブの折り畳みリストを利用できる。
+
+切替・検索は表示だけを変更し、Markdown、state、生成時刻、cleanup manifestを編集しない。

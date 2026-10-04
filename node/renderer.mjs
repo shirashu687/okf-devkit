@@ -147,12 +147,20 @@ function backlogProgress(pages, current, b) {
   chunks.push('</ul>');
   if (!items.length) chunks.push('<p>Backlog Item はありません。</p>');
   else {
-    chunks.push('<div class="table-scroll"><table><caption>Backlog Item 一覧（読み取り専用）</caption><thead><tr><th scope="col">ID / 元ファイル</th><th scope="col">タイトル</th><th scope="col">state（進捗）</th></tr></thead><tbody>');
-    for (const p of items.sort((a,b) => states.indexOf(backlogState(a)) - states.indexOf(backlogState(b)) || compare(a.source,b.source))) {
-      const href = encodeURI(relativeHtml(current.output, p.source)).replaceAll("#", "%23").replaceAll("?", "%3F");
-      chunks.push(`<tr><td><code>${escape(p.source)}</code></td><td><a href="${escape(href)}">${escape(p.doc.title)}</a></td><td><span class="badge state">${escape(backlogState(p))}</span></td></tr>`);
+    chunks.push('<div class="backlog-tools" hidden><button type="button" class="backlog-view-toggle" aria-pressed="false">カンバン表示</button><label>Backlog を検索 <input class="backlog-search" type="search" placeholder="タイトル・ID・状態"></label><p class="backlog-search-status" aria-live="polite"></p></div><div class="backlog-groups">');
+    for (const state of states) {
+      const group = items.filter(p => backlogState(p) === state).sort((a,b) => compare(a.source,b.source));
+      const opened = !['done','dropped'].includes(state);
+      chunks.push(`<details class="backlog-group" data-default-open="${opened}"${opened ? ' open' : ''}><summary><span class="badge state">${escape(state)}</span> ${group.length} 件</summary><ul class="backlog-items">`);
+      for (const p of group) {
+        const href = encodeURI(relativeHtml(current.output, p.source)).replaceAll('#','%23').replaceAll('?','%3F');
+        const metadata = ['priority','effort'].filter(key => p.doc.fm[key] && (b.backlog[key === 'priority' ? 'priorities' : 'efforts'] || []).includes(p.doc.fm[key])).map(key => `<span>${key}: ${escape(String(p.doc.fm[key]))}</span>`).join('');
+        const search = [p.doc.title,p.source,state,p.doc.fm.priority || '',p.doc.fm.effort || ''].join(' ').toLowerCase();
+        chunks.push(`<li class="backlog-card" data-backlog-search="${escape(search)}"><a class="backlog-title" href="${escape(href)}">${escape(p.doc.title)}</a><div class="backlog-meta"><code>${escape(p.source)}</code>${metadata}</div></li>`);
+      }
+      chunks.push('</ul></details>');
     }
-    chunks.push('</tbody></table></div>');
+    chunks.push('</div>');
   }
   chunks.push('</section>');
   return chunks.join('');

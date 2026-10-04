@@ -268,15 +268,18 @@ def _render_backlog(pages: list[Page], current: Page, bundle: Any) -> str:
     if not items:
         chunks.append('<p>Backlog Item はありません。</p>')
     else:
-        chunks.append('<div class="table-scroll"><table><caption>Backlog Item 一覧（読み取り専用）</caption>'
-                      '<thead><tr><th scope="col">ID / 元ファイル</th><th scope="col">タイトル</th>'
-                      '<th scope="col">state（進捗）</th></tr></thead><tbody>')
-        for page in sorted(items, key=lambda item: (states.index(_backlog_state(item)), item.source_rel)):
-            href = quote(_relative_html(current.output_rel, page.source_rel), safe="/:@-._~!$&'()*+,;=")
-            chunks.append(f'<tr><td><code>{html.escape(page.source_rel)}</code></td>'
-                          f'<td><a href="{html.escape(href, quote=True)}">{html.escape(page.doc.title)}</a></td>'
-                          f'<td><span class="badge state">{html.escape(_backlog_state(page))}</span></td></tr>')
-        chunks.append('</tbody></table></div>')
+        chunks.append('<div class="backlog-tools" hidden><button type="button" class="backlog-view-toggle" aria-pressed="false">カンバン表示</button><label>Backlog を検索 <input class="backlog-search" type="search" placeholder="タイトル・ID・状態"></label><p class="backlog-search-status" aria-live="polite"></p></div><div class="backlog-groups">')
+        for state in states:
+            group = sorted((page for page in items if _backlog_state(page) == state), key=lambda page: page.source_rel)
+            opened = '' if state in ('done', 'dropped') else ' open'
+            chunks.append(f'<details class="backlog-group" data-default-open="{str(bool(opened)).lower()}"{opened}><summary><span class="badge state">{html.escape(state)}</span> {len(group)} 件</summary><ul class="backlog-items">')
+            for page in group:
+                href = quote(_relative_html(current.output_rel, page.source_rel), safe="/:@-._~!$&\'()*+,;=")
+                metadata = ''.join(f'<span>{key}: {html.escape(str(page.doc.fm[key]))}</span>' for key in ('priority', 'effort') if page.doc.fm.get(key) and page.doc.fm[key] in (cfg.get('priorities' if key == 'priority' else 'efforts') or []))
+                search = ' '.join((page.doc.title, page.source_rel, state, str(page.doc.fm.get('priority') or ''), str(page.doc.fm.get('effort') or ''))).lower()
+                chunks.append(f'<li class="backlog-card" data-backlog-search="{html.escape(search, quote=True)}"><a class="backlog-title" href="{html.escape(href, quote=True)}">{html.escape(page.doc.title)}</a><div class="backlog-meta"><code>{html.escape(page.source_rel)}</code>{metadata}</div></li>')
+            chunks.append('</ul></details>')
+        chunks.append('</div>')
     chunks.append('</section>')
     return ''.join(chunks)
 
