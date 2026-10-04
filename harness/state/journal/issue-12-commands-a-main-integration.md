@@ -25,3 +25,12 @@ Parent reports independent Spec and Standards preliminary findings 0/blockers 0.
 ## Sequential main adoption of PR42
 
 User authorized sequential adoption after independent reviews/CI. Original immutable authorb019d65cca9ec6b537801d448658c6aece129dc7 is source/tests/productdoc contract. Parent PR41 is merged; actualPR comparatorM41=32500998592ce468c84957ec3b9646797fa986c1. Own latest PR declaration updated before normal merge, protected test_commands_context.py only. Original task base3010fa0ac55f8e2b5981c3354c7e0568448ccf34 unchanged. Inherited main adoption metadata will be preserved. Full verification/review pending; no author remote writes.
+
+Adoption source freeze2cf54ce8195f6e730bd5a055a2ae8f4bfe448d20 normalmergeM41 after beforemerge PRdecl61b5b6f. Every originalb019 src/tests/Node/productdoc Gitblob unchanged; inheritedM41 journals/declarations match parent; own task3010 declaration bytes unchanged. npm ci --ignore-scripts exit0; aftersourcefreeze fullPython249/fail0/error0/skip1 exit0 (test_render_cleanup.CleanupTests.test_symlink_rejected: Windows symlink unavailable), Node31/compat14 passfail0/skip0 exit0. Docs indexwrite/check latest, lint0/0, rendercheck32/write0/delete0/warn0. Task3010/PRM41 scopes0; fullbase-to-tree diffcheck0. New finalcommit records this journal only; runtime/tests/productdocs identical, existing completed suites applicable. Final independent exact-SHA reviews and remoteCI parent-owned pending. Read-only livePR42 capture OPEN/headb019 verified; Japanese body external for root retarget/push. No author remote writes.
+
+Evidence SHA256:
+- issue12-merge42-npmci.txt: 3603aad30f8d6500d60c224a0b7063b1549fd5062de3d5706cbc97f03a8ca7f8
+- issue12-merge42-python.txt: b3d4971d1aaa33d3ed97e9e9731871d40c24c1fa2ecd4731a6abe3e149c20c7e
+- issue12-merge42-node.txt: 45474c08c3962e2cd4525e84918c93f27ef1a99d462d4e7bb7fdfc972bf30c21
+- issue12-merge42-compat.txt: 6ce05d589c3c76d2b89a0723c581fe7ac937cab84bbef855af04089fad0f19c2
+- issue12-merge42-affected.txt: d8846b948d90cabcdf76f1b651032cec81b15a0696fab11e8b18d772a5dc8428
