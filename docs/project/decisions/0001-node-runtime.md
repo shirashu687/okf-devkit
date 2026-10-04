@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: "2026-10-04T01:48:12Z"
+  at: 2026-10-04T07:26:56Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -67,3 +67,5 @@ CLIのrender既定出力先は両実装でプロジェクトルートの_siteへ
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
 
 Backlogの閲覧は状態別の折り畳みリストを既定とし、同じ項目を任意のカンバン表示へ切り替える。専用検索は表示のみを変更し、元Markdownとcleanupの安全契約は保持する。Python/Nodeは同じHTMLと共通アセットを利用する。
+
+配布方法と AI による導入・更新の判断は [0002](/project/decisions/0002-github-node-distribution.md) で追加した。Node/Python の実装と互換性の方針は継続し、本体の npm 公開は行わない。GitHub Release の作成・公開はこの実装の検証では実行していない。

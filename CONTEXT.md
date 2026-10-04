@@ -12,6 +12,7 @@ okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を�
 - Obsidian はリポジトリルートの同じ Markdown を読むUIであり、別の正本や専用コピーを作らない。個人状態の `.obsidian/` はGit管理外とする。
 - 生成 index.md のリンク形式は対象の `okf.yml` の `index.link_style` が決める。frontmatter、`related`、`Doc.bundle_rel` のバンドル起点の意味は変わらない。
 - 上流スキルは .agents/skills/ と .claude/skills/ にインストーラーがコピーした直接依存で、自前実装とは別に更新する。
+- okf-devkitの「固定版」は、導入対象として指定した完全Git SHAまたはReleaseの特定tgzを指す。「配布物」は利用者へ渡すtgzであり、OKF文書から生成する閲覧用HTMLとは区別する。
 
 ## ドメイン文書の配置
 

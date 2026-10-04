@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T05:57:48Z
+  at: 2026-10-04T07:26:56Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -105,3 +105,7 @@ HTML の階層ナビ・元ファイル表示も Python 版と同じ構造を生�
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
 
 Backlogの閲覧は状態別の折り畳みリストを既定とし、同じ項目を任意のカンバン表示へ切り替える。専用検索は表示のみを変更し、元Markdownとcleanupの安全契約は保持する。Python/Nodeは同じHTMLと共通アセットを利用する。
+
+## GitHub 配布と AI による導入
+
+本体を npm registry に公開しない方針で `package.json` は `private: true` とし、GitHub の固定 SHA と公開後の版付き tgz を取得経路とする。依存の npm 取得は許容する。導入・指定版更新・package と設定の別々の復旧は [AI 導入手順](/agents/install-okf.md) に従う。install と init・agent 設定を分離し、未導入時の npx による暗黙取得に頼らない。今回の workflow 追加は公開済み Release の存在を意味しない。
