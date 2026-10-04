@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** Git helper分離後もinit/scaffold生成入口を維持する記録を更新。 (`d1fd3c9`)
 - **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)
 
 ## 2026-10-03
