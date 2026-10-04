@@ -95,10 +95,12 @@ class RepoHookTests(unittest.TestCase):
             launchers = []
             if shell:
                 launchers += [[shell, '-c', item] for item in (copilot['bash'], codex['command'])]
-            if powershell:
+            # Registration selects the POSIX command on Linux, even when pwsh
+            # is installed. commandWindows deliberately invokes Windows
+            # PowerShell; the separate adapter test covers portable pwsh.
+            if powershell and os.name == 'nt':
                 launchers += [[powershell, '-NoProfile', '-Command', item] for item in (copilot['powershell'], codex['commandWindows'])]
-                if os.name == 'nt':
-                    launchers.append(codex['commandWindows'])
+                launchers.append(codex['commandWindows'])
             self.assertTrue(launchers, 'No supported command shell available')
             for command in launchers:
                 with self.subTest(command=command[0]):

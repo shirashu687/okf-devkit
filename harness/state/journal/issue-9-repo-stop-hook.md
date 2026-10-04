@@ -142,3 +142,27 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 - docs生成時刻は実更新UTCを記録。README・対応表・instructionsと公式URLを独立reviewが確認し、event発火を成功と主張しない。
 
 - hashed docs/log・docs/cli/log追記後、`db260cdfec13397555890f8adf03a5bcfd290172`+worklog訂正のみの版で必須full Pythonを再実行:204件/失敗0/エラー0/skip1（既存Windows symlink制約）、repo外の作業workspace `issue25-python-final-logs.txt` に出力。Node28/compat12の対象コード・設定・testsは4f2663aから不変。最終両lint/indexcheck/rendercheckは22page/warn0。独立reviewerはhash付き層log、四値記録、fullretro、code4f2663a→記録版差分を確認しblocking0。
+
+## 2026-10-04: 最初のCI失敗とOS別launcher検証修正
+
+- 開始版 `0abf1af4b6b793da16635fb92da71c1af2ccc8ef`、issue9 worktree clean。PR比較main `c09c6eea9756c05904c6dc2f27f3f832d28e283f` は維持。新task宣言にtests変更をexact宣言、旧task/PR宣言と成功/失敗履歴を保存。
+- 実CI失敗: [run37174713815](https://github.com/shirashu687/okf-devkit/actions/runs/37174713815) Ubuntu Python3.11/3.13でregistered launchers test失敗。`/usr/bin/pwsh` の存在をWindows用commandWindowsの実行条件にしており、Linuxにない`powershell`を呼んだ。Windows成功やローカル成功をCI成功と同一視しない。repo外workspace `generic25-ci-failed.txt` に親が失敗log保存。
+- 修正:実ツールと同じOS選択へ登録fixtureを変更。LinuxはCopilot bash/Codex commandを実行し、WindowsはPowerShellとcmdのcommandWindowsを引き続き実行する。case全体をskipせず、別のportable PowerShell adapterテストはpwshを検出した環境でも0/1/2とpayload非表示を検証する。adapters/runtime/configは一切変更しない。
+- full retro:元IMP-0005の複数runtime導入・shell起動経路と同じ症状/適用範囲への独立CI事象として2026-10-04の観測を統合、回数1→2。仮説はOS専用commandとshell存在の取り違え。候補はOS/runtime導入状態ごとの経路照合、automated checks/中。評価10/10、試行0/3、他ID/却下履歴を保持。恒久ルール採用・改善効果の確定なし。今回のWindows focused/fullと静的OS選択を確認後、最終SHA Linux CIで再確認する。
+- 検証状態:実行中。Linux実環境はローカル未確認、最終SHA CIへ委ねる。最新CI失敗を成功扱いせず親review前にpushしない。
+
+### CI修正のローカル検証（対象0abf1af+OS選択修正worktree）
+
+| 状態 | 実コマンド・対象 | 結果・根拠 |
+| --- | --- | --- |
+| 成功 | 既存venv/PYTHONUTF8=1/PYTHONPATH=issue9/srcで `-m unittest discover -s tests -p test_repo_hooks.py -v` | focused5/5、skip0、6.096秒。Windows nativePowerShell/cmd/POSIX登録経路、portable adapter検証を保持。 |
+| 成功 | 同envで `tests/run_all.py` | 204件/失敗0/エラー0/skip1（既存Windows symlink制約）。repo外workspace `issue25-python-ci-fix.txt` に出力。 |
+| 成功 | Python+Node `lint`, `index --check`, `render --check` | 両lint error0/warn0、index最新、22page/warn0/書込0削除0。製品・設定・docs本文は変更なし。 |
+| 成功 | `check_changes.py --base 0abf1af4b6b793da16635fb92da71c1af2ccc8ef` / `--scope pull-request --base c09c6eea9756c05904c6dc2f27f3f832d28e283f` / `git diff --check` | 両result=ok、空白不整合なし。新taskはtests1path、PR保護3pathは維持。 |
+| 失敗 | CI run37174713815 Ubuntu Python3.11/3.13 | 元版0abfのOS mapping failure。修正後CIは未実行、前記のWindowsローカル成功で置き換えない。 |
+| 未実行 | 修正後exactSHA CI / Linux実shell実行 | 親review後normalpushで最終CIを確認。Node28/compat12はruntime/config不変の前回実結果であり今回再実行していない。 |
+| 実行不能 | 今回の必須ローカル検証 | なし。Linux環境は本Windows作業環境から未検証。 |
+
+製品docsは既存のOS別対応表と同じ仕様のまま、テスト自身のOS選択を訂正したため新productlogは追加しない。修正後CI・実agentイベントは未確認として親へ引き継ぐ。
+
+- 独立cleanup_pythonレビュー:仕様0/標準0blocking、Windows focused5/skip0成功（6.259秒）、新task/PR宣言独立exit0。OS gateは実tool契約への補正でcase全体やportable pwsh検証をskipしないことを確認。
