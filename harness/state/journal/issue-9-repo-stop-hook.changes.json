@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "c09c6eea9756c05904c6dc2f27f3f832d28e283f",
+  "worklog": "harness/state/journal/issue-9-repo-stop-hook.md",
+  "changes": [
+    {
+      "path": ".claude/settings.json",
+      "reason": "Issue #9 approved repo-only advisory hooks, cross-tool configuration and meaningful launcher/runtime contract verification."
+    },
+    {
+      "path": ".codex/hooks.json",
+      "reason": "Issue #9 approved repo-only advisory hooks, cross-tool configuration and meaningful launcher/runtime contract verification."
+    },
+    {
+      "path": "tests/test_repo_hooks.py",
+      "reason": "Issue #9 approved repo-only advisory hooks, cross-tool configuration and meaningful launcher/runtime contract verification."
+    }
+  ]
+}

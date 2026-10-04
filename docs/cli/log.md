@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-04
+- **Update** repo終了hookの実shell起動、入力非実行、実HTML連続生成と不正設定のstrict/advisory終了値を検証する5テストを追加した（Issue #9、`4f2663a`）。
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)
 
 ## 2026-10-03
