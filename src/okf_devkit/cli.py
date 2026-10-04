@@ -294,46 +294,11 @@ def changed_paths(base: str) -> list[str]:
     return gitutil.changed_paths(REPO_ROOT, base, runner=git)
 
 
-def compute_affected(bundle: Bundle, paths: list[str]) -> tuple[dict[str, list[str]], list[str]]:
-    """変更パス → 更新すべきドキュメントの対応表と、未カバーのパスを返す。"""
-    mapping: dict[str, list[str]] = {}
-    covered: set[str] = set()
-    for doc in bundle.docs():
-        resources = doc.code_globs()
-        if not resources:
-            continue
-        hits = []
-        for path in paths:
-            if any(path == r.lstrip("/") or path_matches(path, r.lstrip("/")) for r in resources):
-                hits.append(path)
-        if hits:
-            mapping[doc.repo_rel] = sorted(set(hits))
-            covered.update(hits)
-    uncovered = sorted(p for p in paths if p not in covered)
-    return mapping, uncovered
-
+from .commands import affected as _affected
+from .commands.affected import compute_affected
 
 def cmd_affected(bundle: Bundle, args) -> int:
-    paths = list(args.paths) if args.paths else changed_paths(args.base)
-    # layer_map で skip 指定のパス（docs/** など）は対象外にする
-    paths = [
-        p.replace("\\", "/")
-        for p in paths
-        if not p.endswith("/") and layer_of(bundle, p.replace("\\", "/")) is not None
-    ]
-    if not paths:
-        print("変更パスがありません。")
-        return 0
-    mapping, uncovered = compute_affected(bundle, paths)
-    for doc_path in sorted(mapping):
-        print(f"{doc_path}  <- {', '.join(mapping[doc_path])}")
-    if not mapping:
-        print("更新すべきドキュメントは見つかりませんでした。")
-    if uncovered:
-        print("\n未カバー:")
-        for path in uncovered:
-            print(f"  {path}")
-    return 0
+    return _affected.cmd_affected(bundle, args, path_provider=changed_paths)
 
 
 # =============================================================================
