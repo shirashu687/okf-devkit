@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "497fe05d813c1b5ecd0da3a39c410129614fcc33",
+  "base": "f19491dc128689ed00709387704a9501b0e6171d",
   "worklog": "harness/state/journal/issue-12-git-main-sync.md",
   "changes": [
     {

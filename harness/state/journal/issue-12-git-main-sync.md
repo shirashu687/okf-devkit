@@ -22,3 +22,7 @@ Evidence SHA256:
 - issue12-git-main-sync-node.txt: 3780c772eecf188cb2af207463977cbca78980ba651683ea559729b63a3b2c26
 - issue12-git-main-sync-compat.txt: b31484297aa9ae39949c7976452213934d61cdf57824393f33ce761864158260
 - issue12-git-main-sync-affected.txt: 60fc6f8e9498885c80aca8e3170a23748332310a7dba0c3bec7fa92006abdcc0
+
+## Authorized merged-main adoption
+
+At 2026-10-04T12:48:15.254871+00:00 isolated codex/issue12-merge41 starts from original3010fa0ac55f8e2b5981c3354c7e0568448ccf34. User authorized sequential merge38 through44. Main after40 isf19491dc128689ed00709387704a9501b0e6171d. Before normalmerge only latest ownPR declaration base updated to actualmain, protectedtest_gitutil only; originalTASKbase497fe05 unchanged. Parent inherited39/40metadata to retain exactmain bytes. Allsrc/tests/node/docs originalbytes expected. Child localintegration/validation only; parent remote review/retarget/push/CI/merge. Mandatoryvalidation pending.

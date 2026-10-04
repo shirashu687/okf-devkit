@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "pull-request",
-  "base": "aa398085622bd0a4396b03b8c46ff1d6f645fcb9",
+  "base": "83ab5e83eca90d1b601c227da8407055604c4552",
   "worklog": "harness/state/journal/issue-12-yaml-main-integration.md",
   "changes": [
     {
