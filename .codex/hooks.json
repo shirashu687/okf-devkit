@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "mattpocock-skills@claude-plugins-official": false
-  },
   "hooks": {
     "Stop": [
       {
@@ -9,9 +6,8 @@
           {
             "type": "command",
             "command": "sh \"$(git rev-parse --show-toplevel)/.okf/hooks/agent_stop.sh\"",
-            "shell": "bash",
-            "timeout": 30,
-            "statusMessage": "OKFドキュメントのHTMLを生成中"
+            "commandWindows": "powershell -NoProfile -Command \"& (Join-Path (git rev-parse --show-toplevel) '.okf/hooks/agent_stop.ps1')\"",
+            "timeout": 60
           }
         ]
       }

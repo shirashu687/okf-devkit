@@ -179,51 +179,16 @@ Obsidianでは、このリポジトリのルートフォルダをそのままVau
 
 ## エージェント連携
 
-`okf init` が `.okf/hooks/render_hook.sh` / `.ps1` を置く。Stop hook から呼ぶと、
-作業終了時に閲覧用 HTML が自動で再生成される。
+`okf init` が `.okf/hooks/render_hook.sh` / `.ps1` を置く。共通の `render --hook` で
+作業終了時に閲覧用HTMLをローカル生成する。手動実行は失敗を非0の終了値で返す。
 
-**Claude Code** — `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"$(git rev-parse --show-toplevel)/.okf/hooks/render_hook.sh\"",
-            "shell": "bash",
-            "timeout": 30,
-            "statusMessage": "OKFドキュメントのHTMLを生成中"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-**Codex** — `.codex/hooks.json`:
-
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"$(git rev-parse --show-toplevel)/.okf/hooks/render_hook.sh\"",
-            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) '.okf/hooks/render_hook.ps1')\"",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+このリポジトリにはClaude Code、GitHub Copilot、Codexの終了hook設定と
+`.okf/hooks/agent_stop.sh` / `.ps1` を置く。終了イベント用アダプターは失敗を標準エラーへ表示し、
+`{}` と終了値0を返す。モデル継続・公開・整理は行わない。
+Copilot互換設定の追加読込みで二重生成する場合がある。
+設定の信頼、CLI/IDE/cloudの対応表、runtime準備、実イベントが未検証の範囲は
+[終了hookの手順](docs/agents/completion-hooks.md) に記載する。
+利用者のグローバル設定や `okf init` の配布内容は変更しない。
 
 `render` の既定出力先はプロジェクトルートの `_site/`。`.gitignore` に `_site/` を追加する。
 `okf render --output docs` で従来のMarkdown隣接配置を使える（bundle_rootが異なる場合はそのディレクトリを指定）。

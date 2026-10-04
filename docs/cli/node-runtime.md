@@ -7,7 +7,7 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: "2026-10-04T01:48:12Z"
+  at: 2026-10-04T05:57:48Z
 code_globs:
   - node/*.mjs
   - package.json
@@ -77,6 +77,12 @@ POSIXでは `cp` で同じ2ファイルをコピーする。探索順はロー�
 開発チェックアウトは `src/okf_devkit/defaults.yml` がある場合だけ候補にする。npm依存が未導入でも既存Python環境を優先して利用できる。
 hook実行時にnpmレジストリへアクセスしない。Windows PowerShell 5.1でもUTF-8 BOMなしのhookを読めるよう、ps1のソースはASCIIで記述する。
 
+このリポジトリの `.okf/hooks/` も共有 scaffold と同じラッパーを使い、
+Claude、Copilot、Codexの終了設定は、この共通ラッパーをadvisoryアダプター経由で呼ぶ。
+手動の共通ラッパーは失敗時に非0を返し、終了イベント用アダプターは標準エラーへ診断を残して0と `{}` を返す。
+対応環境、信頼、二重生成の可能性、未検証の実イベントは [終了hookの手順](/agents/completion-hooks.md) を参照する。
+プロジェクト内の設定だけを管理し、利用者のグローバルhook設定は変更しない。
+
 ## 検証と互換性
 
 ```powershell
@@ -93,6 +99,8 @@ YAMLは1.1として読み、日付を文字列に正規化する。Node.js版で
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
 
 HTML の Backlog 進捗一覧は Python 版と同じ読み取り専用表示で、設定ディレクトリ・状態別件数・本文リンクを扱う。手順は [Backlog の進捗表示](/render/backlog-progress.md) を参照。
+
+HTML の階層ナビ・元ファイル表示も Python 版と同じ構造を生成する。[階層ナビの手順](/render/navigation.md) を参照。
 
 `init` は shared 層の履歴をバンドルルートの `log.md` に作成し、生成設定の `log.paths.shared` と一致させる。層をまたぐ本文の配置先 `project/` とは分離され、`log --layer shared --write` はこの既存ファイルへ追記する。既存プロジェクトの `project/log.md` は自動移動・削除しない。
 

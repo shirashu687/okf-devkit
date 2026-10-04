@@ -7,6 +7,7 @@
 
 ## 2026-10-03
 - **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
+- **Creation** feat(render): add hierarchical navigation and source metadata。 (`9162553`)
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
 

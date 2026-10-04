@@ -44,6 +44,8 @@ okf render --output _site
 
 元 Markdown の frontmatter の `state` を更新して `okf render` を再実行すると、一覧・件数も更新される。生成・閲覧では元 Markdown を変更しない。画面からの編集・同期や別の管理データは持たない。このリポジトリ自身の課題管理は GitHub Issues を継続する。
 
+サイドナビは [階層ナビの手順](/render/navigation.md) に従いディレクトリ階層で表示する。検索中は一致する項目の祖先を展開する。状態・全件数の意味は変わらない。
+
 ## 状態別リストとカンバン
 
 初期表示は状態別リスト。タイトルを主にし、元ファイルのIDと設定の許可値に一致する既存のpriority・effortを補助情報として表示する。doing・todoとカスタム状態は開いた状態、done・droppedは折り畳み、summaryをキーボードでも開閉できる。状態名・並び順・全対象件数は元の設定とMarkdownを基準にする。

@@ -1,0 +1,30 @@
+{
+  "pr": 30,
+  "captureCodeSha": "f7e8aa9143063ac29427203f779d2f85f521d9e2",
+  "reviewedAtUtc": "2026-10-04T01:58:06.178440+00:00",
+  "visuallyInspected": [
+    "01-desktop-list.png",
+    "02-desktop-kanban.png",
+    "08-mobile-kanban.png",
+    "05-dark-kanban.png",
+    "13-current-hierarchy.png",
+    "04-search-done.png",
+    "11-edge-kanban.png",
+    "12-empty.png",
+    "14-no-javascript-fallback.png"
+  ],
+  "findings": [
+    "Desktop list and four-column kanban maintain readable group headings, six counts, title links and wrapped path/priority metadata.",
+    "390px kanban becomes one column; controls, counts and source-path link fit the viewport without overlap.",
+    "Dark theme text, card outlines and title links remain visually readable.",
+    "Hierarchical sidebar expands engineering/viewer and visibly marks the current navigation.md document; breadcrumb and Source path agree.",
+    "Done search displays exactly two matching cards; initial collapsed groups and manually expanded state restore after clearing search.",
+    "Custom review, unknown blocked and unset state remain distinct; empty fixture explicitly shows zero tasks.",
+    "JavaScript-disabled native details reveal completed cards and rendered-body links work; enhancement controls remain hidden."
+  ],
+  "blockingFindings": [],
+  "limitations": [
+    "Qualitative visual inspection only, no numerical color contrast audit.",
+    "Python-rendered fixtures in Chromium153.0.8010.12; Node parity is checked separately by implementation tests."
+  ]
+}
