@@ -27,3 +27,7 @@ Independent prereview identified inherited npm global/prefix settings that could
 Full retrospective gate: triggered by an isolation requirement gap found in independent review. Compared approved scope, source changes and targeted tests. Recorded the third independent environment-initialization observation under existing IMP-0005; active ledger remains 10, trials 0, adopted permanent rules 0. Real user-global files/settings were not modified. Actual Release write end-to-end remains intentionally unexecuted.
 
 Fixed Git SHA `195252d3354acece9c72c987a9f0ab6559db6aa3` initial installation and a separate empty-cache npm ci succeeded on Windows with no Git URL rewrite, SSH credentials or interactive authentication. Lockfile bytes were retained despite npm normalizing resolved to git+ssh. Transport internals and all other npm/OS combinations were not observed. Evidence: task workspace issue34-github-install-evidence.json and associated logs (outside repository).
+
+## Implementation freeze
+
+Source/docs implementation commit: `a043c6c254a6b7fbe57b70a073958717a28ce34b`. Added tag-only production Draft workflow and separate no-tag PR CI provenance. PR CI packs once on Ubuntu and existing Windows/Linux Node 22/24 jobs consume the same verified archive. Package synthetic rollback/hostile environment fixtures remain separate tests; they do not represent real historical Release compatibility. Targeted author tests passed: release guards 14, package distribution 3. Final mandatory full suites, docs checks, declarations and exact-SHA independent reviews are next.
