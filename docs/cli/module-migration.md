@@ -7,7 +7,7 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:30:21Z
+  at: 2026-10-04T10:34:51Z
 code_globs:
   - tests/test_config.py
   - tests/test_doc.py
@@ -106,7 +106,9 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 
 Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動のstrict renderとは終了値の契約が異なる。CLIの移動でadapter/hookの振る舞いを統合・削除せず、入力を実行しない、失敗時にエージェントをブロックしない、実HTMLの連続生成、strict/advisoryの違いを既存の `tests/test_repo_hooks.py` と関連Nodeテストで維持する。実エージェントイベントの観測とローカルadapterテストは区別する。
 
-## 実装済み段階1・2と残る移行
+## 実装済み段階1・2と残る移行（段階2時点の記録）
+
+以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。現在の段階3では上部に記載したDoc/config分離が実装済みであり、以下の「未実装」「subsequent」は段階2時点を指す。commands分離と200行以下の入口は引き続き後続作業である。
 
 固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
 
