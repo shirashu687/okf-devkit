@@ -276,87 +276,13 @@ def cmd_lint(bundle: Bundle, args) -> int:
 # =============================================================================
 
 
+from .commands import stale as _stale
+
 def run_stale(bundle: Bundle) -> list[dict]:
-    """陳腐化レポートを組み立てる。"""
-    results: list[dict] = []
-    draft_days = int((bundle.cfg.get("stale") or {}).get("draft_days", 30))
-    todays = today()
-
-    for doc in bundle.docs():
-        if not doc.has_fm:
-            continue
-        path = doc.repo_rel
-        generated = doc.fm.get("generated")
-        gen_raw = generated.get("at") if isinstance(generated, dict) else None
-        gen_dt, gen_has_time = parse_datetime(gen_raw)
-        gen_at = extract_date(gen_raw)
-
-        stale_after = extract_date(doc.fm.get("stale_after"))
-        if stale_after and stale_after <= todays.isoformat():
-            results.append({"path": path, "kind": "expired", "level": "warn",
-                            "message": f"stale_after: {stale_after} を過ぎています"})
-
-        for resource in doc.code_globs():
-            matched = resolve_resource(resource)
-            if not matched:
-                results.append({"path": path, "kind": "orphan", "level": "warn",
-                                "message": f"code_globs: {resource} にマッチするファイルがありません"})
-                continue
-            if gen_dt is None:
-                continue
-            latest_raw = last_commit_time(matched)
-            if not latest_raw:
-                continue
-            latest_dt, _ = parse_datetime(latest_raw)
-            if latest_dt is None:
-                continue
-            if gen_has_time:
-                outdated = latest_dt > gen_dt
-                shown = latest_dt.astimezone(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            else:
-                # generated.at が日付のみのときは日単位で比較する（誤検知を避ける）
-                outdated = latest_dt.date() > gen_dt.date()
-                shown = latest_dt.date().isoformat()
-            if outdated:
-                results.append({"path": path, "kind": "outdated", "level": "warn",
-                                "message": f"{resource} の最終コミット {shown} > generated.at {gen_raw}"})
-
-        if trust_level(doc) == "unverified":
-            results.append({"path": path, "kind": "unverified", "level": "info",
-                            "message": "verified がありません（人によるレビュー未実施）"})
-
-        if doc.status == "draft" and gen_at:
-            try:
-                age = (todays - _dt.date.fromisoformat(gen_at)).days
-            except ValueError:
-                age = 0
-            if age >= draft_days:
-                results.append({"path": path, "kind": "draft-stale", "level": "info",
-                                "message": f"status: draft のまま {age} 日経過しています"})
-
-    results.sort(key=lambda r: (r["level"] != "warn", r["path"], r["kind"]))
-    return results
-
+    return _stale.run_stale(bundle, resource_resolver=resolve_resource, commit_time=last_commit_time)
 
 def cmd_stale(bundle: Bundle, args) -> int:
-    if git_available() and is_shallow():
-        print(
-            "[okf stale] 警告: shallow clone のため outdated 判定が不正確になる可能性があります。",
-            file=sys.stderr,
-        )
-    results = run_stale(bundle)
-    if args.format == "json":
-        print(json.dumps(results, ensure_ascii=False, indent=2))
-        return 0
-    if not results:
-        print("陳腐化の兆候はありません。")
-        return 0
-    for item in results:
-        print(f"{item['path']} {item['level']} {item['kind']} {item['message']}")
-    warns = sum(1 for r in results if r["level"] == "warn")
-    infos = len(results) - warns
-    print(f"\nstale: warn {warns} 件 / info {infos} 件")
-    return 0
+    return _stale.cmd_stale(bundle, args, runner=git, reporter=run_stale)
 
 
 # =============================================================================
@@ -368,225 +294,30 @@ def changed_paths(base: str) -> list[str]:
     return gitutil.changed_paths(REPO_ROOT, base, runner=git)
 
 
-def compute_affected(bundle: Bundle, paths: list[str]) -> tuple[dict[str, list[str]], list[str]]:
-    """変更パス → 更新すべきドキュメントの対応表と、未カバーのパスを返す。"""
-    mapping: dict[str, list[str]] = {}
-    covered: set[str] = set()
-    for doc in bundle.docs():
-        resources = doc.code_globs()
-        if not resources:
-            continue
-        hits = []
-        for path in paths:
-            if any(path == r.lstrip("/") or path_matches(path, r.lstrip("/")) for r in resources):
-                hits.append(path)
-        if hits:
-            mapping[doc.repo_rel] = sorted(set(hits))
-            covered.update(hits)
-    uncovered = sorted(p for p in paths if p not in covered)
-    return mapping, uncovered
-
+from .commands import affected as _affected
+from .commands.affected import compute_affected
 
 def cmd_affected(bundle: Bundle, args) -> int:
-    paths = list(args.paths) if args.paths else changed_paths(args.base)
-    # layer_map で skip 指定のパス（docs/** など）は対象外にする
-    paths = [
-        p.replace("\\", "/")
-        for p in paths
-        if not p.endswith("/") and layer_of(bundle, p.replace("\\", "/")) is not None
-    ]
-    if not paths:
-        print("変更パスがありません。")
-        return 0
-    mapping, uncovered = compute_affected(bundle, paths)
-    for doc_path in sorted(mapping):
-        print(f"{doc_path}  <- {', '.join(mapping[doc_path])}")
-    if not mapping:
-        print("更新すべきドキュメントは見つかりませんでした。")
-    if uncovered:
-        print("\n未カバー:")
-        for path in uncovered:
-            print(f"  {path}")
-    return 0
+    return _affected.cmd_affected(bundle, args, path_provider=changed_paths)
 
 
 # =============================================================================
 # new コマンド
 # =============================================================================
 
-SLUG_RE = re.compile(r"^[a-z0-9]+(?:[-.][a-z0-9]+)*$")
-
-
-def slugify(title: str) -> str:
-    """タイトルから ASCII の kebab-case slug を作る。作れなければ空文字。"""
-    slug = re.sub(r"[^a-zA-Z0-9]+", "-", title).strip("-").lower()
-    return slug
-
-
-def validate_slug(slug: str) -> str:
-    if not SLUG_RE.match(slug):
-        raise OkfError(
-            f"slug は kebab-case（英小文字・数字・ハイフン）で指定してください: {slug!r}"
-        )
-    return slug
-
-
-def validate_subdir(value: str) -> str:
-    """`--dir` を検証する（相対・kebab-case・`..` 禁止）。"""
-    normalized = value.replace("\\", "/").strip("/")
-    if not normalized:
-        raise OkfError("`--dir` が空です")
-    if value.startswith(("/", "\\")) or re.match(r"^[A-Za-z]:", value):
-        raise OkfError(f"`--dir` に絶対パスは指定できません: {value!r}")
-    for part in normalized.split("/"):
-        if part in ("", ".", ".."):
-            raise OkfError(f"`--dir` に `.` / `..` は使えません: {value!r}")
-        validate_slug(part)
-    return normalized
-
+from .commands import new as _new
+from .commands.new import (
+    slugify, validate_slug, validate_subdir, set_fm_field, next_numbered_id, next_backlog_id, _validate_vocab, SLUG_RE,
+)
 
 def ensure_inside_bundle(bundle: Bundle, path: Path) -> Path:
-    resolved = path.resolve()
-    try:
-        resolved.relative_to(bundle.root.resolve())
-    except ValueError:
-        raise OkfError(
-            f"バンドル（{rel_posix(bundle.root, REPO_ROOT)}/）の外には作成できません: {resolved}"
-        ) from None
-    return resolved
-
-
-def set_fm_field(text: str, key: str, value: str, parent: str | None = None) -> str:
-    """frontmatter の 1 フィールドを置換する（parent 指定でネストしたキーに対応）。
-
-    value は**すでに YAML としてシリアライズ済み**の文字列であること。
-    """
-    lines = text.split("\n")
-    if not lines or lines[0].strip() != "---":
-        return text
-    end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
-    if end is None:
-        return text
-    if parent is None:
-        for i in range(1, end):
-            if re.match(rf"^{re.escape(key)}\s*:", lines[i]):
-                stop = i + 1
-                while stop < end and (lines[stop].startswith((" ", "\t")) or not lines[stop].strip()):
-                    stop += 1
-                lines[i:stop] = [f"{key}: {value}"]
-                break
-        else:
-            lines.insert(end, f"{key}: {value}")
-    else:
-        in_parent = False
-        for i in range(1, end):
-            if re.match(rf"^{re.escape(parent)}\s*:", lines[i]):
-                in_parent = True
-                continue
-            if in_parent:
-                if not lines[i].startswith((" ", "\t")):
-                    break
-                if re.match(rf"^\s+{re.escape(key)}\s*:", lines[i]):
-                    indent = lines[i][: len(lines[i]) - len(lines[i].lstrip())]
-                    lines[i] = f"{indent}{key}: {value}"
-                    break
-    return "\n".join(lines)
-
+    return _new.ensure_inside_bundle(bundle, path, repo_root=REPO_ROOT)
 
 def load_template(bundle: Bundle, type_name: str) -> str:
-    templates = bundle.cfg.get("templates") or {}
-    rel = templates.get(type_name)
-    if not rel:
-        raise OkfError(f"type '{type_name}' に対応するテンプレートが config.yml にありません")
-    path = bundle.root / str(rel)
-    if not path.exists():
-        raise OkfError(f"テンプレートが見つかりません: {rel_posix(path, REPO_ROOT)}")
-    return read_text(path)
-
-
-def next_numbered_id(directory: Path, prefix: str = "") -> int:
-    """`<prefix>NNNN-...` の最大値 + 1 を返す（prefix 無しは ADR 用）。"""
-    pattern = rf"^{re.escape(prefix)}(\d{{4}})(?:-|\.md$)"
-    max_id = 0
-    if directory.exists():
-        for p in directory.glob("*.md"):
-            m = re.match(pattern, p.name)
-            if m:
-                max_id = max(max_id, int(m.group(1)))
-    return max_id + 1
-
-
-def next_backlog_id(bundle: Bundle) -> int:
-    """既存の B-NNNN の最大値 + 1 を返す。"""
-    prefix = str(bundle.backlog_cfg.get("prefix", "B"))
-    return next_numbered_id(bundle.backlog_dir(), f"{prefix}-")
-
-
-def _validate_vocab(value: str, allowed: list, label: str) -> str:
-    if allowed and value not in allowed:
-        raise OkfError(f"`{label} {value}` は語彙表にありません（{', '.join(str(a) for a in allowed)}）")
-    return value
-
+    return _new.load_template(bundle, type_name, repo_root=REPO_ROOT)
 
 def cmd_new(bundle: Bundle, args) -> int:
-    if "\n" in args.title or "\r" in args.title:
-        raise OkfError("`--title` に改行は使えません")
-    _validate_vocab(args.layer, bundle.layers, "--layer")
-
-    if args.kind == "backlog":
-        _validate_vocab(args.priority, list(bundle.backlog_cfg.get("priorities") or []), "--priority")
-        _validate_vocab(args.effort, list(bundle.backlog_cfg.get("efforts") or []), "--effort")
-        text = load_template(bundle, "Backlog Item")
-        number = next_backlog_id(bundle)
-        prefix = str(bundle.backlog_cfg.get("prefix", "B"))
-        slug = validate_slug(args.slug) if args.slug else slugify(args.title)
-        name = f"{prefix}-{number:04d}-{slug}.md" if slug else f"{prefix}-{number:04d}.md"
-        out_path = bundle.backlog_dir() / name
-
-        text = set_fm_field(text, "title", yaml_scalar(args.title))
-        text = set_fm_field(text, "layer", yaml_scalar(args.layer))
-        text = set_fm_field(text, "tags", yaml_flow_list([args.layer]))
-        text = set_fm_field(text, "state", yaml_scalar("todo"))
-        text = set_fm_field(text, "priority", yaml_scalar(args.priority))
-        text = set_fm_field(text, "effort", yaml_scalar(args.effort))
-        text = set_fm_field(text, "created", yaml_scalar(today().isoformat()))
-        text = set_fm_field(text, "by", yaml_scalar("process:okf-cli"), parent="generated")
-        text = set_fm_field(text, "at", yaml_scalar(now_iso()), parent="generated")
-    else:
-        _validate_vocab(args.type, bundle.types, "--type")
-        code_globs = getattr(args, "code_globs", None) or []
-        if args.type in CODE_GLOBS_REQUIRED_TYPES and not code_globs:
-            raise OkfError("この型では `--code-globs` を指定してください")
-        text = load_template(bundle, args.type)
-        slug = validate_slug(args.slug) if args.slug else slugify(args.title)
-        if not slug:
-            raise OkfError("タイトルから slug を生成できませんでした。`--slug <kebab-case>` を指定してください。")
-        layer_dirs = bundle.cfg.get("layer_dirs") or {}
-        base = bundle.root / str(layer_dirs.get(args.layer, args.layer))
-        if args.dir:
-            base = base / validate_subdir(args.dir)
-        filename = f"{slug}.md"
-        if args.type == "Decision Record":
-            # ADR は CONVENTIONS.md §8 に従い 4 桁連番を前置する
-            filename = f"{next_numbered_id(base):04d}-{slug}.md"
-        out_path = base / filename
-
-        text = set_fm_field(text, "code_globs", yaml_flow_list(code_globs))
-        text = set_fm_field(text, "related", "[]")
-        text = set_fm_field(text, "type", yaml_scalar(args.type))
-        text = set_fm_field(text, "title", yaml_scalar(args.title))
-        text = set_fm_field(text, "layer", yaml_scalar(args.layer))
-        text = set_fm_field(text, "by", yaml_scalar("process:okf-cli"), parent="generated")
-        text = set_fm_field(text, "at", yaml_scalar(now_iso()), parent="generated")
-
-    out_path = ensure_inside_bundle(bundle, out_path)
-    text = re.sub(r"^#[ \t]+<[^>\r\n]*>[ \t]*$", lambda _m: f"# {args.title}", text, count=1, flags=re.MULTILINE)
-
-    if out_path.exists():
-        raise OkfError(f"既に存在します: {rel_posix(out_path, REPO_ROOT)}")
-    write_if_changed(out_path, text)
-    print(rel_posix(out_path, REPO_ROOT))
-    return 0
+    return _new.cmd_new(bundle, args, repo_root=REPO_ROOT, writer=write_if_changed, template_loader=load_template, path_validator=ensure_inside_bundle)
 
 
 # =============================================================================
@@ -594,55 +325,13 @@ def cmd_new(bundle: Bundle, args) -> int:
 # =============================================================================
 
 
-def backlog_docs(bundle: Bundle) -> list[Doc]:
-    directory = bundle.backlog_dir()
-    if not directory.exists():
-        return []
-    return [
-        Doc(p, bundle.root)
-        for p in sorted(directory.iterdir())
-        if p.is_file() and p.suffix == ".md" and p.name not in bundle.reserved
-    ]
+from .commands import status as _status
 
+def backlog_docs(bundle: Bundle) -> list[Doc]:
+    return _status.backlog_docs(bundle, repo_root=REPO_ROOT, doc_factory=Doc)
 
 def cmd_status(bundle: Bundle, args) -> int:
-    docs = backlog_docs(bundle)
-    states = list(bundle.backlog_cfg.get("state_order") or ["doing", "todo", "done", "dropped"])
-    priorities = list(bundle.backlog_cfg.get("priorities") or ["high", "medium", "low"])
-
-    by_state: dict[str, list[Doc]] = {s: [] for s in states}
-    for doc in docs:
-        by_state.setdefault(str(doc.fm.get("state") or "todo"), []).append(doc)
-
-    priority_counts = {
-        state: {p: sum(1 for d in items if str(d.fm.get("priority") or "") == p) for p in priorities}
-        for state, items in by_state.items()
-    }
-
-    if args.format == "json":
-        payload = {
-            "total": len(docs),
-            "states": {s: len(v) for s, v in by_state.items()},
-            "priorities": priority_counts,
-            "doing": [{"path": d.repo_rel, "title": d.title,
-                       "priority": d.fm.get("priority"), "effort": d.fm.get("effort")}
-                      for d in by_state.get("doing", [])],
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0
-
-    print(f"backlog: 全 {len(docs)} 件")
-    for state in states + sorted(s for s in by_state if s not in states):
-        items = by_state.get(state) or []
-        detail = " ".join(f"{p}:{priority_counts.get(state, {}).get(p, 0)}" for p in priorities)
-        print(f"  {state:<8} {len(items):>3} 件  ({detail})")
-    doing = by_state.get("doing") or []
-    if doing:
-        print("\ndoing:")
-        for doc in doing:
-            chips = " ".join(f"`{doc.fm[k]}`" for k in ("priority", "effort") if doc.fm.get(k))
-            print(f"  - {doc.title} {chips} ({doc.repo_rel})")
-    return 0
+    return _status.cmd_status(bundle, args, reader=backlog_docs)
 
 
 # =============================================================================
@@ -650,272 +339,40 @@ def cmd_status(bundle: Bundle, args) -> int:
 # =============================================================================
 
 
+from .commands import render as _render
+
 def cmd_render(bundle: Bundle, args) -> int:
-    """Bundle 対象の Markdown を、AI を使わず閲覧用 HTML に変換する。"""
-    try:
-        from .renderer import RenderError, render_bundle
-    except ImportError as exc:  # pragma: no cover - 壊れたインストール向け
-        raise OkfError(f"HTML レンダラーを読み込めません: {exc}") from exc
-
-    cleanup_from = getattr(args, "cleanup_from", None)
-    if cleanup_from and args.hook:
-        raise OkfError("--cleanup-from cannot be combined with --hook")
-    output_root = REPO_ROOT / (args.output or "_site")
-    if not cleanup_from:
-        output_root = output_root.resolve()
-    try:
-        output_root.relative_to(REPO_ROOT.resolve())
-    except ValueError as exc:
-        raise OkfError("HTML の出力先はリポジトリ内に指定してください") from exc
-
-    try:
-        from .render_cleanup import execute_cleanup, plan_cleanup, validate_roots, write_manifest
-        moves = []
-        if cleanup_from:
-            old_root, output_root = validate_roots(REPO_ROOT, REPO_ROOT / cleanup_from, output_root)
-            old_plan = render_bundle(bundle, Doc, old_root, write=False)
-            new_plan = render_bundle(bundle, Doc, output_root, write=False)
-            moves, lines = plan_cleanup(REPO_ROOT, old_root, output_root, old_plan.artifacts, new_plan.artifacts)
-            for line in lines:
-                print(line)
-        report = render_bundle(
-            bundle,
-            Doc,
-            output_root,
-            write=not args.check,
-            remove_stale=not bool(cleanup_from),
-        )
-        if not args.check:
-            write_manifest(REPO_ROOT, output_root, report.artifacts)
-            if cleanup_from:
-                backup = execute_cleanup(REPO_ROOT, old_root, output_root, moves)
-                if backup:
-                    print(f"cleanup backup: {backup.relative_to(REPO_ROOT.resolve()).as_posix()}")
-    except (RenderError, OSError) as exc:
-        raise OkfError(str(exc)) from exc
-
-    if args.hook:
-        # Codex / Claude の Stop hook は exit 0 時に JSON を要求する。
-        # 追加コンテキストや block 指示は返さず、モデル継続を発生させない。
-        print("{}")
-        return 0
-
-    for warning in report.warnings:
-        print(f"warn: {warning}", file=sys.stderr)
-    mode = "検証" if args.check else "生成"
-    print(
-        f"HTML {mode}: {report.pages} ページ / 書き込み {report.written} 件 / "
-        f"削除 {report.removed} 件 / "
-        f"warn {len(report.warnings)} 件 -> {report.output_root}"
-    )
-    if getattr(args, "open", False) and not args.check:
-        homepage = (report.output_root / "index.html").resolve()
-        if not homepage.is_file():
-            print(f"warn: トップページがありません: {homepage}", file=sys.stderr)
-        else:
-            try:
-                opened = webbrowser.open(homepage.as_uri())
-            except (OSError, webbrowser.Error):
-                opened = False
-            if not opened:
-                print(f"warn: ブラウザを開けません: {homepage.as_uri()}", file=sys.stderr)
-    return 0
+    return _render.cmd_render(bundle, args, repo_root=REPO_ROOT, doc_factory=Doc)
 
 
 # =============================================================================
 # sync コマンド
 # =============================================================================
 
-STDIN_LIMIT = 1 << 20  # hook 入力の読み取り上限（1 MiB）
-STDIN_TIMEOUT = 2.0    # 秒。EOF が来なくてもここで諦める（ハング防止）
-GATE_TTL = 600         # session_id が無いときに同一セッションとみなす秒数
-
+from .commands import sync as _sync
+from .commands.sync import STDIN_LIMIT, STDIN_TIMEOUT, GATE_TTL, _read_stdin_json, findings_fingerprint
 
 def gate_state_dir() -> Path:
-    return gitutil.gate_state_dir(REPO_ROOT, runner=git)
-
+    return _sync.gate_state_dir(REPO_ROOT, runner=git)
 
 def _gate_state_file(session_id: str | None) -> Path:
-    key = re.sub(r"[^A-Za-z0-9_.-]", "_", session_id or "")[:80] or "_nosession"
-    return gate_state_dir() / f"{key}.json"
-
-
-def _read_stdin_json(timeout: float = STDIN_TIMEOUT, limit: int = STDIN_LIMIT) -> dict | None:
-    """hook が stdin で渡す JSON を、ハングしない形で読む。
-
-    `sys.stdin.read()` は EOF が来るまで無期限に待つため、別スレッドで
-    サイズ上限付きに読み、タイムアウトしたら諦める（デーモンスレッドなので
-    プロセス終了を妨げない）。
-    """
-    stream = getattr(sys.stdin, "buffer", sys.stdin)
-    if stream is None:
-        return None
-    try:
-        if sys.stdin.isatty():
-            return None
-    except Exception:
-        return None
-
-    box: dict = {}
-
-    def worker() -> None:
-        try:
-            box["raw"] = stream.read(limit)
-        except Exception:
-            pass
-
-    thread = threading.Thread(target=worker, daemon=True)
-    thread.start()
-    thread.join(timeout)
-    raw = box.get("raw")
-    if raw is None:
-        return None
-    if isinstance(raw, bytes):
-        try:
-            raw = raw.decode("utf-8", errors="replace")
-        except Exception:
-            return None
-    if not raw.strip():
-        return None
-    try:
-        data = json.loads(raw)
-    except Exception:
-        return None
-    return data if isinstance(data, dict) else None
-
+    return _sync._gate_state_file(REPO_ROOT, session_id, state_dir=gate_state_dir)
 
 def resolve_session_id(args) -> str | None:
-    """`--session-id` → 環境変数 → stdin JSON の順にセッション ID を決める。"""
-    explicit = getattr(args, "session_id", None)
-    if explicit:
-        return str(explicit)
-    for name in ("CLAUDE_SESSION_ID", "OKF_SESSION_ID"):
-        value = os.environ.get(name)
-        if value:
-            return value
-    payload = _read_stdin_json()
-    if payload:
-        value = payload.get("session_id")
-        if value:
-            return str(value)
-    return None
-
-
-def findings_fingerprint(findings: list[Finding]) -> str:
-    """lint error 集合の指紋。内容が変われば別物として扱う。"""
-    joined = "\n".join(sorted(str(f) for f in findings))
-    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:32]
-
+    return _sync.resolve_session_id(args, payload_reader=_read_stdin_json)
 
 def gate_bump(session_id: str | None, fingerprint: str | None) -> int:
-    """同じ error 集合に対して exit 2 を返した回数を数える。
-
-    fingerprint が None（= error 無し）のときは状態をリセットして 0 を返す。
-    """
-    state_file = _gate_state_file(session_id)
-    if fingerprint is None:
-        try:
-            state_file.unlink()
-        except OSError:
-            pass
-        return 0
-
-    prev: dict = {}
-    same = False
-    if state_file.exists():
-        try:
-            prev = json.loads(state_file.read_text(encoding="utf-8"))
-        except Exception:
-            prev = {}
-        if isinstance(prev, dict) and prev.get("fingerprint") == fingerprint:
-            if session_id:
-                same = True
-            else:
-                try:
-                    age = time.time() - state_file.stat().st_mtime
-                except OSError:
-                    age = GATE_TTL + 1
-                same = age <= GATE_TTL
-    count = int(prev.get("count", 0)) + 1 if same else 1
-    payload = json.dumps(
-        {"session_id": session_id, "fingerprint": fingerprint, "count": count, "at": now_iso()},
-        ensure_ascii=False,
-    )
-    atomic_write_bytes(state_file, payload.encode("utf-8"))
-    return count
-
+    return _sync.gate_bump(REPO_ROOT, session_id, fingerprint, state_file_provider=_gate_state_file, ttl=GATE_TTL)
 
 def _has_local_changes() -> bool:
-    return gitutil._has_local_changes(REPO_ROOT, runner=git)
-
+    return _sync._has_local_changes(REPO_ROOT, runner=git)
 
 def cmd_sync(bundle: Bundle, args) -> int:
-    session_id = resolve_session_id(args) if args.gate else None
-
-    if args.gate and not _has_local_changes():
-        return 0  # docs もコードも変更が無ければ何もしない
-
-    print("== index ==")
-    index_args = argparse.Namespace(write=True, check=False, quiet=False)
-    index_rc = cmd_index(bundle, index_args)
-
-    print("\n== log ==")
-    log_args = argparse.Namespace(write=True, range=None, layer=None, dry_run=False)
-    try:
-        cmd_log(bundle, log_args)
-    except OkfError as exc:
-        # log の失敗（baseline 未設定など）で sync 全体を落とさない。
-        print(f"[okf log] スキップしました: {exc}", file=sys.stderr)
-    if _has_local_changes():
-        # log の入力はコミット履歴だけなので、未コミットの作業は反映されない。
-        print(
-            "[okf log] 未コミットの変更があります。今回の作業分の log.md エントリは"
-            "コミット後に `okf log --write` を実行して生成してください。",
-            file=sys.stderr,
-        )
-
-    print("\n== lint ==")
-    bundle._docs = None  # index / log の書き込み結果を反映させる
-    findings = run_lint(bundle)
-    for finding in findings:
-        print(finding)
-    errors = [f for f in findings if f.level == "error"]
-    warns = [f for f in findings if f.level == "warn"]
-    print(f"lint: error {len(errors)} 件 / warn {len(warns)} 件")
-
-    print("\n== stale ==")
-    results = run_stale(bundle)
-    if not results:
-        print("陳腐化の兆候はありません。")
-    for item in results:
-        print(f"{item['path']} {item['level']} {item['kind']} {item['message']}")
-
-    if not args.gate:
-        return 1 if (errors or index_rc != 0) else 0
-
-    count = gate_bump(session_id, findings_fingerprint(errors) if errors else None)
-    if not errors:
-        return 0
-    if count >= 2:
-        print(
-            f"[okf gate] lint error が {len(errors)} 件残っていますが、"
-            "同じ内容で 2 回目の差し戻しになるため警告のみとします。",
-            file=sys.stderr,
-        )
-        return 0
-    lines = [
-        "[okf gate] ドキュメントの規約違反があります。次を修正してから終了してください。",
-        "",
-    ]
-    lines += [f"  {f}" for f in errors]
-    lines += [
-        "",
-        "修正の手順:",
-        "  1. 上記ファイルの frontmatter / 本文を修正する",
-        "  2. okf lint で解消を確認する",
-    ]
-    print("\n".join(lines), file=sys.stderr)
-    return 2
+    return _sync.cmd_sync(
+        bundle, args, indexer=cmd_index, logger=cmd_log, linter=run_lint,
+        stale_reporter=run_stale, dirty_checker=_has_local_changes,
+        session_resolver=resolve_session_id, gate_counter=gate_bump,
+    )
 
 
 # =============================================================================
@@ -923,150 +380,20 @@ def cmd_sync(bundle: Bundle, args) -> int:
 # =============================================================================
 
 
+from .commands import init as _init
+from .commands.init import _parse_layer_specs
+
 def _scaffold_text(rel: str) -> str:
-    path = SCAFFOLD_DIR / rel
-    if not path.is_file():  # pragma: no cover - 壊れたインストール向け
-        raise OkfError(f"scaffold が見つかりません: {path}")
-    return path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    return _init._scaffold_text(rel, scaffold_dir=SCAFFOLD_DIR)
 
-
-def _parse_layer_specs(specs: list[str] | None) -> list[tuple[str, str, str]]:
-    """``--layer name=glob[:dir]`` を (name, glob, dir) に分解する。
-
-    ``glob`` は「その層に属するコードのパス」で、log の振り分けと affected の
-    起点になる。``dir`` 省略時は層名をそのままバンドル内のディレクトリ名に使う。
-    """
-    parsed: list[tuple[str, str, str]] = []
-    seen: set[str] = set()
-    for spec in specs or []:
-        name, sep, rest = spec.partition("=")
-        name = name.strip()
-        if not sep or not name or not rest.strip():
-            raise OkfError(f"--layer の書式が不正です（name=glob[:dir]）: {spec}")
-        glob_part, _, dir_part = rest.partition(":")
-        glob_part = glob_part.strip()
-        dir_part = dir_part.strip() or name
-        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
-            raise OkfError(f"層名は英小文字・数字・- _ のみ使えます: {name}")
-        if name in seen:
-            raise OkfError(f"層名が重複しています: {name}")
-        if name == "shared":
-            raise OkfError("`shared` は層をまたぐ知識用に予約されています")
-        if dir_part.startswith((".", "/")) or ".." in dir_part.split("/"):
-            raise OkfError(f"層のディレクトリが不正です: {dir_part}")
-        seen.add(name)
-        parsed.append((name, glob_part, dir_part))
-    return parsed
-
-
-def _render_okf_yml(
-    bundle_root: str, site_name: str, layers: list[tuple[str, str, str]]
-) -> str:
-    """``okf.yml`` を組み立てる。値はすべて ``yaml_scalar`` で安全に引用する。"""
-    names = [name for name, _glob, _dir in layers]
-
-    layer_lines = [f"  - {yaml_scalar(n)}" for n in names] + ["  - shared"]
-    dir_lines = [f"  {n}: {yaml_scalar(d)}" for n, _g, d in layers]
-    dir_lines.append("  shared: project")
-    map_lines = [
-        f"  - {{ glob: {yaml_scalar(g)}, layer: {yaml_scalar(n)} }}"
-        for n, g, _d in layers
-    ]
-    map_lines.append(f"  - {{ glob: {yaml_scalar(bundle_root + chr(47) + chr(42) * 2)}, layer: skip }}")
-    map_lines.append('  - { glob: "**", layer: shared }')
-    # log.paths は log: > paths: の下なのでインデントは4スペース
-    log_path_lines = [f"    {n}: {yaml_scalar(d + '/log.md')}" for n, _g, d in layers]
-    log_path_lines.append("    shared: log.md")
-
-    return _scaffold_text("okf.yml.tmpl").format(
-        bundle_root=yaml_scalar(bundle_root),
-        site_name=yaml_scalar(site_name),
-        root_heading=yaml_scalar(f"{site_name} ドキュメント"),
-        layers="\n".join(layer_lines),
-        layer_dirs="\n".join(dir_lines),
-        layer_map="\n".join(map_lines),
-        log_layers=("[" + ", ".join(names) + "]") if names else "[]",
-        log_paths="\n".join(log_path_lines),
-    )
-
+def _render_okf_yml(bundle_root: str, site_name: str, layers: list[tuple[str, str, str]]) -> str:
+    return _init._render_okf_yml(bundle_root, site_name, layers, scaffold_reader=_scaffold_text)
 
 def cmd_init(args) -> int:
-    """リポジトリに OKF バンドルと設定一式を生成する。"""
-    layers = _parse_layer_specs(args.layer)
-    raw = args.bundle_root if args.bundle_root is not None else "docs"
-    bundle_root = raw.strip().replace("\\", "/")
-    # 末尾スラッシュを落とす前に判定する（"/abs" が "abs" に化けるのを防ぐ）。
-    if bundle_root.startswith(("/", ".")) or ":" in bundle_root:
-        raise OkfError(f"bundle_root はプロジェクト内の相対パスで指定してください: {raw!r}")
-    bundle_root = bundle_root.rstrip("/")
-    if not bundle_root or ".." in bundle_root.split("/"):
-        raise OkfError(f"bundle_root が不正です: {raw!r}")
-    site_name = (args.site_name or REPO_ROOT.name).strip() or "Project"
-
-    created: list[str] = []
-    skipped: list[str] = []
-
-    def emit(rel: str, text: str) -> None:
-        path = REPO_ROOT / rel
-        if path.exists() and not args.force:
-            skipped.append(rel)
-            return
-        path.parent.mkdir(parents=True, exist_ok=True)
-        write_if_changed(path, text)
-        created.append(rel)
-
-    layer_table = "\n".join(
-        f"| `{bundle_root}/{d}/log.md` | `{g}` の変更 |" for _n, g, d in layers
-    ) or "| （層を定義していません） | — |"
-    tokens = {
-        "GENERATED_AT": now_iso(),
-        "BUNDLE_ROOT": bundle_root,
-        "SITE_NAME": site_name,
-        "LAYER_LIST": "、".join(n for n, _g, _d in layers) or "（層なし）",
-        "LAYER_DIRS": " ".join(f"`{d}/`" for _n, _g, d in layers) or "—",
-        "LAYER_TABLE": layer_table,
-    }
-
-    def expand(text: str) -> str:
-        for key, value in tokens.items():
-            text = text.replace("{{" + key + "}}", value)
-        return text
-
-    emit(CONFIG_FILENAME, _render_okf_yml(bundle_root, site_name, layers))
-    emit(f"{bundle_root}/AGENTS.md", expand(_scaffold_text("AGENTS.md.tmpl")))
-    emit(f"{bundle_root}/CONVENTIONS.md", expand(_scaffold_text("CONVENTIONS.md.tmpl")))
-
-    for tmpl in sorted((SCAFFOLD_DIR / "templates").glob("*.md")):
-        emit(f"{bundle_root}/_templates/{tmpl.name}", _scaffold_text(f"templates/{tmpl.name}"))
-    for hook in sorted((SCAFFOLD_DIR / "hooks").iterdir()):
-        emit(f".okf/hooks/{hook.name}", _scaffold_text(f"hooks/{hook.name}"))
-
-    def empty_log(layer_name: str) -> str:
-        return (
-            f"# 変更履歴 — {layer_name}\n"
-            "\n"
-            "<!-- `okf log --write` が git 履歴からここに追記する。"
-            "書式は /CONVENTIONS.md §7 を参照。 -->\n"
-        )
-
-    for name, _glob, directory in layers:
-        emit(f"{bundle_root}/{directory}/log.md", empty_log(name))
-    emit(f"{bundle_root}/log.md", empty_log("shared"))
-
-    for rel in created:
-        print(f"作成: {rel}")
-    if skipped:
-        print(f"既存のためスキップ（--force で上書き）: {len(skipped)} 件")
-        for rel in skipped:
-            print(f"  {rel}")
-    print()
-    print("次の手順:")
-    print(f"  1. {bundle_root}/CONVENTIONS.md の語彙を確認・調整する")
-    print(f"  2. {CONFIG_FILENAME} の layer_map が実際のコード配置と合っているか確認する")
-    print("  3. okf index --write で目次を生成する")
-    print("  4. okf lint で規約違反が無いか確認する")
-    print("  5. .gitignore に _site/ を追加する（HTML生成物）")
-    return 0
+    return _init.cmd_init(
+        REPO_ROOT, args, scaffold_dir=SCAFFOLD_DIR, scaffold_reader=_scaffold_text,
+        writer=write_if_changed, config_renderer=_render_okf_yml,
+    )
 
 
 # =============================================================================

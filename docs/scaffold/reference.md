@@ -7,8 +7,11 @@ status: stable
 layer: scaffold
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:30:21Z
+  at: 2026-10-04T11:26:11Z
 code_globs:
+  - src/okf_devkit/commands/init.py
+  - src/okf_devkit/commands/new.py
+  - tests/test_commands_b.py
   - src/okf_devkit/gitutil.py
   - tests/test_gitutil.py
   - src/okf_devkit/scaffold/**
@@ -21,6 +24,8 @@ related:
 ---
 
 # 初期化と同梱雛形
+
+Python の scaffold 配置は `commands/init.py` が明示した project root に対して行い、素材はインストール済みパッケージ内の `scaffold/` を参照する。文書の新規作成は `commands/new.py` が Bundle の root 内に限定する。旧CLIの素材 reader・設定 renderer・writer の差し替えは adapter 経由で維持し、既存ファイルの skip/force 条件は変更しない。
 
 第4段階ではGit helperを `gitutil.py` に分離したが、initと同梱scaffold生成は従来入口に残る。生成したプロジェクトのGit呼出しはproject rootを明示して処理し、文書rootをGitのcwdには使わない。
 Doc/config分離後もdefaultsはパッケージ内の `defaults.yml`、scaffoldは同梱の `scaffold/` を参照する。利用先のCWDや文書rootから配布素材を探さない。initの引数・生成先・既存ファイル保持は変更しない。

@@ -7,8 +7,16 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:49:10Z
+  at: 2026-10-04T11:30:28Z
 code_globs:
+  - src/okf_devkit/commands/stale.py
+  - src/okf_devkit/commands/affected.py
+  - src/okf_devkit/commands/new.py
+  - src/okf_devkit/commands/status.py
+  - src/okf_devkit/commands/render.py
+  - src/okf_devkit/commands/sync.py
+  - src/okf_devkit/commands/init.py
+  - tests/test_commands_b.py
   - src/okf_devkit/commands/index.py
   - src/okf_devkit/commands/log.py
   - src/okf_devkit/commands/lint.py
@@ -32,9 +40,9 @@ related:
 
 # コマンド仕様
 
-第5a段階では index、log、lint の実装と専用helpersを `commands/index.py`、`commands/log.py`、`commands/lint.py` へ分離した。canonical commandはBundleの `.repo_root` を使い、CLIや可変rootをimportしない。予約文書のDoc構築にもrootを明示する。旧CLI入口は現在のrootと必要なwriter/Git/resource/index/linter callbackを渡す薄いadapterで保持する。残る7コマンドと引数入口は未分離で、Issue #12全体の200行以下という条件はまだ満たしていない。
+第5b段階で stale、affected、new、status、render、sync、init も `commands/` 配下へ分離し、全10コマンドの実装所有者を移した。canonical command は Bundle の `.repo_root` または明示した project root を使い、CLI の可変 root を import しない。stale は呼び出しごとの Git 時刻 cache を文書間で共有し、status/render の Doc factory に root を明示する。旧CLIは現在の root・helper・writer・factory・gate TTL を呼び出し時に渡す薄い adapter で維持する。引数解析と互換 export の最終分離は後続段階に残り、cli 200行以下という Issue #12 全体の完了条件はまだ満たしていない。
 
-Gitを使うlog/stale/affectedとsync gateの実処理は第4段階で `gitutil.py` に分離した。canonical関数はプロジェクトrootを明示して呼び、文書rootとは区別する。既存CLI adapterによるroot指定・エラー文・終了値・NUL特殊パス解析は保持し、残るコマンド本体の移動は後続段階で行う。
+第4段階時点の記録: Gitを使うlog/stale/affectedとsync gateの実処理は第4段階で `gitutil.py` に分離した。canonical関数はプロジェクトrootを明示して呼び、文書rootとは区別する。既存CLI adapterによるroot指定・エラー文・終了値・NUL特殊パス解析は保持し、残るコマンド本体の移動は後続段階で行う。 現在は第5b段階で全10コマンドを分離済みで、残るのは引数解析・互換exportの入口分離である。更新済み親との統合後のcliは568行で、200行以下の最終条件は未達である。
 内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
 
 
