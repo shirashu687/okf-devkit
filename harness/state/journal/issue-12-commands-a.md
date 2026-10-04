@@ -5,3 +5,7 @@ Base: `cf00bece3e1719eb799b5e78eab63a32e0236127`. Extract commands individually,
 ## index extraction
 Canonical commands/index.py owns marker preflight and generation, using Bundle.repo_root. CLI adapters retain the current root and writer override. Reserved/index Doc construction explicitly receives the bundle root owner. New owner-isolation tests: 2 pass. Full Python: 240 run, failures 0, errors 0, skipped 1 (existing symlink constraint). Compatibility: 13 pass. npm ci --ignore-scripts succeeded. check_changes task and diff --check passed. Evidence: task/issue12-commands-a-index-python.log and -index-compat.log.
 
+
+## log extraction
+Canonical commands/log.py routes all Git calls through explicit Bundle.repo_root and optional runner; legacy CLI forwards current root/git/writer. Pure formatting/routing/hash helpers remain CLI exports. Canonical owner-root and legacy Git/writer observations pass. Full Python: 242 run, failures 0, errors 0, skipped 1. Compatibility: 13 pass. Evidence: task/issue12-commands-a-log-python.log and -log-compat.log.
+
