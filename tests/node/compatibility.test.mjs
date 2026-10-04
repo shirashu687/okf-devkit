@@ -224,10 +224,10 @@ test("Python and Node render identical readonly backlog progress sections", t =>
   for (const root of [py, js]) put(root, "docs/index.md", "# Docs\n");
   for (const root of [py, js]) {
     const config = fs.readFileSync(path.join(root, "okf.yml"), "utf8");
-    put(root, "okf.yml", config + "\nbacklog:\n  dir: work/tasks\n  states: [queued, doing, done, dropped]\n  state_order: [done, queued, doing, dropped]\n");
+    put(root, "okf.yml", config + "\nbacklog:\n  dir: work/tasks\n  states: [queued, doing, done, dropped]\n  state_order: [done, queued, doing, dropped]\n  priorities: [urgent]\n  efforts: [small]\n");
     put(root, "docs/work/tasks/index.md", "# Tasks\n");
     for (const [index, state] of ["queued", "doing", "done", "dropped", "unexpected", null].entries())
-      put(root, `docs/work/tasks/B-000${index + 1}-x #%.md`, document(state ? `state: ${state}\n` : "").replace("type: Reference", "type: Backlog Item"));
+      put(root, `docs/work/tasks/B-000${index + 1}-x #%.md`, document((state ? `state: ${state}\n` : "")+"priority: urgent\neffort: small\n").replace("type: Reference", "type: Backlog Item"));
   }
   ok(run(py, ["render", "--output", "_site"], {runtime: "python"}));
   ok(run(js, ["render", "--output", "_site"]));

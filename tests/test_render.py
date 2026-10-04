@@ -327,6 +327,30 @@ class BacklogProgressTests(OkfTestCase):
         self.assertIn('href="B-0001-x%20%23%25.html"', summary)
         self.assertIn("B-0001-x #%.md", page)
 
+    def test_grouped_cards_are_title_first_with_native_disclosure_and_metadata(self) -> None:
+        self.write("docs/backlog/index.md", "# Backlog\n")
+        for state in ("doing", "todo", "done", "dropped"):
+            self.write(f"docs/backlog/{state}.md", doc_text(type_="Backlog Item", title="Task <safe>", extra=f"state: {state}\npriority: high\neffort: small"))
+        bundle = self.bundle()
+        bundle.backlog_cfg.update(priorities=["high"], efforts=["small"])
+        renderer.render_bundle(bundle, okf.Doc, self.repo / "_site")
+        page = self.read("_site/index.html")
+        self.assertIn('class="backlog-tools" hidden', page)
+        self.assertIn('aria-pressed="false"', page)
+        self.assertEqual(page.count('class="backlog-card"'), 4)
+        self.assertEqual(page.count('data-default-open="false"'), 2)
+        self.assertEqual(page.count('data-default-open="true" open'), 2)
+        self.assertIn('priority: high', page)
+        self.assertIn('effort: small', page)
+        card = page.split('class="backlog-card"')[1]
+        self.assertLess(card.index('class="backlog-title"'), card.index('class="backlog-meta"'))
+        self.assertIn('Task &lt;safe&gt;', card)
+        bundle.backlog_cfg.update(priorities=["urgent"], efforts=["large"])
+        renderer.render_bundle(bundle, okf.Doc, self.repo / "_site")
+        page = self.read("_site/index.html")
+        self.assertNotIn('priority: high', page)
+        self.assertNotIn('effort: small', page)
+
 
 @unittest.skipUnless(renderer.MarkdownIt is not None, "markdown-it-py が必要")
 class NavigationTreeTests(OkfTestCase):

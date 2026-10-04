@@ -34,6 +34,39 @@
     });
   });
 
+  document.querySelectorAll('.backlog-progress').forEach((progress) => {
+    const tools = progress.querySelector('.backlog-tools');
+    if (!tools) return;
+    tools.hidden = false;
+    const toggle = tools.querySelector('.backlog-view-toggle');
+    toggle.addEventListener('click', () => {
+      const board = progress.classList.toggle('backlog-kanban');
+      toggle.setAttribute('aria-pressed', String(board));
+      toggle.textContent = board ? 'リスト表示' : 'カンバン表示';
+    });
+    const input = tools.querySelector('.backlog-search');
+    input.addEventListener('input', () => {
+      const query = input.value.trim().toLowerCase();
+      let visible = 0;
+      progress.querySelectorAll('.backlog-group').forEach((group) => {
+        if (query && !('beforeSearchOpen' in group.dataset)) group.dataset.beforeSearchOpen = String(group.open);
+        let matches = 0;
+        group.querySelectorAll('.backlog-card').forEach((card) => {
+          card.hidden = !!query && !card.dataset.backlogSearch.includes(query);
+          if (!card.hidden) matches++;
+        });
+        visible += matches;
+        group.hidden = !!query && !matches;
+        if (query) group.open = !!matches;
+        else if ('beforeSearchOpen' in group.dataset) {
+          group.open = group.dataset.beforeSearchOpen === 'true';
+          delete group.dataset.beforeSearchOpen;
+        }
+      });
+      tools.querySelector('.backlog-search-status').textContent = query ? `${visible} 件が一致` : '';
+    });
+  });
+
   const diagrams = document.querySelectorAll(".mermaid[data-mermaid-source]");
   if (diagrams.length) {
     import("https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs")

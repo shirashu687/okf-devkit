@@ -1,0 +1,91 @@
+{
+  "pr": 26,
+  "captureCodeSha": "9e49dbac84eb82514f1d3debac8f5ee6c2f67325",
+  "runtime": "Python renderer from immutable git archive",
+  "createdAtUtc": "2026-10-04T01:50:32.851507+00:00",
+  "atlasOriginalCodeShas": [
+    "066acc2f9b2e9554e4841edc691d76435a9e51e8",
+    "5ccec7513f4d0061d4208b0e550307e4a721c930"
+  ],
+  "atlasSameOriginalSourceBytes": true,
+  "fixtures": {
+    "atlas": {
+      "sourceSha256": {
+        "docs/index.md": "4ab8693ad9d10a2d2a7dea517b90e7e741a30c1bb79610e0b01be916c2779c15",
+        "docs/backlog/B-0001-demo.md": "ebc622a5ac372c415280e43717b12e4c0bac8b6419f9bc289207f3a90a6c4cb6",
+        "docs/backlog/B-0002-demo.md": "21acb4b6fa2ac3ca52f05c3d9b052b17d4617b48566681992d45f7fd4cf3b39f",
+        "docs/backlog/B-0003-demo.md": "602380cb8e0808f969ac949dc23f94da68364bdd2487a5f05d56de0f7373ea84",
+        "docs/backlog/B-0004-demo.md": "041d5a2d53d592354f1dadda3bc2cf6d5cdde473d6476f6dce842d59eab7ffd1",
+        "docs/backlog/B-0005-demo.md": "e78dda45069577f7e977186222002d31bd8669752012722ed44c9f373fa4b78e",
+        "docs/backlog/B-0006-demo.md": "3aa323d46e420fcb8022bc2ac211f11d4fe1faf286a2ca60f20535af0689bcef",
+        "docs/product/guides/getting-started.md": "515f19df7a2194c6b4628e28960a06d23d3602edddf54bc7f48c9294546bf642",
+        "docs/engineering/api/reference.md": "c45c5688c6278fb61f996f21bd129f80c4d14a45a802fc7790782fc040efff92",
+        "docs/engineering/viewer/navigation.md": "3ab4b09023e163f0c3562da52368815b9e862167126503cd0925952556629c2c",
+        "docs/engineering/viewer/search.md": "cd8f5c9fd9c783fd0bbfa59bf7ba070eaddb3af700a0d96d8019de7d476041ee"
+      },
+      "pages": 11,
+      "warnings": [],
+      "htmlSha256": {
+        "index.html": "e55b117c9734032c101a24e5f078b3d59b200257033effa2b21d10e66e4724b6",
+        "backlog/B-0001-demo.html": "6d565951dc70102ef6657ed07d95cbddc43c482f94724c92d03534bfa6466198",
+        "backlog/B-0002-demo.html": "1e9db98a8155d5a53f93a47bb84795b4a9af8f7ed231f415405ba535174bbfd0",
+        "backlog/B-0003-demo.html": "a07cb4e38b135827ce15f3c7e9091e14f6175e03674d90d33d8700fce63720ba",
+        "backlog/B-0004-demo.html": "98ae1c82530b2d445374be5fb34706e3474d4f95e916afb583e2316b2e233826",
+        "backlog/B-0005-demo.html": "d0c1361ffe548222e6f9ef1d5f449e6b2094c1bba88df3b479c6a2691b9e72f7",
+        "backlog/B-0006-demo.html": "71d40d5cd0c46e730fbc5e1ce63e34228cd761d8b90dfa81cf1ee34c3a7d4939",
+        "_assets/docs.css": "a8956f31da4d75e59b5e4d0cd5a49bd8ad893808fb424b2739e710b91c04123f",
+        "_assets/docs.js": "cebdc7f2db74df54292a07775076ab26d502bace18538bd19f51b8b4bf67db72",
+        "product/guides/getting-started.html": "08e232afce81b54097039d5a855c0ab41236cafe9bdf700d9ee409e57dfd7346",
+        "engineering/api/reference.html": "bb8064d87b81eb05cd1dcfec357d8470c0893fb1a67ed15edc9ca552bccba592",
+        "engineering/viewer/navigation.html": "e9497befec011a2627b687a028e0db872433fdeca3ddbb13edf84243f0e4b051",
+        "engineering/viewer/search.html": "bae2c4bfe9cf22048f8895eb4870c10285a46496cdc3a146d3f5eea69ca8deab"
+      }
+    },
+    "edge": {
+      "sourceSha256": {
+        "docs/index.md": "4ab8693ad9d10a2d2a7dea517b90e7e741a30c1bb79610e0b01be916c2779c15",
+        "docs/backlog/E-0001-edge.md": "ab5764bceb0110f3deb311cdd7955a9cc4739497a26e9dff5f498c08faec3ecc",
+        "docs/backlog/E-0002-edge.md": "bedd9d55f251ad2d51b1407c1968d0959c7bdea668a9d5a9578c785c03bf2d45",
+        "docs/backlog/E-0003-edge.md": "7b1e10c029ebd3b27d38d95f132f6d35268489ee6b3f4cf9013b8086c3f5aa87",
+        "docs/product/guides/getting-started.md": "515f19df7a2194c6b4628e28960a06d23d3602edddf54bc7f48c9294546bf642",
+        "docs/engineering/api/reference.md": "c45c5688c6278fb61f996f21bd129f80c4d14a45a802fc7790782fc040efff92",
+        "docs/engineering/viewer/navigation.md": "3ab4b09023e163f0c3562da52368815b9e862167126503cd0925952556629c2c",
+        "docs/engineering/viewer/search.md": "cd8f5c9fd9c783fd0bbfa59bf7ba070eaddb3af700a0d96d8019de7d476041ee"
+      },
+      "pages": 8,
+      "warnings": [],
+      "htmlSha256": {
+        "index.html": "df5dbb1e6fdd6fedc2dfb2ed85aa9d2d5f43d38047e0c4a18e6b74017694b6db",
+        "backlog/E-0001-edge.html": "1e4212af954d000e07d35d1bd0365e6c1fe295acb2146119620e2534dbfc0c58",
+        "backlog/E-0002-edge.html": "77c7ab92a6a60eb16e113f706dd488db1f780a36cc851a0a1bd363c3f4f8b5f7",
+        "backlog/E-0003-edge.html": "5425bc873733a899b6ab0d049a8236a66677dfba49b9ac6b7f12bf9fcfa60c78",
+        "_assets/docs.css": "a8956f31da4d75e59b5e4d0cd5a49bd8ad893808fb424b2739e710b91c04123f",
+        "_assets/docs.js": "cebdc7f2db74df54292a07775076ab26d502bace18538bd19f51b8b4bf67db72",
+        "product/guides/getting-started.html": "2e07ad342cb39ceaa6350db1ef9affa83734011e25c40e72b093fb6c6261552d",
+        "engineering/api/reference.html": "29968d194a71ec737be37cedb825098f9552a1e223592808d0bfff4334ed7963",
+        "engineering/viewer/navigation.html": "e4844a668cde3769e93a89774c25aa949888d67a2fe941b323f21a4cb1b93aa4",
+        "engineering/viewer/search.html": "670d0e33824d076722c71d4989bf936793ec428bff4da4018ef2e46a360b7a4b"
+      }
+    },
+    "empty": {
+      "sourceSha256": {
+        "docs/index.md": "4ab8693ad9d10a2d2a7dea517b90e7e741a30c1bb79610e0b01be916c2779c15",
+        "docs/product/guides/getting-started.md": "515f19df7a2194c6b4628e28960a06d23d3602edddf54bc7f48c9294546bf642",
+        "docs/engineering/api/reference.md": "c45c5688c6278fb61f996f21bd129f80c4d14a45a802fc7790782fc040efff92",
+        "docs/engineering/viewer/navigation.md": "3ab4b09023e163f0c3562da52368815b9e862167126503cd0925952556629c2c",
+        "docs/engineering/viewer/search.md": "cd8f5c9fd9c783fd0bbfa59bf7ba070eaddb3af700a0d96d8019de7d476041ee"
+      },
+      "pages": 5,
+      "warnings": [],
+      "htmlSha256": {
+        "index.html": "c8e40b53b74529d8d1040e4b5a54fecf558c2394947d525c78a152de2b13b49b",
+        "_assets/docs.css": "a8956f31da4d75e59b5e4d0cd5a49bd8ad893808fb424b2739e710b91c04123f",
+        "_assets/docs.js": "cebdc7f2db74df54292a07775076ab26d502bace18538bd19f51b8b4bf67db72",
+        "product/guides/getting-started.html": "d3e41af657a92b69f301efeef05604c0d39f973ad77c535c1b9a6f5103ef99ed",
+        "engineering/api/reference.html": "c1b5aa130dd9393fe922163ce3f44a606eb3f4ca30179507a7e8af60ecb19d6d",
+        "engineering/viewer/navigation.html": "d2d7007fdc185b055fb16d8f14f041e39742b70fbc8963a457d4d0bc34f2e801",
+        "engineering/viewer/search.html": "ab591360422ca34f2534759328d372ef510ed658e8a72cbd0b6413534a88cc38"
+      }
+    }
+  }
+}
