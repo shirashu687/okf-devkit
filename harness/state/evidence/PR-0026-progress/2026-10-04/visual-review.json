@@ -1,0 +1,30 @@
+{
+  "pr": 26,
+  "captureCodeSha": "9e49dbac84eb82514f1d3debac8f5ee6c2f67325",
+  "reviewedAtUtc": "2026-10-04T01:52:03.221448+00:00",
+  "visuallyInspected": [
+    "01-desktop-list.png",
+    "02-desktop-kanban.png",
+    "08-mobile-kanban.png",
+    "05-dark-kanban.png",
+    "04-search-done.png",
+    "11-edge-kanban.png",
+    "12-empty.png",
+    "14-no-javascript-fallback.png"
+  ],
+  "findings": [
+    "Desktop list separates groups and preserves six counts; doing/todo cards readable, done/dropped disclosures collapsed as intended.",
+    "Desktop kanban uses four columns at 1440px; card titles, paths and priority wrap without overlap.",
+    "390px kanban becomes one column; counts and tools wrap within viewport, long paths remain readable.",
+    "Dark theme titles, small metadata and outlines remain readable on dark surfaces.",
+    "Done search expands and shows exactly two cards with unchanged overall counts.",
+    "Custom review, unknown blocked and unset states are visibly separate with one card each.",
+    "Empty case displays zero counts and explicit empty message.",
+    "No-JavaScript fallback hides enhancement controls and retains native disclosure and rendered-body links."
+  ],
+  "blockingFindings": [],
+  "limitations": [
+    "Visual inspection is qualitative; no numerical color contrast audit.",
+    "Python-rendered fixture in Chromium153.0.8010.12; Node parity is covered separately by implementation tests."
+  ]
+}

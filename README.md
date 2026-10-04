@@ -303,3 +303,5 @@ npm run test:compat                       # .venv のPython版との生成結果
 ## ライセンス
 
 MIT
+
+Backlog の状態・件数は生成したルート HTML と Backlog 索引で確認できます。タイトル・採番を含む元ファイル名・状態・本文リンクを読み取り専用で表示します。[閲覧手順](docs/render/backlog-progress.md)を参照してください。
