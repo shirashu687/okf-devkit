@@ -7,8 +7,12 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:20:56Z
+  at: 2026-10-04T10:34:51Z
 code_globs:
+  - tests/test_config.py
+  - tests/test_doc.py
+  - src/okf_devkit/config.py
+  - src/okf_devkit/doc.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - src/okf_devkit/errors.py
@@ -25,10 +29,12 @@ related:
 ---
 
 # CLI 分割の移行設計
+第3段階までの実装: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。段階4以降のGit・commands移行とcli 200行以下は未完了であり、本段階だけでIssue #12全体を完了としない。
+
 
 この文書は Issue #12 の事前調査と技術設計であり、モジュール分割の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。
 
-段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。段階2以降と200行以下の入口は未完了である。
+段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。段階4以降と200行以下の入口は未完了である。
 
 ## 現状の依存とテスト面
 
@@ -100,7 +106,9 @@ yamlioへ移した関数のglobalsはyamlioを指す。cliから関数を再expo
 
 Copilot/Codex/Claudeの終了hookは共通advisory adapterを経由し、手動のstrict renderとは終了値の契約が異なる。CLIの移動でadapter/hookの振る舞いを統合・削除せず、入力を実行しない、失敗時にエージェントをブロックしない、実HTMLの連続生成、strict/advisoryの違いを既存の `tests/test_repo_hooks.py` と関連Nodeテストで維持する。実エージェントイベントの観測とローカルadapterテストは区別する。
 
-## 実装済み段階1・2と残る移行
+## 実装済み段階1・2と残る移行（段階2時点の記録）
+
+以下の2節は YAML作者版 `111f04ea2ee827e6c6652d24775fbb5c450d4227` とその親統合時点の履歴を保持する。現在の段階3では上部に記載したDoc/config分離が実装済みであり、以下の「未実装」「subsequent」は段階2時点を指す。commands分離と200行以下の入口は引き続き後続作業である。
 
 固定stage1 `5e5dea889920fb56075687d5ade4b01e612648b9` から第2段階として `yamlio.py` を切り出す。errors/fsutilとroot/cache互換性を保持し、Doc/config本体やcommandsの分離はまだ実装していない。cliは引数入口だけの200行以下という最終条件には未達で、この変更をIssue #12全体の完了として扱わない。
 

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "16b340bc7ea34e07104669fe686a8febccf42ae1",
+  "worklog": "harness/state/journal/issue-12-model-main-integration.md",
+  "changes": [
+    {
+      "path": "tests/test_doc.py",
+      "reason": "Integrate previously verified explicit-root model regression tests with updated YAML/main guide parent; preserve all assertions and canonical/legacy context behavior."
+    },
+    {
+      "path": "tests/test_config.py",
+      "reason": "Integrate previously verified explicit-root model regression tests with updated YAML/main guide parent; preserve all assertions and canonical/legacy context behavior."
+    }
+  ]
+}

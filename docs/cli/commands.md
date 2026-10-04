@@ -7,8 +7,12 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T10:20:56Z
+  at: 2026-10-04T10:30:21Z
 code_globs:
+  - tests/test_config.py
+  - tests/test_doc.py
+  - src/okf_devkit/config.py
+  - src/okf_devkit/doc.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - node/*.mjs
@@ -21,6 +25,8 @@ related:
 ---
 
 # コマンド仕様
+内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
+
 
 目的別の短い入口は [AIの日常操作](/agents/operate-okf.md)。この文書を入出力・書き込み・終了状態の参照表として保守する。
 例の `okf` は選んだランタイムの実CLIに読み替える。共通引数 `--root` / `--config` はサブコマンドの前へ置く。詳細なオプション一覧は `okf <command> --help`、新規作成は `okf new doc --help` / `okf new backlog --help` を参照する。
