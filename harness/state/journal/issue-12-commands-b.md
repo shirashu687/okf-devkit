@@ -13,3 +13,6 @@ Canonical new uses Bundle.repo_root for output/error paths and keeps creation in
 
 ## status
 Status backlog construction passes explicit repo_root to its Doc factory; actual owner/factory observation confirms stable repo-relative paths after CLI root changes. Legacy current root/Doc factory/backlog reader callbacks remain available. The first auxiliary AST audit incorrectly classified every conditional function call as a Doc constructor and failed; the corrected Doc-specific audit passed. Product constructor root was present before execution. Full Python 247 run, failures 0, errors 0, skipped 1; compatibility 13 pass. Evidence: task/issue12-commands-b-status-python.log and -status-compat.log.
+
+## render
+Render binds every document factory callback to an explicit project root, while renderer/render_cleanup remain lazy actual owners. Output, cleanup roots, manifests and backup paths use that same root; the shared webbrowser module alias retains existing patches. Constructor callback audit and actual Doc/output owner regression passed. Existing cleanup/browser/hook assertions remain unchanged. Full Python 248 run, failures 0, errors 0, skipped 1; compatibility 13 pass. Evidence: task/issue12-commands-b-render-python.log and -render-compat.log. Real agent Stop events remain unverified.

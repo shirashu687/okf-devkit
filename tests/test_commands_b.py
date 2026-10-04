@@ -70,3 +70,19 @@ class RemainingCommandTest(OkfTestCase):
         self.assertEqual(1, len(docs))
         self.assertEqual('docs/backlog/B-0001-owner.md', docs[0].repo_rel)
         self.assertEqual(bundle.repo_root, factory.call_args.kwargs['repo_root'])
+
+    def test_render_binds_output_and_doc_factory_to_bundle_owner(self):
+        from okf_devkit.commands import render
+        config = self.make_config()
+        self.write('docs/owner.md', doc_text(type_='Convention', layer='shared', code_globs=None))
+        bundle = cli.Bundle(config)
+        prior = cli.REPO_ROOT
+        cli.REPO_ROOT = self.repo / 'different'
+        self.addCleanup(setattr, cli, 'REPO_ROOT', prior)
+        args = ns(output=None, check=False, hook=False, open=False, cleanup_from=None)
+        with patch.object(render, 'Doc', wraps=render.Doc) as factory, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(0, render.cmd_render(bundle, args))
+        self.assertTrue(factory.called)
+        self.assertTrue(all(c.kwargs['repo_root'] == bundle.repo_root for c in factory.call_args_list))
+        self.assertTrue((self.repo / '_site/owner.html').is_file())
+        self.assertFalse((self.repo / 'different').exists())
