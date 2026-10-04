@@ -10,11 +10,17 @@
 - **Update** refactor(cli): extract safe new document and backlog command。 (`51e8d95`)
 - **Update** refactor(cli): extract affected with explicit-root Git lookup。 (`c70eb7b`)
 - **Update** refactor(cli): extract stale with invocation-owned Git cache。 (`17e090c`)
+- **Update** 更新済みGit/model/YAML親とmainのhelp・AI案内へindex/log/lintの3コマンド分離を統合し、明示root・旧callback・Finding・テスト・両履歴を保持した。 (`4f38b74`)
 - **Update** refactor(cli): extract lint command with bundle-owned paths。 (`60b9b89`)
 - **Update** refactor(cli): extract log command with explicit Git root。 (`e21a724`)
 - **Update** refactor(cli): extract index command with explicit project root。 (`25a9a05`)
+- **Update** 更新済みモデル/YAML親とmainのhelp・AI案内を通常mergeし、Git分離・root/cache・旧runner契約と両側の既存テストを保持。 (`7171733`)
 - **Update** refactor: extract explicit-root Git helpers with legacy adapters。 (`d1fd3c9`)
+- **Update** 更新済みmain・YAML親と明示rootのDoc/configモデルを統合し、AI案内・help・既存constructor・型・root別cache・両変更履歴を保持した。 (`b0f350b`)
 - **Update** Doc/frontmatterとBundle/configを明示repo_rootのモデルへ分離。旧CLI constructor・Doc型・root別cache・YAML所有者と同梱defaultsを保持した。 (`0fd9627`)
+- **Update** Integrated the updated pure-helper parent and AI operation/help guidance with YAML ownership extraction; retained normal-owner/legacy-adapter tests and all historical records. (`92f7870`)
+- **Update** mainのAI操作案内・helpとCLI共通helper分離を統合し、双方の仕様・テスト・生成案内・変更履歴を保持した。 (`b0d938c`)
+- **Update** Python/Nodeのコマンド別helpを揃え、newのhelpを副作用なく利用可能にし、日常の書込・診断判定を既存仕様へ接続した。 (`33b2311`)
 - **Update** YAML解析・内蔵subset・serializerをyamlioへ分離し、通常Doc/configの実ownerと旧CLI直接呼出しadapterを区別した。backend差替え・実PyYAML不在・例外identityの回帰を維持する（Issue #12 stage2、`e27a64d`）。
 - **Update** Extracted pure CLI helpers with stable exception/exports and fixed root/repeated-main Git cache boundaries; updated affected implementation references. (`8981af1`)
 - **Update** 本体の npm 公開を抑止し、指定版導入と実 tgz 検証・同一配布物の PR CI を追加。CLI 実装と既存テストは保持（Issue #34、`a043c6c2`）。

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "d539e28c51c2a562f9729a07854c0fbf236438d0",
+  "worklog": "harness/state/journal/issue-32-ai-operations.md",
+  "changes": [
+    {
+      "path": "tests/test_cli_help.py",
+      "reason": "Issue32 approved AI daily entry/help consistency and generated fixture/read-only regression verification."
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Issue32 approved AI daily entry/help consistency and generated fixture/read-only regression verification."
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "Issue32 approved AI daily entry/help consistency and generated fixture/read-only regression verification."
+    },
+    {
+      "path": "tests/test_ai_operations.py",
+      "reason": "Issue32 approved AI daily entry/help consistency and generated fixture/read-only regression verification."
+    },
+    {
+      "path": "AGENTS.md",
+      "reason": "Issue32 approved AI daily entry/help consistency and generated fixture/read-only regression verification."
+    }
+  ]
+}

@@ -7,7 +7,7 @@ status: stable
 layer: render
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T11:13:32Z
+  at: 2026-10-04T11:26:11Z
 code_globs:
   - src/okf_devkit/commands/render.py
   - tests/test_commands_b.py

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "497fe05d813c1b5ecd0da3a39c410129614fcc33",
+  "worklog": "harness/state/journal/issue-12-git-main-sync.md",
+  "changes": [
+    {
+      "path": "tests/test_gitutil.py",
+      "reason": "Preserve original stage4 explicit-root/cache/legacy Git regression tests verbatim while integrating updated stage3/main."
+    }
+  ]
+}

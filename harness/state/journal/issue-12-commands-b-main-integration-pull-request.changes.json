@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "b019d65cca9ec6b537801d448658c6aece129dc7",
+  "worklog": "harness/state/journal/issue-12-commands-b-main-integration.md",
+  "changes": [
+    {
+      "path": "tests/test_commands_b.py",
+      "reason": "Preserve reviewed canonical command root and observed legacy callback regressions from original stage5b; no assertion weakened."
+    }
+  ]
+}

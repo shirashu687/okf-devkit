@@ -7,7 +7,7 @@ status: stable
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T07:20:15Z
+  at: 2026-10-04T09:15:06Z
 code_globs:
   - package.json
   - package-lock.json
@@ -70,7 +70,7 @@ Node以外のプロジェクトへmanifestを加える場合は、privateなmani
 
 ## 影響
 
-導入支援は [AI向け導入手順](/agents/install-okf.md)、日常の文書更新支援は [Issue #32](https://github.com/shirashu687/okf-devkit/issues/32) の別責務とする。
+導入支援は [AI向け導入手順](/agents/install-okf.md)、日常の文書更新支援は [日常操作ガイド](/agents/operate-okf.md) の別責務とする。
 インストール版と実際に呼ぶCLI/hookの一致を確認する。Python/PATHの既存 `okf` をNode版と取り違えない。
 パッケージの復旧は保存したmanifest・lockfileと再インストール、設定・文書・HTMLの復旧は別バックアップから行う。
 公開パッケージのリリース、既存ユーザー設定の一括書換えは本設計の導入操作に含めない。
