@@ -29,3 +29,11 @@ Planned verification: focused model/context, complete Python, Node native/compat
 No secrets/user data recorded. No global hook/user outputs touched. No full retrospective trigger introduced: ledger historical observations retained, no adopted ID or scoring change. Parent owns independent review and final CI.
 
 Compatibility environment correction completed: absolute PYTHONPATH=C:/Users/rinta/Documents/Codex/2026-10-03/task/issue12-model/src and authorized existing venv; final compatibility13pass/0fail/skip0, workspace issue12-model-compat-final.txt.
+
+## Source freeze and final evidence
+
+Source commit `0fd9627d9d3727e2ac283dda32acff4576a119c2`. Subsequent writes are CLI layer commit-hash log and worklog only; source/tests/docs bodies are frozen for independent parent review. Completing mandatory full Python after final log insertion, then final record commit.
+
+Independent parent reviewers (Spec/Standards) reported findings0/blocking0 before final freeze. Low-level relative config_path remains CWD-relative exactly as before; independent canonical usage should pass an absolute config path. CLI resolves --root/--config before constructing its Bundle. This technical compatibility choice does not add a new product decision.
+
+Final mandatory full Python after source-hash CLI log:230 tests/failures0/errors0/skip1, exit0; Ran 230 tests in 67.372s. Output workspace issue12-model-python-final.txt. Python/Node final lint0error/0warn,index latest,render31pages/warn0/write0/delete0. Task/stacked-PR declarations both result=ok at base111f04ea2ee827e6c6652d24775fbb5c450d4227. Final record commit changes only docs/cli/log.md and this worklog; no source/test change from independently reviewed source0fd9627. Freeze after this record commit; parent final-head review/CI remain not executed by child.
