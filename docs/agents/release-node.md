@@ -7,7 +7,7 @@ status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T13:44:39Z
+  at: 2026-10-04T14:53:26Z
 code_globs:
   - .github/workflows/release.yml
   - scripts/release-*.mjs
@@ -24,7 +24,7 @@ related:
 # Node.js配布物をDraft Releaseで検査して公開する
 
 配布担当者向けの手順。利用者repoへの導入・初期化・更新は [導入ガイド](/agents/install-okf.md) を使う。
-この手順はmainに統合済みの配布workflowを対象とする。公開予定版は **v0.1.0のPreRelease**。2026-10-04時点では未公開で、v0.1.0タグもReleaseも存在しないことを読み取り確認している。実タグのpush、タグ用Actions、Draft生成、PreRelease公開は今回の準備では実行しない。
+この手順はmainに統合済みの配布workflowを対象とする。公開予定版は **v0.1.0のPreRelease**。準備PR時点ではタグとReleaseがなかったが、その後v0.1.0タグ対象 `12cdb44c2876b50bd7337a5ea20f7744a27d7802` のタグ用Actions全10jobと3asset照合を完了し、現在は未公開Draftである。公開済みPreReleaseへの移行と公開後consumer導入は未実施。この手順にある将来の公開操作は別承認の工程として扱う。
 日本語の公開予定内容は [v0.1.0リリースノート](/project/releases/v0.1.0.md)。準備PRのレビュー・main統合・その最終SHAのCI成功を済ませ、その後のタグ作成と公開を別途承認された工程として進める。文書の作成や準備PRの成功は公開の許可にならない。
 
 ## 1. レビュー済みの版とコミットを選ぶ

@@ -1,0 +1,51 @@
+# 初回Release導入案内の修正
+
+開始/実PR比較base `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。fresh remote main同SHAを確認。user承認は不足時の日本語最小修正PRまでで、merge/tag移動/asset差替え/公開は対象外。rootはDraft403054686、tagv0.1.0対象12c、タグrun全10成功/3asset検証済み、現在未公開、repo publicを観測。canonical asset URLとPyPI本体はHTTP404、公開後の実取得成功は主張しない。
+
+READMEの古いDraftPR時制と未公開PyPI取得例2箇所を修正。既存GitHub配布物の3asset取得予定URL、manifest/repository/tag/version/commit/size/hash/SHA256SUMS照合、local/global明示選択、固定ソースPython、initforce禁止/lockfile復旧を案内。guideは以前195252導入実測の履歴を保持し、現在12cとの区別と未実施consumerを明記。既存検証済みtgz同梱READMEは旧版のままで、今回の変更はそのバイトへ反映されない。タグ移動/再pack/asset更新で修復しない。rootがこの差と案内優先を説明する。
+
+runtime/workflow/tests/version/政策/保護対象は変更しない。元repo/venv/global設定を変更しない。authorは編集commit/freezeのみ、rootがDraftPR/push/CI/独立レビュー。source固定後fullPython/Nodecompat/releaseguards/package/docs/affected/checker、hashlog後必須Pythonを実行し、未実行CI/公開と区別する。
+
+追加許容範囲:READMEのリンク先notesとrelease手順に残った未タグ/未Draftの現在時制だけを更新、実物検証済みDraftと未公開/未consumerを区別した。新機能や公開操作なし。sourcee234d78+a2720edの実hashでshared節目logを先に記録する。全製品文書固定後にmandatoryfullを1回実行し、最後はjournal結果のみ。
+
+## 最終source検証
+
+対象固定source `e80fbc0822daed99a3815b3365f28f3513c08d2b`（全製品文書と実hash付きsharedlog含む）。その後の変更は本journal結果のみ。実行環境は既存 `C:/Users/rinta/Documents/1_projects/okf-devkit/.venv/Scripts/python.exe`、PYTHONUTF8=1、絶対PYTHONPATH=`C:/Users/rinta/Documents/Codex/2026-10-03/task/release-install-guidance/src`、互換は同じOKF_TEST_PYTHON。
+
+| 結果 | 実コマンド | 対象・証拠 |
+| --- | --- | --- |
+| 成功 | 既存venv tests/run_all.py | 全261件、失敗0/error0/skip1（既存Windows symlink）。repo外workspace release-guidance-python.txt。 |
+| 成功 | npm ci; npm test; npm run test:compat; npm run test:release; npm run test:package | npmci8/audit9/vuln0。Node31/compat14/guards14/package3、全失敗0/skip0。release-guidance-{node,compat,guards,package}.txt。packageテストは一時的な検証物で、既存Releaseの再pack/差替えではない。 |
+| 成功 | Python index --write/lint/index --check/render --check; Node lint/index --check/render --check | index変更不要、双方lint0error/0warn、index最新、render34pages/書込0/削除0/warn0。 |
+| 成功 | affected --base12c; check_changes.py --base12c --headsource（task/PR両scope）; git diff --check | docs-only影響文書なし、未カバーREADME/journalを直接確認。保護対象0、宣言不要、両checker0/diff0。最終HEAD証拠はcommit後にrepo外保存。 |
+| 失敗 | 今回authorの必須検証 | なし。既存案内の問題は修正対象として記録、非公開URL404は既知の状態確認で導入成功ではない。 |
+| 未実行 | consumer導入、公開後URL取得、実agentStop、PR最終CI、PRmerge/tag移動/asset差替え/公開 | consumer以降は未許可の別工程。rootがDraftPR/CI担当。ローカル成功と既存tagrun10成功は本PRCIを意味しない。 |
+| 実行不能 | 必須ローカル検査 | なし。 |
+
+retroゲート照合範囲:条件付き公開の依頼/不足時の最小PR範囲、元README2PyPI誤例と旧時制、immutable配布物の差、source全差分、既存成功証拠/新source全local結果/引継ぎ。調査で見つけた既存不足を計画どおり修正しており、今回authorの要件取りこぼし、回帰、誤成功、反復手戻り、重大環境摩擦はない。台帳採用/新候補/回数更新なし。独立Spec/Standardsはroot割当で最終報告待ち、journalが判定の不足を成功扱いしない。次はrootの二軸review/exactSHA DraftPRCI。重大な未解消差は既存tgz同梱README旧版であり、今回文書PRでは直らない。追加PRmerge/新タグ・新配布物/現Draft公開の判断はユーザーの承認範囲と照合して親が報告する。
+
+authorは記録commit後全編集をfreezeし、cleanHEADと日本語PR本文外稿を親へ渡す。実装・workflow・版・テスト規約は開始mainと同一。
+
+## 二軸review後の補正とfull retrospective
+
+Specがsourcee80の二つの具体的不足を指摘した。READMEのnpm ci復旧範囲をrepo-localへ限定し、globalは保存旧tgz再導入と元解決path/版確認に分けた。journalだけだったimmutable12c archive内README旧版の制約を利用者向けREADME/guideにも明記した。製品文書source54a667eをcommitし、その実hashを同じsharedlog意味単位へ追加。前のfinal宣言を取り消さず履歴として残し、ここから再検証する。
+
+fullretro trigger:既決のlocal/global区別とimmutableasset説明が利用者向け本文に十分反映されていなかった。証拠はSpec reviewとsourcee80/修正54a667e。影響はglobal復旧誤適用と旧assetREADMEへの誤認で、実ユーザー導入/asset変更/公開は起きていない。仮説は説明の短縮で復旧範囲とsource-vs-archive境界が欠落したこと。原文の原因を断定しない。対応は狭い2文書補正で、runtime/policy/tag/配布物は維持。
+
+既存IMP0009の文書/API保証範囲と同じcodingstandards/review scopeとして独立task発生1を加算、1→2。初回全履歴保持、二指摘は一事象、review再読取や修正再検証を再計数しない。評価10/試行0/採用0、他ID/期限/状態を変更しない。採用や恒久効果なし。補正後requiredfullを1回、同じsourceでNodecompat/guards/packageとdocs/scopeを確認し、最後はjournal-onlyfreeze。既存assetREADME旧版と公開後consumer未実施は残存制約としてrootへ引き継ぐ。
+
+## 補正後の最終freeze証拠
+
+検証対象source `74d410c013dd2bac82a005a3757f73bee5b27ed8`（README/guide補正54a667eとactualhash log/fullretroledgerを含む）。以後の製品文書・runtime/testsは変更しない。最後の追加はこの検証記録だけ。
+
+| 結果 | 実コマンド・対象版 | 証拠 |
+| --- | --- | --- |
+| 成功 | 同じ既存venv/absolutePYTHONPATH/PYTHONUTF8で tests/run_all.py | 全261件=成功260+既存Windows symlink skip1、失敗0/error0、exit0。repo外release-guidance-python-corrected.txt。 |
+| 成功 | npm test / 同じOKF_TEST_PYTHONで test:compat / test:release / test:package | Node31/compat14/guards14/package3、全fail0/skip0。release-guidance-{node,compat,guards,package}-corrected.txt。既存npmci8/audit9/vuln0は依存不変なので有効。 |
+| 成功 | Python/Node lint/index --check/render --check、固定12c task/PRscope、diff --check | 双方lint0error/0warn、index最新、render34/write0/delete0/warn0、保護対象0/checker0/diff0。最終HEAD proofはcommit後repo外保存。 |
+| 未実行 | 本PR CI・merge・公開、consumer、canonical URL公開後取得 | rootがPR/push/CI担当。merge/tag移動/asset更新/公開はauthor対象外。 |
+| 失敗 / 実行不能 | 補正後の必須検証 | ともになし。レビュー前の不足と旧結果は前節に保持し、後から成功へ書き換えない。 |
+
+独立修正source review:root割当Spec/Standardsとも findings0/blocking0、ordinaryledger再発記録も確認済みと通知を受けた。finaljournal-only exactHEADレビューは親担当。評価枠/初回履歴/他ID保存、IMP0009のみ今回独立1回加算。恒久採用や効果は未判定。
+
+日本語PR本文外稿はrepo外release-guidance-pr-body-ja.mdへ補正内容/260passed+1skip/二軸結果/既存archive旧README制約を反映。最終cleanSHAをrootへ渡して以後編集を停止する。
