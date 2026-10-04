@@ -6,7 +6,7 @@
 - stage1 errors.py/fsutil.py/sharedcacheを維持し、Doc/Bundleの本体分離は後段とする。package metadata、Node runtime、#32規約・PR36は変更しない。
 - 検証前:元repo既存venvのみ使用しPYTHONPATHを本worktree/srcへ。focus/fullPython、npmci+Node+compat、affected/docs/globs/log/index/lint/render、task/PR宣言と二軸独立reviewを実施して最終freezeSHAを親へ渡す。GitHub操作/pushは担当しない。
 - retro開始確認:固定baseledger評価10/10・試行0/3・採用0・確認日2026-10-04、期限付き試行/採用見直しなし。既存history/IDs/countsを保持、新観測・採用を予定しない。未確認の実agentイベントは検証対象外。
-- 状態:実装前。保護対象3testファイルを事前task/PR宣言。
+- 開始時状態:実装前。保護対象3testファイルを事前task/PR宣言。
 
 ## 実装とfocused検証
 
@@ -34,3 +34,15 @@
 独立事前review:root割当の仕様investigate・標準cleanup_pythonが全source/test/docs差分を確認し各blocking0と親から受領。実装commitとhash付き層log・最終freeze後の記録差分は親が再確認する。
 
 retro終了判定（今回追加範囲）:要求、固定sourcebase、予定redとfocused/full結果、二軸review、境界・状態を照合。意図したred以外の予期しない失敗/差し戻しなし、fullretro新トリガーなし。処理済みIDなし。ledger評価10/10・試行0/3・採用0を変更せず、過去観測・CI失敗を再加算しない。未確認は実CLIイベント・最終SHA CIであり、次の一手はrootのreview/pushとCI。
+
+## source固定と最終freeze準備
+
+- source commit `e27a64da6b687021579a61b26b7167f89d7d3a25`。以後のsource/tests編集は停止し、CLI層logへ実在hashを添えた。stage2 source変更はsrc/okf_devkit/**とtests/**のCLI分類なので、render/scaffold本文の依存説明もCLI層へ一つの意味単位として記録し、変更していないrenderer/scaffold実装の新logは作らない。
+- source commit後の差分はhash付きCLI logと本worklogのみ。最終docsチェックとlog追加後mandatoryfullPythonを同じsourceで完了後、記録commitをfreezeしてstage3子worktreeのbaseを親へ渡す。
+
+## 最終freeze記録
+
+- CLI層log追加後のmandatory full Pythonを完了: `Ran 219 tests in 70.696s` / `OK (skipped=1)`、219件/失敗0/エラー0。sourceは `e27a64da6b687021579a61b26b7167f89d7d3a25` から不変、追加差分はhash付きCLI logとworklogのみ。repo外作業workspace `issue12-yaml-python-final.txt` に実結果。
+- 最終Python/Node lintは双方error0/warn0、index最新、rendercheck31page/warn0/書込0削除0。Node30/compat13の既完了検証は同じsource/fixturesを対象にした結果であり、この記録更新を理由に重複実行していない。
+- 追加AST照合:移動した7定数・regexも元cliと完全一致。例外12定義のAST一致、旧19名alias再export、normalowner/legacyadapter/実import不在の差替え証拠を維持。
+- freeze後は担当source/docs/tests/journalに追加編集しない。親が固定finalHEADのtask/stackPR宣言と記録差分をreviewし、stage3子worktree、DraftPR、push/CIへ進む。後段はDoc/config分離であり、この段階でIssue #12全体をcloseしない。
