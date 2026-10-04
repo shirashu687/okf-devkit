@@ -7,8 +7,10 @@ status: draft
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:40:44Z
+  at: 2026-10-04T10:00:12Z
 code_globs:
+  - src/okf_devkit/gitutil.py
+  - tests/test_gitutil.py
   - tests/test_config.py
   - tests/test_doc.py
   - src/okf_devkit/config.py
@@ -29,12 +31,14 @@ related:
 ---
 
 # CLI 分割の移行設計
-第3段階までの実装: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。段階4以降のGit・commands移行とcli 200行以下は未完了であり、本段階だけでIssue #12全体を完了としない。
+
+第4段階の実装は `gitutil.py` を所有者とし、rootと時刻cacheを明示する。`CommitTimesCache` はrootが変わると再計算し、同root内の更新は呼出元がmappingをNoneへ戻して無効化する。旧cliのroot・git runner・時刻map/reset adapterと同一Commit/parser exportを保持する。実2repo・特殊名・runner失敗・resource glob・gateを新所有者で検証する。commandsと200行以下の入口はまだ未完了。
+第3段階時点の記録: `doc.Doc(path, bundle_root, *, repo_root)` と `config.Bundle(config_path=None, *, repo_root)` を追加した。Bundleは `.repo_root` と文書 `.root` を区別し、Doc生成にも保存済みrootを渡す。旧CLIは薄いDoc/Bundle subclassで直接root注入と従来constructorを保持する。CLI生成Docの型は `cli.Doc` のまま、canonicalモデルはCLI/Gitへ依存しない。当時は段階4以降のGit・commands移行とcli 200行以下が未完了だった。現在のGit移行は上記第4段階の記録を参照し、commandsとcli 200行以下は未完了である。
 
 
-この文書は Issue #12 の事前調査と技術設計であり、モジュール分割の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。
+この文書は Issue #12 の事前調査・技術設計と段階別の実装記録であり、Issue全体の実装完了を表さない。CLI の引数・終了値・生成結果と Python/Node の互換性を維持し、純粋な処理から順に移す。
 
-段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。段階4以降と200行以下の入口は未完了である。
+段階0/1ではroot・反復main・YAML backendの回帰条件を固定し、`errors.py` と `fsutil.py` を分離する。元のCLI exportは同じ関数・例外class・glob cacheを参照し、YAML切替えは実際のcli所有者と内蔵パーサ呼出しを観測する。Git時刻cacheのroot切替え漏れを二つの実Gitリポジトリで確認し、現在のrootに紐付けて再取得する。この記録は段階0/1時点の状態である。後続の段階4実装は冒頭の現況を参照し、commandsと200行以下の入口は未完了である。
 
 ## 現状の依存とテスト面
 

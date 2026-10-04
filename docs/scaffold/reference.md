@@ -7,8 +7,10 @@ status: stable
 layer: scaffold
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:40:44Z
+  at: 2026-10-04T09:57:43Z
 code_globs:
+  - src/okf_devkit/gitutil.py
+  - tests/test_gitutil.py
   - src/okf_devkit/scaffold/**
   - src/okf_devkit/defaults.yml
   - src/okf_devkit/cli.py
@@ -19,6 +21,8 @@ related:
 ---
 
 # 初期化と同梱雛形
+
+第4段階ではGit helperを `gitutil.py` に分離したが、initと同梱scaffold生成は従来入口に残る。生成したプロジェクトのGit呼出しはproject rootを明示して処理し、文書rootをGitのcwdには使わない。
 Doc/config分離後もdefaultsはパッケージ内の `defaults.yml`、scaffoldは同梱の `scaffold/` を参照する。利用先のCWDや文書rootから配布素材を探さない。initの引数・生成先・既存ファイル保持は変更しない。
 
 

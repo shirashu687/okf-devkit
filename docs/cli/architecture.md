@@ -7,8 +7,10 @@ status: stable
 layer: cli
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T09:40:44Z
+  at: 2026-10-04T09:57:43Z
 code_globs:
+  - src/okf_devkit/gitutil.py
+  - tests/test_gitutil.py
   - tests/test_config.py
   - tests/test_doc.py
   - src/okf_devkit/config.py
@@ -25,6 +27,8 @@ related:
 ---
 
 # CLI の処理構造
+
+第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
 第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
 
 
