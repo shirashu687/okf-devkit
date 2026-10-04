@@ -274,3 +274,79 @@ class HookConfigurationTests(unittest.TestCase):
             self.assertNotIn("exit 2", text, wrapper.name)
             self.assertNotIn("decision", text, wrapper.name)
             self.assertNotIn("sync --gate", text, wrapper.name)
+
+
+@unittest.skipUnless(renderer.MarkdownIt is not None, "markdown-it-py が必要")
+class BacklogProgressTests(OkfTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.write("docs/index.md", "# Docs\n")
+
+    def test_mixed_states_counts_links_and_regeneration_are_read_only(self) -> None:
+        for number, state in enumerate(("todo", "doing", "done", "dropped"), 1):
+            self.write(f"docs/backlog/B-{number:04d}-task.md", doc_text(
+                type_="Backlog Item", title=f"Task {number} <safe>", extra=f"state: {state}"))
+        self.write("docs/backlog/index.md", "# Backlog\n")
+        self.write("docs/backlog/reference.md", doc_text(title="Not a task"))
+        self.write("docs/backlog/nested/B-9999.md", doc_text(type_="Backlog Item", extra="state: todo"))
+        before = {str(p): p.read_bytes() for p in self.docs.rglob("*.md")}
+        renderer.render_bundle(self.bundle(), okf.Doc, self.repo / "_site")
+        page = self.read("_site/index.html")
+        summary = page.split('<section class="backlog-progress"')[1].split('</section>')[0]
+        self.assertIn("全 4 件", summary)
+        for number, state in enumerate(("todo", "doing", "done", "dropped"), 1):
+            self.assertIn(f'<span class="badge state">{state}</span> 1 件', summary)
+            self.assertIn(f'href="backlog/B-{number:04d}-task.html"', summary)
+            self.assertIn(f"backlog/B-{number:04d}-task.md", summary)
+            self.assertIn(f"Task {number} &lt;safe&gt;", summary)
+        self.assertIn('href="B-0001-task.html"', self.read("_site/backlog/index.html"))
+        self.assertEqual(before, {str(p): p.read_bytes() for p in self.docs.rglob("*.md")})
+        changed = self.read("docs/backlog/B-0001-task.md").replace("state: todo", "state: done")
+        self.write("docs/backlog/B-0001-task.md", changed)
+        renderer.render_bundle(self.bundle(), okf.Doc, self.repo / "_site")
+        summary = self.read("_site/index.html").split('<section class="backlog-progress"')[1].split('</section>')[0]
+        self.assertIn('<span class="badge state">todo</span> 0 件', summary)
+        self.assertIn('<span class="badge state">done</span> 2 件', summary)
+        self.assertEqual(changed, self.read("docs/backlog/B-0001-task.md"))
+
+    def test_configured_directory_order_vocabulary_unknown_and_empty(self) -> None:
+        bundle = self.bundle()
+        bundle.backlog_cfg.update(dir="work/tasks", states=["queued", "done"], state_order=["done", "queued"])
+        renderer.render_bundle(bundle, okf.Doc)
+        self.assertIn("Backlog Item はありません。", self.read("docs/index.html"))
+        self.write("docs/work/tasks/index.md", "# Tasks\n")
+        for name, extra in (("B-0001-x #%.md", "state: queued"), ("B-0002.md", "state: unexpected"), ("B-0003.md", "")):
+            self.write("docs/work/tasks/" + name, doc_text(type_="Backlog Item", extra=extra))
+        renderer.render_bundle(bundle, okf.Doc)
+        page = self.read("docs/work/tasks/index.html")
+        summary = page.split('<section class="backlog-progress"')[1].split('</section>')[0]
+        self.assertIn("全 3 件", summary)
+        self.assertLess(summary.index('>done</span>'), summary.index('>queued</span>'))
+        self.assertIn('>unexpected</span> 1 件', summary)
+        self.assertIn('>未設定</span> 1 件', summary)
+        self.assertIn('href="B-0001-x%20%23%25.html"', summary)
+        self.assertIn("B-0001-x #%.md", page)
+
+    def test_grouped_cards_are_title_first_with_native_disclosure_and_metadata(self) -> None:
+        self.write("docs/backlog/index.md", "# Backlog\n")
+        for state in ("doing", "todo", "done", "dropped"):
+            self.write(f"docs/backlog/{state}.md", doc_text(type_="Backlog Item", title="Task <safe>", extra=f"state: {state}\npriority: high\neffort: small"))
+        bundle = self.bundle()
+        bundle.backlog_cfg.update(priorities=["high"], efforts=["small"])
+        renderer.render_bundle(bundle, okf.Doc, self.repo / "_site")
+        page = self.read("_site/index.html")
+        self.assertIn('class="backlog-tools" hidden', page)
+        self.assertIn('aria-pressed="false"', page)
+        self.assertEqual(page.count('class="backlog-card"'), 4)
+        self.assertEqual(page.count('data-default-open="false"'), 2)
+        self.assertEqual(page.count('data-default-open="true" open'), 2)
+        self.assertIn('priority: high', page)
+        self.assertIn('effort: small', page)
+        card = page.split('class="backlog-card"')[1]
+        self.assertLess(card.index('class="backlog-title"'), card.index('class="backlog-meta"'))
+        self.assertIn('Task &lt;safe&gt;', card)
+        bundle.backlog_cfg.update(priorities=["urgent"], efforts=["large"])
+        renderer.render_bundle(bundle, okf.Doc, self.repo / "_site")
+        page = self.read("_site/index.html")
+        self.assertNotIn('priority: high', page)
+        self.assertNotIn('effort: small', page)

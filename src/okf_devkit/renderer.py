@@ -241,6 +241,49 @@ def _relative_html(from_output: str, target_source: str) -> str:
     return posixpath.relpath(target, posixpath.dirname(from_output) or ".")
 
 
+def _backlog_state(page: Page) -> str:
+    value = page.doc.get("state")
+    return str(value) if value is not None and str(value) else "未設定"
+
+
+def _render_backlog(pages: list[Page], current: Page, bundle: Any) -> str:
+    directory = bundle.backlog_dir().relative_to(bundle.root).as_posix()
+    if current.source_rel not in ("index.md", f"{directory}/index.md"):
+        return ""
+    items = [page for page in pages if page.doc.type == "Backlog Item"
+             and str(PurePosixPath(page.source_rel).parent) == directory]
+    cfg = bundle.backlog_cfg
+    states = list(dict.fromkeys(str(state) for state in (
+        list(cfg.get("state_order") or ["doing", "todo", "done", "dropped"])
+        + list(cfg.get("states") or [])
+    )))
+    states += sorted({_backlog_state(page) for page in items} - set(states))
+    chunks = ['<section class="backlog-progress" aria-label="Backlog 進捗"><h2>Backlog 進捗</h2>',
+              f'<p>全 {len(items)} 件 · <code>{html.escape(directory)}/</code></p>',
+              '<ul class="backlog-counts">']
+    for state in states:
+        count = sum(_backlog_state(page) == state for page in items)
+        chunks.append(f'<li><span class="badge state">{html.escape(state)}</span> {count} 件</li>')
+    chunks.append('</ul>')
+    if not items:
+        chunks.append('<p>Backlog Item はありません。</p>')
+    else:
+        chunks.append('<div class="backlog-tools" hidden><button type="button" class="backlog-view-toggle" aria-pressed="false">カンバン表示</button><label>Backlog を検索 <input class="backlog-search" type="search" placeholder="タイトル・ID・状態"></label><p class="backlog-search-status" aria-live="polite"></p></div><div class="backlog-groups">')
+        for state in states:
+            group = sorted((page for page in items if _backlog_state(page) == state), key=lambda page: page.source_rel)
+            opened = '' if state in ('done', 'dropped') else ' open'
+            chunks.append(f'<details class="backlog-group" data-default-open="{str(bool(opened)).lower()}"{opened}><summary><span class="badge state">{html.escape(state)}</span> {len(group)} 件</summary><ul class="backlog-items">')
+            for page in group:
+                href = quote(_relative_html(current.output_rel, page.source_rel), safe="/:@-._~!$&\'()*+,;=")
+                metadata = ''.join(f'<span>{key}: {html.escape(str(page.doc.fm[key]))}</span>' for key in ('priority', 'effort') if page.doc.fm.get(key) and page.doc.fm[key] in (cfg.get('priorities' if key == 'priority' else 'efforts') or []))
+                search = ' '.join((page.doc.title, page.source_rel, state, str(page.doc.fm.get('priority') or ''), str(page.doc.fm.get('effort') or ''))).lower()
+                chunks.append(f'<li class="backlog-card" data-backlog-search="{html.escape(search, quote=True)}"><a class="backlog-title" href="{html.escape(href, quote=True)}">{html.escape(page.doc.title)}</a><div class="backlog-meta"><code>{html.escape(page.source_rel)}</code>{metadata}</div></li>')
+            chunks.append('</ul></details>')
+        chunks.append('</div>')
+    chunks.append('</section>')
+    return ''.join(chunks)
+
+
 def _render_navigation(pages: list[Page], current: Page) -> str:
     groups: dict[str, list[Page]] = {}
     for page in pages:
@@ -268,12 +311,17 @@ def _render_navigation(pages: list[Page], current: Page) -> str:
                     page.doc.title,
                     page.doc.description,
                     page.doc.type,
+                    page.source_rel,
+                    _backlog_state(page) if page.doc.type == "Backlog Item" else "",
                     " ".join(page.doc.get("tags", [])) if isinstance(page.doc.get("tags", []), list) else "",
                 )
             ).lower()
+            progress = (f'<small><code>{html.escape(PurePosixPath(page.source_rel).name)}</code> · '
+                        f'{html.escape(_backlog_state(page))}</small>'
+                        if page.doc.type == "Backlog Item" else "")
             chunks.append(
                 f'<li data-search="{html.escape(search, quote=True)}"><a href="{html.escape(href, quote=True)}"{active}>'
-                f"{html.escape(page.doc.title)}</a></li>"
+                f"{html.escape(page.doc.title)}{progress}</a></li>"
             )
         chunks.append("</ul></section>")
     return "".join(chunks)
@@ -448,6 +496,7 @@ def render_bundle(
             "NAVIGATION": _render_navigation(pages, page),
             "TOC": _render_toc(page.headings),
             "CONTENT": page.body_html,
+            "BACKLOG": _render_backlog(pages, page, bundle),
             "RELATED": _render_related(page, page_sources),
             "BACKLINKS": _render_backlinks(page, pages_by_source),
         }
