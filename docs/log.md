@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-03
+- **Update** CI に自リポジトリの lint・index・render 検査と stale レポートを追加。 (#5, `036d60a`)
 - **Update** fix: point Python package metadata to its repository。 (`3f51be9`)
 
 ## 2026-09-07

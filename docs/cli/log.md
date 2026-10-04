@@ -6,6 +6,8 @@
 - **Update** Backlogを状態別リスト中心にし、任意カンバンと表示検索・検索前の開閉復元・設定済み補助情報を追加。 (`9e49dba`)
 
 ## 2026-10-03
+- **Update** new doc の4必須型、複数の --code-globs、生成後の本文補完と index → lint の手順を現行仕様へ合わせた。 (`189eae4`)
+- **Creation** 自リポジトリの実装根拠を持つ本文ドキュメントを追加。 (#4, `036d60a`)
 - **Creation** feat(render): show read-only backlog progress overview。 ([#21](https://github.com/shirashu687/okf-devkit/issues/21), `831bb59`)
 
 
