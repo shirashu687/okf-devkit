@@ -25,3 +25,11 @@ retroゲート: 通常の要望追加として今回の変更を進める。過�
 | #34 | closedのためneeds-triage除去候補、enhancement保持。#35による合意範囲完了と初回Release未実行を区別 |
 
 カテゴリは現在の不足だけ補完し無関係なラベルを保持する。これは操作案であり、既存Issue本文・コメント・ラベル・closeは変更していない。
+
+## 最終ローカル検証とreview
+
+対象の文書freeze `8f030aba143e00cf14b1719661c297aa25e9eb01`: 全Python205件、失敗0/エラー0/skip2（Windows symlink unavailable、専用worktreeのNode開発依存未導入による既存hook検証skip）。runtime変更はなく、Node検証は既存遠隔CI全11ジョブで確認する。lint error0/warn0、index最新、render32ページ/書込0/削除0/warn0。task/PR宣言検査成功、diffcheck clean。独立Standards/Spec各指摘0。
+
+初回docs renderはrepo外テンプレートリンクにwarn1。コードパス表記へ修正し最終warn0。初回ba08の全Pythonも成功（skip2）で、その後文書log/参照表記を固定した8fに全件再実行して成功。履歴を成功へ上書きしない。
+
+retroゲート照合: 依頼・承認範囲・差分・全件再試行・二軸reviewを確認。既決要件の欠落や検証失敗・誤成功はなく、通常の運用要望追加と局所表記修正に該当するためfull retro不要。過去監査は再読だけで独立発生として数えず台帳変更なし。台帳active10/trial0/adopt0、日付期限の自動処理は仮定しない。未確認は実運用効果と最終SHA遠隔CI。次の一手は新規Draft PR作成・自動CI確認。
