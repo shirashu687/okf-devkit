@@ -1,0 +1,348 @@
+{
+  "pr": 30,
+  "captureCodeSha": "f7e8aa9143063ac29427203f779d2f85f521d9e2",
+  "runtime": "Python renderer from immutable git archive",
+  "createdAtUtc": "2026-10-04T01:55:50.263Z",
+  "checks": [
+    {
+      "name": "atlas six cards and four state counts",
+      "status": "passed",
+      "result": [
+        {
+          "state": "doing",
+          "summary": "doing 1 件",
+          "open": true
+        },
+        {
+          "state": "todo",
+          "summary": "todo 2 件",
+          "open": true
+        },
+        {
+          "state": "done",
+          "summary": "done 2 件",
+          "open": false
+        },
+        {
+          "state": "dropped",
+          "summary": "dropped 1 件",
+          "open": false
+        }
+      ]
+    },
+    {
+      "name": "keyboard toggle changes view and preserves focus",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "title search matches exactly one source card",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "ID search expands completed state and clear restores defaults",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "search clear restores manually expanded disclosure state",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "state search shows both completed cards",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "zero search reports zero and clear recovers all six cards",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "Space toggles back to list",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "native details keyboard opens completed cards and links reach source body",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "mobile navigation can open and close",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "custom unknown and unset states remain distinct readable cards",
+      "status": "passed",
+      "result": [
+        "doing",
+        "todo",
+        "done",
+        "dropped",
+        "review",
+        "blocked",
+        "未設定"
+      ]
+    },
+    {
+      "name": "empty backlog remains readable without cards",
+      "status": "passed",
+      "result": "Backlog 進捗\n\n全 0 件 · backlog/\n\ndoing 0 件\ntodo 0 件\ndone 0 件\ndropped 0 件\n\nBacklog Item はありません。"
+    },
+    {
+      "name": "hierarchy page keeps current position",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "no JavaScript fallback keeps native list and hides enhancement controls",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "no JavaScript source links open the matching rendered body",
+      "status": "passed",
+      "result": null
+    },
+    {
+      "name": "capture preserves all Markdown source hashes",
+      "status": "passed",
+      "result": true
+    }
+  ],
+  "screens": [
+    {
+      "name": "01-desktop-list.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "60e1b98f159d12183043564c3ff866f96fb0161de310e1ffc260b75fca8792fa"
+    },
+    {
+      "name": "02-desktop-kanban.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "c1ef1e093e2cad525908cc3c482cfd9ce7529da5592ab765779a270b857c6389"
+    },
+    {
+      "name": "03-search-title.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "a51b5feb62a570130fc17422d900bd805ffeada3b28e6a6732201d15d7f68fba"
+    },
+    {
+      "name": "04-search-done.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "a0ea23c196bdc970cbaa17a1d81ba3a403e4904415c7343a7e682c194fe110c8"
+    },
+    {
+      "name": "05-dark-kanban.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "59eae22e31437cf839866e3059ba76487a9524dfcba3dde019b5f47e287d5644"
+    },
+    {
+      "name": "06-dark-list.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "d9c190fdcbd6fdc02491bdb77abb7adc5af9638e112e439067fdbb84da93bdfb"
+    },
+    {
+      "name": "07-mobile-list.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "sha256": "3f4c8270f660e37f419b46dd89c1367cf8b5c7fb58908963c7df94079d3ff017"
+    },
+    {
+      "name": "08-mobile-kanban.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "sha256": "9fd0e6eab452e727ccced47df47b14193959e462c5130b7808b01b45ad74bc1e"
+    },
+    {
+      "name": "09-mobile-navigation.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "sha256": "4ea2e3075f74b1b1923a664b0bf18f5d735269fd6d789167dc8552524308b563"
+    },
+    {
+      "name": "10-edge-list.png",
+      "fixture": "edge",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "5430f865ce7ae6e25ea6e46595920ff98dac08cc958eb3ec083bbd78ed6b33ab"
+    },
+    {
+      "name": "11-edge-kanban.png",
+      "fixture": "edge",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "085962c1882c565540049c6d2c510d523642b5450197ff642f6787537a8a837a"
+    },
+    {
+      "name": "12-empty.png",
+      "fixture": "empty",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "6be6e2f3a448a215193691fb8741e74ba4661af8a289b81a227a7c0110414397"
+    },
+    {
+      "name": "13-current-hierarchy.png",
+      "fixture": "atlas",
+      "page": "_site/engineering/viewer/navigation.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "cb8f0dda1de062a06ee80eb9bb5da5ab8477a0d03186fa7d05984fe31ef51568"
+    },
+    {
+      "name": "14-no-javascript-fallback.png",
+      "fixture": "atlas",
+      "page": "_site/index.html",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "javascript": false,
+      "overflow": {
+        "page": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "sha256": "aa672442cc0ac59ffc1bc25b0b533cf61b50beb62bec08fe7102e5ab34b5e0c3"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "browserVersion": "153.0.8010.12",
+  "status": "passed"
+}

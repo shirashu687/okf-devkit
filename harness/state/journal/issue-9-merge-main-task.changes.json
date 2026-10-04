@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "scope": "task",
+  "base": "62bf9f0a4da0ec4ce739cbe959cf1a4cdc3c1cfc",
+  "worklog": "harness/state/journal/issue-9-repo-stop-hook.md",
+  "changes": [
+    {
+      "path": "tests/test_render.py",
+      "reason": "Merge exact reviewed main navigation regression coverage into the existing hook branch, preserving all existing tests."
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Merge exact reviewed main navigation regression coverage into the existing hook branch, preserving all existing tests."
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "Merge exact reviewed main navigation regression coverage into the existing hook branch, preserving all existing tests."
+    }
+  ]
+}

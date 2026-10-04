@@ -166,3 +166,19 @@ shared logには実装コミットhashを付け、baseline空でも後続log --w
 製品docsは既存のOS別対応表と同じ仕様のまま、テスト自身のOS選択を訂正したため新productlogは追加しない。修正後CI・実agentイベントは未確認として親へ引き継ぐ。
 
 - 独立cleanup_pythonレビュー:仕様0/標準0blocking、Windows focused5/skip0成功（6.259秒）、新task/PR宣言独立exit0。OS gateは実tool契約への補正でcase全体やportable pwsh検証をskipしないことを確認。
+
+## 2026-10-04: 全PR順次merge承認に伴う最新main取り込み
+
+- ユーザーが全open PRの順次mergeを05:46 UTCに承認。親がPR33をmainへsquashした版 `4f72e4172936d84932d831d55860331ea5455a1c` を既存hook branchへ通常mergeする。新機能・新モデルターン・設定権限変更・公開は追加しない。親が外部push/PR mergeを排他的に担当。
+- 作業開始版 `62bf9f0a4da0ec4ce739cbe959cf1a4cdc3c1cfc`、issue9 branch/worktree clean。新task比較元は62bf、実PR比較元は4f72。既存タスク・CI失敗修正・宣言の履歴を保持。
+- `git merge --no-commit 4f72e4172936d84932d831d55860331ea5455a1c` でledgerだけ競合。mainのnav Python/Node/tests/assets/docs/PNG証拠をそのまま受入れ、hook共通strict/advisory/config/OSgateを保存。docs/cli/logとnode-runtimeは双方内容をauto merge。
+- ledgerはsource unionで11件となるため、IMP0013とhook側IMP0010/0012回数2/IMP0005回数2をすべて保持した。独立再発のない旧Issue6 fixture API引数/helper前提観測IMP0008(低/1回/修正済み)を根拠付き却下履歴へ移し、元ID・行・詳細・回数・参照を保持。mainとbranchのIMP0002既存却下履歴も保持。評価10/10・試行0/3、採用なし。新ルール採用・観測削除ではなく優先順位処理で、元IDへ再発追記・再評価が可能。
+- retro開始確認:評価上限・試行・見直し・巻戻し競合を確認。期限付き試行/採用0、未処理の新規改善観測なし。上記台帳競合/容量処理は既存IDの履歴保持として記録し、過去CI失敗を再度発生回数へ加算しない。
+- 最終全件Python/npmci/Node/compat・docsチェック・task/PR宣言と独立二軸reviewは作業後に実結果を記録。過去のbranch最終CIが通っていても取り込み後SHAのCIは未実行。
+
+### 宣言履歴と2段階の同期・検証
+
+- historical宣言をbyte保持archiveして選択対象から外す案を試したが、checkerがrenameの旧pathも宣言として読み、PR比較で旧path不存在をinvalidにする制約を確認した。archiveは取り消して原名・元bytesを復元し、main4f72の2task宣言SHA256一致を確認。元base/scope/path/reasonやchecker/policyは変更しない。
+- 親が2phase同期を承認。まず62bf→main4f72の通常mergeをcheckpointとしてcommitし、その後段のverification/bookkeeping taskはcheckpointを固定baseにする。前段62bf→mergeの保護変更はmainから取り込むtests3pathを専用宣言で全指定、実main bytes比較と独立reviewで確認するが、別baseのhistorical task宣言も同scopeに選択されるため前段自動task検査はinvalid/検証不能と記録し、成功と報告しない。
+- 後段には保護対象の追加変更を行わず、checkpoint→最終SHAのtaskチェックを実行する。実PR比較元は最新main4f72固定で全hook保護3pathを宣言・検証する。過去task宣言と作業記録の元path参照を保持する。
+- ローカル初回fullPython205/失敗0/エラー0/skip1（既存Windows symlink制約）、npmci added8/audited9/vulnerabilities0、Node30/30・互換13/13成功。実コマンド/版を最終結果表に固定する。Node/compat対象runtime/assets/testsはmain4f72と一致し、hook側OS gateも62bfから不変。
