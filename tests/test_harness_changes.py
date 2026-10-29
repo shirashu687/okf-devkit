@@ -415,6 +415,132 @@ class HarnessChangesTest(unittest.TestCase):
                 result = self.run_checker(base)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
+    def test_combined_declaration_shares_entries_for_both_scopes(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        upstream = "skills-lock.json"
+        self.write(policy, "changed policy\n")
+        self.write(upstream, '{"changed": true}\n')
+        self.declaration(base, [self.change(policy), self.change(upstream)], scope="task-and-pull-request")
+        for scope in ("task", "pull-request"):
+            result = self.run_checker(base, scope=scope)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn(f"path={policy} category=protected", result.stdout)
+            self.assertIn(f"path={upstream} category=upstream", result.stdout)
+        head = self.commit_all("combined declaration")
+        for scope in ("task", "pull-request"):
+            result = self.run_checker(base, head, scope=scope)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_combined_declaration_can_keep_independent_bases_and_changes(self) -> None:
+        task_base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        config = "harness/project/config.md"
+        self.write(policy, "first task policy\n")
+        pr_base = self.commit_all("advance PR base")
+        self.write(config, "new PR config\n")
+        self.declaration(task_base, [self.change(policy), self.change(config)],
+                         scope="task-and-pull-request")
+        path = self.repo / "harness/state/journal/T-0005.changes.json"
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        doc.update(pull_request_base=pr_base, pull_request_changes=[self.change(config)])
+        path.write_text(json.dumps(doc), encoding="utf-8")
+        for scope, base in (("task", task_base), ("pull-request", pr_base)):
+            result = self.run_checker(base, scope=scope)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        head = self.commit_all("declare independent comparisons")
+        for scope, base in (("task", task_base), ("pull-request", pr_base)):
+            result = self.run_checker(base, head, scope=scope)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        # Each scope retains exact-base and exact-path validation.
+        wrong_base = self.run_checker(task_base, scope="pull-request")
+        self.assertEqual(wrong_base.returncode, 1, wrong_base.stdout + wrong_base.stderr)
+        self.assertIn("base does not match", wrong_base.stdout)
+        doc["pull_request_changes"] = [self.change(policy), self.change(config)]
+        path.write_text(json.dumps(doc), encoding="utf-8")
+        extra = self.run_checker(pr_base, scope="pull-request")
+        self.assertEqual(extra.returncode, 1, extra.stdout + extra.stderr)
+        self.assertIn("path is not in this comparison", extra.stdout)
+
+    def test_combined_declaration_rejects_invalid_other_scope_and_duplicates(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.write(policy, "changed policy\n")
+        self.declaration(base, [self.change(policy)], scope="task-and-pull-request")
+        path = self.repo / "harness/state/journal/T-0005.changes.json"
+        valid = json.loads(path.read_text(encoding="utf-8"))
+        invalid = [
+            {**valid, "pull_request_base": "0" * 40},
+            {**valid, "pull_request_changes": []},
+            {**valid, "pull_request_changes": [self.change(policy, "")]},
+            {**valid, "pull_request_changes": [self.change(policy), self.change(policy)]},
+            {**valid, "pull_request_changes": [self.change("../outside.md")]},
+        ]
+        for document in invalid:
+            with self.subTest(document=document):
+                path.write_text(json.dumps(document), encoding="utf-8")
+                # Invalid PR evidence fails even while checking the task scope.
+                result = self.run_checker(base, scope="task")
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        for bad_task in ({**valid, "base": "0" * 40}, {**valid, "changes": []}):
+            path.write_text(json.dumps(bad_task), encoding="utf-8")
+            result = self.run_checker(base, scope="pull-request")
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        path.write_text(json.dumps(valid), encoding="utf-8")
+        self.declaration(base, [self.change(policy)], filename="another.changes.json", scope="pull-request")
+        result = self.run_checker(base, scope="pull-request")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("duplicate path", result.stdout)
+
+    def test_unchanged_combined_declaration_does_not_cover_later_changes(self) -> None:
+        initial = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.write(policy, "first change\n")
+        self.declaration(initial, [self.change(policy)], scope="task-and-pull-request")
+        base = self.commit_all("previous change")
+        self.write(policy, "later change\n")
+        for scope in ("task", "pull-request"):
+            result = self.run_checker(base, scope=scope)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("undeclared", result.stdout)
+
+    def test_combined_declaration_cannot_omit_changed_protected_path(self) -> None:
+        base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        config = "harness/project/config.md"
+        self.write(policy, "changed policy\n")
+        self.write(config, "changed config\n")
+        self.declaration(base, [self.change(policy)], scope="task-and-pull-request")
+        for scope in ("task", "pull-request"):
+            result = self.run_checker(base, scope=scope)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn(f"undeclared protected or upstream change: {config}", result.stdout)
+
+    def test_combined_declaration_retains_task_base_when_pr_base_advances(self) -> None:
+        task_base = self.base_repository()
+        policy = "harness/core/policy/requirements.md"
+        self.git("checkout", "-b", "feature")
+        self.write(policy, "feature policy\n")
+        self.declaration(task_base, [self.change(policy)], scope="task-and-pull-request")
+        self.commit_all("feature change")
+        self.git("checkout", "main")
+        self.write("ordinary.txt", "advanced main\n")
+        pr_base = self.commit_all("advance main")
+        self.git("checkout", "feature")
+        self.git("merge", "--no-edit", "main")
+        stale = self.run_checker(pr_base, scope="pull-request")
+        self.assertEqual(stale.returncode, 1, stale.stdout + stale.stderr)
+        self.assertIn("base does not match", stale.stdout)
+        path = self.repo / "harness/state/journal/T-0005.changes.json"
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        doc["pull_request_base"] = pr_base
+        path.write_text(json.dumps(doc), encoding="utf-8")
+        for scope, base in (("task", task_base), ("pull-request", pr_base)):
+            result = self.run_checker(base, scope=scope)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(task_base, doc["base"])
+        self.assertEqual([self.change(policy)], doc["changes"])
+
     def test_unavailable_base_head_shallow_and_conflict_are_not_success(self) -> None:
         base = self.base_repository()
 

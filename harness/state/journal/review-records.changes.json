@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "2d9e5f8c6497f3655f4aa5cfd9f038c7ec0bae1f",
+  "worklog": "harness/state/journal/review-records.md",
+  "changes": [
+    {"path": "harness/project/check_changes.py", "reason": "同一作業の2 scope を一つのファイルで記録できるようにし、各scopeの厳密な照合を維持する。"},
+    {"path": "harness/project/config.md", "reason": "共通宣言の利用方法とPRレビューの入口を定める。"},
+    {"path": "tests/test_harness_changes.py", "reason": "既存互換と両scopeの厳密照合、重複・不正・古い宣言の拒否を検証する。"}
+  ]
+}

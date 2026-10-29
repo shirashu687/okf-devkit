@@ -75,6 +75,26 @@ PR用は例えば `harness/state/journal/<pr-slug>.changes.json` に `"scope": "
 
 別scopeの宣言は変更を許可せず、そのbase一致・現在差分とのパス照合・宣言間の重複判定に使わない。JSON、version、scope、必須項目、パス形式、空の理由、宣言内の重複、worklogの実在は別scopeでも検査する。無効なscopeは拒否する。どのscopeでも保護/上流対象の分類と全差分の列挙は同じであり、一件でも対応する宣言がなければ失敗する。
 
+同じ作業のtaskとPRを一つのファイルで宣言する場合は、`scope` に `task-and-pull-request` を指定できる。`base` と `changes` を両方のscopeで共有し、比較元や対象が異なるときだけ `pull_request_base` と `pull_request_changes` をそれぞれ指定する。個別指定しない項目は共有値を使う。taskの開始SHAを保ったままPR baseを更新でき、両scopeの形式を検査したうえで選択したscopeを実際の差分と照合する。共有した一覧がどちらかの実差分に合わなければ失敗する。
+
+```json
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "<task開始SHA>",
+  "worklog": "harness/state/journal/<作業名>.md",
+  "changes": [{"path": "tests/example.py", "reason": "変更の理由"}]
+}
+```
+
+PRのbaseだけが進んだ場合は、`"pull_request_base": "<新しいPR baseの完全SHA>"` を追加する。PRの保護対象一覧も異なる場合は、`"pull_request_changes": [{"path": "tests/other.py", "reason": "変更の理由"}]` のようにPR差分全体の一覧を追加し、共有の `changes` はtask側の記録として残す。変更後はそれぞれのbaseと実際の差分を再確認する。
+
+これは宣言の記録形式をまとめる機能であり、一方のscopeを他方の許可として使うものではない。複数タスクのPRなどで内容が異なる場合は差分ごとの一覧を明示するか、従来どおり別々の宣言を使う。以前のversion 1形式や履歴を変更する必要はない。
+
+### PRレビューの入口
+
+PR本文には目的と検証に加え、実装・テスト・利用者向け文書のうち優先して確認する箇所を短く示す。対象がなければ省略してよい。worklogや変更宣言は同じGit差分に残し、保護対象変更の理由を確認できるようにする。入口のリストはレビュー対象を限定するものではない。
+
 宣言は利用者の許可の証明ではない。review担当は、依頼、開始SHAからの正確なdiff、理由、検証結果を照合し、検査・CI・制約の同時変更による迂回可能性も記録する。上流変更がある場合は出所・対象・理由を `skill-profile.md` の更新手順と照合する。
 
 テスト、OKF検査、CI smokeは別の結果として扱う。ローカルテスト成功からCI smoke成功を推定しない。単独の型検査やPython lintコマンドは既存の必須コマンドとして定義されていない。上表の `lint` はOKF文書の検査を指す。
