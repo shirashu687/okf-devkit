@@ -58,7 +58,7 @@ related:
 `render --check` は既存HTML差分ではなく生成可否の非書き込み検査。`render --hook` は書き込みを伴う終了hook用操作で、advisory adapterのexit0も成功証明ではない。sync/gateを読み取り点検に使わない。
 
 新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。
-エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は全体置換なので更新用に使わない。
+エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は多くの生成物を置換するので更新用に使わない。エージェント設定と `.gitignore` はforceでも保持する。
 詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `okf <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
 
 ## 4. やってはいけないこと

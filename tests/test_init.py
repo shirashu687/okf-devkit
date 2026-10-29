@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import os
+import shutil
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -80,6 +84,102 @@ class InitTests(OkfTestCase):
             ".okf/hooks/render_hook.ps1",
         ):
             self.assertTrue((self.repo / rel).exists(), rel)
+
+    def test_generated_agent_settings_launch_advisory_hook_and_ignore_output(self) -> None:
+        self.git_init()
+        run_init()
+        claude = json.loads(self.read(".claude/settings.json"))
+        codex = json.loads(self.read(".codex/hooks.json"))
+        copilot = json.loads(self.read(".github/hooks/okf-render.json"))
+        commands = [claude["hooks"]["Stop"][0]["hooks"][0]["command"],
+                    codex["hooks"]["Stop"][0]["hooks"][0]["command"],
+                    copilot["hooks"]["agentStop"][0]["bash"]]
+        self.assertIn("agent_stop.ps1", copilot["hooks"]["agentStop"][0]["powershell"])
+        self.assertIn("agent_stop.ps1", codex["hooks"]["Stop"][0]["hooks"][0]["commandWindows"])
+        self.assertEqual(0, subprocess.run(["git", "check-ignore", "-q", "_site/index.html"], cwd=self.repo).returncode)
+        shell = shutil.which("sh") or shutil.which("bash")
+        if not shell:
+            self.skipTest("POSIX shell unavailable")
+        nested = self.repo / "nested folder"
+        nested.mkdir()
+        for status in (0, 2):
+            self.write(".okf/hooks/render_hook.sh", f"printf 'private output\\n'; exit {status}\n")
+            for command in commands:
+                result = subprocess.run([shell, "-c", command], cwd=nested, input='{"secret":"payload"}',
+                                        text=True, capture_output=True, timeout=15)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual("{}", result.stdout.strip())
+                self.assertNotIn("private output", result.stdout)
+                self.assertNotIn("payload", result.stdout + result.stderr)
+                self.assertEqual(status != 0, "generation failed" in result.stderr)
+
+    def test_agent_settings_and_existing_gitignore_are_never_overwritten(self) -> None:
+        files = (".claude/settings.json", ".codex/hooks.json", ".github/hooks/okf-render.json",
+                 ".github/hooks/other.json", ".gitignore")
+        for rel in files:
+            self.write(rel, "user content\n")
+        for force in (False, True):
+            out = run_init(force=force)
+            for rel in files:
+                self.assertEqual("user content\n", self.read(rel), rel)
+            self.assertIn("既存のエージェント設定は保持", out)
+            self.assertIn("既存の .gitignore は保持", out)
+
+    @unittest.skipIf(os.name == "nt", "POSIX launcher test")
+    def test_generated_launchers_fail_open_before_adapter_starts(self) -> None:
+        self.git_init()
+        run_init()
+        settings = [json.loads(self.read(".claude/settings.json"))["hooks"]["Stop"][0]["hooks"][0]["command"],
+                    json.loads(self.read(".codex/hooks.json"))["hooks"]["Stop"][0]["hooks"][0]["command"],
+                    json.loads(self.read(".github/hooks/okf-render.json"))["hooks"]["agentStop"][0]["bash"]]
+        shell = shutil.which("sh")
+        if not shell:
+            self.skipTest("POSIX shell unavailable")
+        with tempfile.TemporaryDirectory(prefix="okf-hook-path-") as tmp:
+            path = Path(tmp)
+            def check(env=None):
+                for command in settings:
+                    result = subprocess.run([shell, "-c", command], cwd=self.repo, env=env,
+                                            text=True, capture_output=True, timeout=15)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual("{}", result.stdout.strip())
+                    self.assertIn("hook unavailable", result.stderr)
+            # git cannot be found, so no root can be resolved.
+            check(dict(os.environ, PATH=str(path)))
+            # A missing adapter must not leave sh's exit 2 visible to the agent.
+            (self.repo / ".okf/hooks/agent_stop.sh").unlink()
+            check()
+            # Simulate a failure to start the inner shell after root resolution.
+            fake_git = path / "git"
+            fake_git.write_text(f"#!/bin/sh\nprintf '%s\\n' '{self.repo}'\n", encoding="utf-8")
+            fake_git.chmod(0o755)
+            check(dict(os.environ, PATH=str(path)))
+
+    @unittest.skipUnless(os.name == "nt" and shutil.which("powershell"), "Windows PowerShell unavailable")
+    def test_generated_windows_launchers_fail_open_when_adapter_is_missing(self) -> None:
+        self.git_init()
+        run_init()
+        (self.repo / ".okf/hooks/agent_stop.ps1").unlink()
+        copilot = json.loads(self.read(".github/hooks/okf-render.json"))["hooks"]["agentStop"][0]["powershell"]
+        codex = json.loads(self.read(".codex/hooks.json"))["hooks"]["Stop"][0]["hooks"][0]["commandWindows"]
+        commands = [["powershell", "-NoProfile", "-Command", copilot], codex]
+        for command in commands:
+            result = subprocess.run(command, shell=isinstance(command, str), cwd=self.repo,
+                                    text=True, capture_output=True, timeout=20)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual("{}", result.stdout.strip())
+            self.assertIn("hook unavailable", result.stderr)
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
+    def test_agent_settings_cannot_follow_parent_symlink_outside_project(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="okf-settings-outside-") as outside:
+            try:
+                (self.repo / ".claude").symlink_to(outside, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlink creation unavailable: {exc}")
+            with self.assertRaises(okf.OkfError):
+                run_init()
+            self.assertFalse((Path(outside) / "settings.json").exists())
 
     def test_shared_log_matches_config_and_write_does_not_create_another(self) -> None:
         for bundle_root in ("docs", "knowledge"):

@@ -24,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--layer", action="append", metavar="NAME=GLOB[:DIR]",
         help="層とコード配置の対応（例: client=src/client/**）。複数指定可",
     )
-    p_init.add_argument("--force", action="store_true", help="既存ファイルを上書きする")
+    p_init.add_argument("--force", action="store_true", help="既存ファイルを上書きする（エージェント設定と .gitignore は保持）")
 
     p_index = sub.add_parser("index", help="index.md を再生成する")
     p_index.add_argument("--write", action="store_true", help="実際に書き込む")
