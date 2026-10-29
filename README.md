@@ -10,8 +10,16 @@ Node.js 22 以上、npm、Git を用意し、導入先リポジトリのルー�
 
 ```bash
 npm install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#main"
-node node_modules/okf-devkit/node/cli.mjs --help
 ```
+
+次に、導入先の `package.json` に `okf` スクリプトを登録します。すでに `scripts.okf` がある場合は上書きされるため、内容を確認して別の名前を選んでください。
+
+```bash
+npm pkg set "scripts.okf=okf"
+npm run okf -- --help
+```
+
+これは導入先への一度だけの設定です。npm はローカルにインストールした `okf` を使えます。以降のコマンドでは `npm run okf --` に続けて引数を渡します。ローカル版が見つからない場合は、PATH 上の別の `okf` が使われることもあるので、先にインストールを確認してください。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
 
 `main` は更新されます。チームで再現するには作成された lockfile を管理し、固定版が必要な場合は確認済みコミット SHA を指定してください。npm レジストリと PyPI に本体は公開されておらず、v0.1.0 の GitHub Release は未公開の Draft です。v0.1.0 の固定版には最新の変更は含まれず、同梱 README も古いため、このリポジトリの[導入ガイド](docs/agents/install-okf.md)を参照してください。
 
@@ -22,15 +30,15 @@ npm 以外の管理方式、manifest のないリポジトリ、更新・復旧�
 初めて使うリポジトリで、同じルートから実行します。
 
 ```bash
-node node_modules/okf-devkit/node/cli.mjs init
-node node_modules/okf-devkit/node/cli.mjs index --write
-node node_modules/okf-devkit/node/cli.mjs lint
-node node_modules/okf-devkit/node/cli.mjs render --check
+npm run okf -- init
+npm run okf -- index --write
+npm run okf -- lint
+npm run okf -- render --check
 ```
 
 `init` は `okf.yml`、`docs/` 内の作業ガイド・規約・テンプレートと hook 用ラッパーを生成します。既定は `docs/` と `shared` 層です。既存ファイルはスキップします。`--force` は既存の生成物を上書きするため、更新には使わないでください。`index --write` は目次を書き込み、`lint` と `render --check` は検査結果を表示します。
 
-内容をブラウザで見るには `node node_modules/okf-devkit/node/cli.mjs render --open` を実行します。HTML は既定で `_site/` に生成されます。`_site/` と `.okf/render-backups/` を Git の管理対象から除外してください。
+内容をブラウザで見るには `npm run okf -- render --open` を実行します。HTML は既定で `_site/` に生成されます。`_site/` と `.okf/render-backups/` を Git の管理対象から除外してください。
 
 ### Python 版
 
@@ -45,7 +53,7 @@ okf lint
 
 ## 日常の使い方
 
-以下の `okf` は選んだ CLI を表します。ローカル Node 版では `node node_modules/okf-devkit/node/cli.mjs` に置き換えてください。
+以下の `okf` は選んだ CLI を表します。ローカル Node 版では `npm run okf --` に置き換えてください。
 
 1. 文書に根拠となるコードを `code_globs` として記載します。
 2. コードを変更したら `okf affected --base <変更前のコミットSHA>` で影響を確認します。未カバーのパスや `code_globs` のない文書も確認し、必要な本文を更新します。
