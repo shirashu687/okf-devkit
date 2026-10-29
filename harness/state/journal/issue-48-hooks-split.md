@@ -8,3 +8,10 @@
 - review: 開始SHAと生成設定・既存ファイル保持・両runtime・配布物を仕様軸/標準軸で照合。launcher起動前の失敗も検査。full retroの対象をIMP-0005に追記、試行・恒久採用なし。
 
 - 実装コミット `9299ac6` の後、cli/shared logに実ハッシュを追記。
+
+## #54 マージ後の再確認
+
+- #54 マージ済みの main `aa4932c8b928ae202b864919b01efd698b0fba90` を取り込み。mergeは自動解決。PR差分の保護対象は引き続き `pyproject.toml`、`tests/test_init.py`、`tests/node/compatibility.test.mjs` の3件。task scopeは元の作業開始SHAを保持し、pull-request scopeだけ新しいbaseへ更新する。
+- 仕様review: #49の短い生成案内と#48の既存hook設定の保持、共有設定を統合後の実ファイルで照合。標準review: 差分と変更宣言を新しいbaseで再確認し、ローカル検証とCIを別に記録する。
+- 統合後検証: Linux既存venv Python 267件（失敗0、エラー0、skip5）、npm ci・Node 29成功/2 skip・Python/Node互換15件成功。index write/check、lint error0/warn0、新baseでのPR変更宣言検査成功。前回CIのWindows結果は前のheadのもので、今回のCIは別途確認する。
+- retroゲート: 依頼、両PRの差分、既存設定保持、検証結果を照合。自動マージに競合なく、今回の追加の摩擦・新規トリガーなし。実AIイベントは未確認。
