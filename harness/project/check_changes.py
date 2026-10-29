@@ -27,6 +27,7 @@ FULL_SHA = re.compile(r"^[0-9a-fA-F]{40}$")
 ZERO_SHA = re.compile(r"^0+$")
 DECLARATION_DIRECTORY = "harness/state/journal"
 DECLARATION_SCOPES = ("task", "pull-request")
+COMBINED_SCOPE = "task-and-pull-request"
 
 PROTECTED_PATTERNS = (
     "AGENTS.md",
@@ -308,58 +309,66 @@ def load_declarations(
         if type(document.get("version")) is not int or document["version"] != 1:
             diagnostics.append(f"invalid declaration {declaration_path}: version must be 1")
         declaration_scope = document.get("scope", "task")
-        if declaration_scope not in DECLARATION_SCOPES:
-            diagnostics.append(f"invalid declaration {declaration_path}: scope must be task or pull-request")
+        if declaration_scope not in (*DECLARATION_SCOPES, COMBINED_SCOPE):
+            diagnostics.append(f"invalid declaration {declaration_path}: scope must be task, pull-request, or task-and-pull-request")
             continue
-        selected = declaration_scope == scope
-        declared_base = document.get("base")
-        if (
-            not isinstance(declared_base, str)
-            or not FULL_SHA.fullmatch(declared_base)
-            or ZERO_SHA.fullmatch(declared_base)
-        ):
-            diagnostics.append(f"invalid declaration {declaration_path}: base must be a complete nonzero SHA")
-        elif selected and declared_base.lower() != base:
-            diagnostics.append(f"invalid declaration {declaration_path}: base does not match comparison base")
         worklog = document.get("worklog")
         if not valid_relative_path(worklog) or not worklog.endswith(".md"):
             diagnostics.append(f"invalid declaration {declaration_path}: worklog must be a repository Markdown path")
         elif not worklog_exists(repo, worklog, head):
             diagnostics.append(f"invalid declaration {declaration_path}: worklog does not exist")
 
-        entries = document.get("changes")
-        if not isinstance(entries, list) or not entries:
-            diagnostics.append(f"invalid declaration {declaration_path}: changes must be a non-empty list")
-            continue
-        entry_paths: set[str] = set()
-        for entry in entries:
-            if not isinstance(entry, dict):
-                diagnostics.append(f"invalid declaration {declaration_path}: each change must be an object")
+        # One combined file can share entries, while an explicit PR override
+        # retains independent comparison evidence when the two diffs differ.
+        comparisons = [(declaration_scope, document.get("base"), document.get("changes"))]
+        if declaration_scope == COMBINED_SCOPE:
+            comparisons = [
+                ("task", document.get("base"), document.get("changes")),
+                ("pull-request", document.get("pull_request_base", document.get("base")),
+                 document.get("pull_request_changes", document.get("changes"))),
+            ]
+
+        for declaration_scope, declared_base, entries in comparisons:
+            selected = declaration_scope == scope
+            if (
+                not isinstance(declared_base, str)
+                or not FULL_SHA.fullmatch(declared_base)
+                or ZERO_SHA.fullmatch(declared_base)
+            ):
+                diagnostics.append(f"invalid declaration {declaration_path}: base must be a complete nonzero SHA")
+            elif selected and declared_base.lower() != base:
+                diagnostics.append(f"invalid declaration {declaration_path}: base does not match comparison base")
+            if not isinstance(entries, list) or not entries:
+                diagnostics.append(f"invalid declaration {declaration_path}: changes must be a non-empty list")
                 continue
-            path = entry.get("path")
-            reason = entry.get("reason")
-            if not valid_relative_path(path):
-                diagnostics.append(f"invalid declaration {declaration_path}: path is not repository-relative")
-                continue
-            if not isinstance(reason, str) or not reason.strip():
-                diagnostics.append(f"invalid declaration {declaration_path}: reason is empty for {path}")
-            if path in entry_paths:
-                diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
-                continue
-            entry_paths.add(path)
-            # Preserve evidence from other comparisons without treating it as
-            # permission for any path in the selected comparison.
-            if not selected:
-                continue
-            changed = changed_by_path.get(path)
-            if changed is None:
-                diagnostics.append(f"invalid declaration {declaration_path}: path is not in this comparison: {path}")
-            elif change_category(path, changed_by_path) == "ordinary":
-                diagnostics.append(f"invalid declaration {declaration_path}: path is not protected or upstream: {path}")
-            elif path in declared:
-                diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
-            else:
-                declared[path] = declaration_path
+            entry_paths: set[str] = set()
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    diagnostics.append(f"invalid declaration {declaration_path}: each change must be an object")
+                    continue
+                path = entry.get("path")
+                reason = entry.get("reason")
+                if not valid_relative_path(path):
+                    diagnostics.append(f"invalid declaration {declaration_path}: path is not repository-relative")
+                    continue
+                if not isinstance(reason, str) or not reason.strip():
+                    diagnostics.append(f"invalid declaration {declaration_path}: reason is empty for {path}")
+                if path in entry_paths:
+                    diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
+                    continue
+                entry_paths.add(path)
+                # Evidence for a different comparison never authorizes this one.
+                if not selected:
+                    continue
+                changed = changed_by_path.get(path)
+                if changed is None:
+                    diagnostics.append(f"invalid declaration {declaration_path}: path is not in this comparison: {path}")
+                elif change_category(path, changed_by_path) == "ordinary":
+                    diagnostics.append(f"invalid declaration {declaration_path}: path is not protected or upstream: {path}")
+                elif path in declared:
+                    diagnostics.append(f"invalid declaration {declaration_path}: duplicate path: {path}")
+                else:
+                    declared[path] = declaration_path
     return declared, diagnostics
 
 
