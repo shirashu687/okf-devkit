@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
+        "powershell": "try { $ErrorActionPreference = 'Stop'; $root = git rev-parse --show-toplevel 2>$null; if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'git root unavailable' }; & (Join-Path $root '.okf/hooks/agent_stop.ps1'); if ($LASTEXITCODE -ne 0) { throw 'hook failed' } } catch { [Console]::Error.WriteLine('okf-devkit: hook unavailable'); [Console]::Out.WriteLine('{}'); exit 0 }",
+        "cwd": ".",
+        "timeoutSec": 60
+      }
+    ]
+  }
+}

@@ -55,4 +55,5 @@ okf_devkit = [
   "scaffold/*.tmpl",
   "scaffold/templates/*.md",
   "scaffold/hooks/*",
+  "scaffold/agent-hooks/*",
 ]

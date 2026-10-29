@@ -33,7 +33,7 @@ related:
 `sync` は目次と、設定された層の履歴を書き込む。引数なしで初期化した場合 `log.layers` は空で、履歴の自動追記は行われない。必要ならコミット後に `okf log --layer shared --dry-run` で内容を確認し、`okf log --layer shared --write` で記録する。既存の手書き履歴には `log.baseline` が必要になる場合がある。log はコミット済みの変更だけを対象とし、失敗時も警告して継続することがある。各診断とスキップを確認する。`stale` の指摘や `sync --gate` の再検出は exit 0 でも残り得る。
 
 新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。
-エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は全体置換なので更新用に使わない。
+エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は多くの生成物を置換するので更新用に使わない。エージェント設定と `.gitignore` はforceでも保持する。
 詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `okf <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
 
 ## 書式と生成物

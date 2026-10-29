@@ -45,7 +45,7 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 
 | コマンド | 振る舞い |
 | --- | --- |
-| init | 共有scaffoldから設定・文書・hookを生成。既存ファイルはforce指定時のみ置換 |
+| init | 共有scaffoldから設定・文書・hookを生成。既存ファイルは通常保持し、エージェント設定と `.gitignore` はforceでも保持 |
 | index | relative / bundle-absolute形式、backlog集計、write / check、全マーカーの事前検証 |
 | log | Gitのfirst-parent履歴、baseline、層振り分け、ハッシュによる重複防止 |
 | lint | L1〜L14、strict指定でwarnも非ゼロ終了 |
@@ -68,7 +68,7 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 
 ## 既存hookの更新
 
-新規 `init` はNode.jsを探索するhookを生成する。導入済みプロジェクトでは、カスタムhookとの差分を確認して以下の2ファイルだけをコピーする。
+新規 `init` はNode.jsを探索するhookと、未作成のエージェント設定を生成する。導入済みプロジェクトでラッパーを更新する場合は、カスタムhookとの差分を確認して以下の2ファイルをコピーする。エージェント設定と終了アダプターの導入は [終了hookの手順](/agents/completion-hooks.md) を参照する。
 `init --force` は設定や文書も上書きするため、hook更新専用には使わない。
 
 ```powershell

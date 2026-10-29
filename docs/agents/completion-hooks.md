@@ -9,6 +9,10 @@ generated:
   by: codex/gpt-6
   at: 2026-10-04T03:34:44Z
 code_globs:
+  - src/okf_devkit/commands/init.py
+  - src/okf_devkit/scaffold/agent-hooks/*
+  - src/okf_devkit/scaffold/hooks/*
+  - node/scaffold.mjs
   - .okf/hooks/*
   - .claude/settings.json
   - .github/hooks/*.json
@@ -22,7 +26,66 @@ related:
 
 # エージェント終了時の共通HTML生成
 
-この設定は **このリポジトリの作業終了時に `_site/` を生成する**。Claude専用の生成処理ではなく、同じ `render --hook` を各ツールから呼ぶ。CopilotとCodexはツールの名前であり、GPTなどのモデルを切り替えても共通コマンドを使える。`okf init` の配布内容や利用者のグローバル設定は変更しない。
+`okf init` はエージェントの作業終了時に `_site/` を生成する設定をプロジェクトへ用意する。Claude専用の生成処理ではなく、同じ `render --hook` を各ツールから呼ぶ。利用者のグローバル設定は変更しない。
+
+## 初回導入と既存設定
+
+initは `.okf/hooks/render_hook.sh` / `.ps1` と、終了イベント用の `.okf/hooks/agent_stop.sh` / `.ps1` を配置する。設定ファイルがまだない場合は以下も生成する。設定の読み込み・信頼やエージェントの再起動は各製品の手順に従う。
+
+| エージェント | プロジェクト設定 | イベント |
+| --- | --- | --- |
+| Claude Code | `.claude/settings.json` | `Stop`（bash と Git が必要） |
+| Codex | `.codex/hooks.json` | `Stop`（Windows は PowerShell） |
+| Copilot | `.github/hooks/okf-render.json` | `agentStop` |
+
+上記の設定ファイルが存在する場合は、`init --force` でも上書き・自動マージせず、対象パスを表示する。既存ファイルに別のhookや設定がある場合は、以下の構造を既存の `hooks` オブジェクトに追加する。既存のイベント配列がある場合はその配列へ要素を追加し、同じ `hooks` キーを二重に作らない。実際に使うエージェントだけ設定する。
+
+Claude Code の `Stop` 配列へ追加する要素:
+
+```json
+{
+  "hooks": [
+    {
+      "type": "command",
+      "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
+      "shell": "bash",
+      "timeout": 30,
+      "statusMessage": "OKFドキュメントのHTMLを生成中"
+    }
+  ]
+}
+```
+
+Codex の `Stop` 配列へ追加する要素:
+
+```json
+{
+  "hooks": [
+    {
+      "type": "command",
+      "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
+      "commandWindows": "powershell -NoProfile -Command \"try { $ErrorActionPreference = 'Stop'; $root = git rev-parse --show-toplevel 2>$null; if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'git root unavailable' }; & (Join-Path $root '.okf/hooks/agent_stop.ps1'); if ($LASTEXITCODE -ne 0) { throw 'hook failed' } } catch { [Console]::Error.WriteLine('okf-devkit: hook unavailable'); [Console]::Out.WriteLine('{}'); exit 0 }\"",
+      "timeout": 60
+    }
+  ]
+}
+```
+
+Copilot の `agentStop` 配列へ追加する要素（ファイルに `"version": 1` が必要）:
+
+```json
+{
+  "type": "command",
+  "bash": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
+  "powershell": "try { $ErrorActionPreference = 'Stop'; $root = git rev-parse --show-toplevel 2>$null; if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'git root unavailable' }; & (Join-Path $root '.okf/hooks/agent_stop.ps1'); if ($LASTEXITCODE -ne 0) { throw 'hook failed' } } catch { [Console]::Error.WriteLine('okf-devkit: hook unavailable'); [Console]::Out.WriteLine('{}'); exit 0 }",
+  "cwd": ".",
+  "timeoutSec": 60
+}
+```
+
+initは `.github/hooks/` の別ファイルや、他エージェントの設定内容を解釈・削除しない。同じ処理の登録が既にある場合や、エージェントが複数形式の設定を読み込む場合は重複して実行され得る。CopilotはClaude互換設定も読む場合があり、Codex互換設定を含む他の読み込み形式も利用する製品版の対応を確認する。必要に応じて使わない登録を手動で外す。
+
+`.gitignore` がない場合は `/_site/` と `/.okf/render-backups/` の除外を生成する。既存の `.gitignore` は `--force` でも変更しないので、除外がない場合は利用者が追記する。hookはHTMLを自動生成するため、既存設定では初回実行前に `git check-ignore _site/index.html` などで確認する。登録できない場合は下記の手動コマンドを使う。
 
 ## 共通処理と終了イベント用アダプター
 
@@ -37,6 +100,8 @@ powershell -NoProfile -File .okf/hooks/render_hook.ps1
 ```
 
 `.okf/hooks/agent_stop.sh` / `.ps1` は終了イベント向けのadvisoryアダプターで、同じ厳格なラッパーを呼ぶ。子コマンドの標準出力を抑え、成功・失敗とも `{}` と終了値0を返す。失敗の診断は標準エラーへ残す。終了値2、`decision: block`、継続要求を返さず、入力JSONや会話本文を実行・表示・保存しない。生成の成功をテストの成功として扱わない。
+
+生成した設定のコマンドはGitルートの取得やadapterの起動に失敗した場合も診断と `{}` を返し、終了値0にする。ただしエージェントがシェル自体を起動できない場合は、そのコマンドは実行されない。
 
 各登録には30秒（Claude）または60秒（Copilot/Codex）の上限がある。ツール側のtimeout、起動不能、セッション終了などではアダプター自体が完了できない場合がある。hookの常時成功や診断のUI表示までは保証しない。生成はローカル処理のみで、モデル呼出し、公開、`--cleanup-from` による出力先移行・旧出力退避は行わない。通常renderの対象出力内では、所有する古い生成HTMLの削除が従来どおり行われる。
 

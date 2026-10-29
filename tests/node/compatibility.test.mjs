@@ -67,6 +67,10 @@ test("init and new produce the same scaffold bytes (except generation time)", (t
     fs.readFileSync(path.join(js, "okf.yml"), "utf8"),
   );
   assert.deepEqual(normalized(snapshot(js)), normalized(snapshot(py)));
+  for (const dir of [".okf", ".claude", ".codex", ".github"])
+    assert.deepEqual(snapshot(js, dir), snapshot(py, dir), dir);
+  assert.equal(fs.readFileSync(path.join(js, ".gitignore"), "utf8"),
+    fs.readFileSync(path.join(py, ".gitignore"), "utf8"));
   for (const args of [
     [
       "new",
@@ -107,6 +111,20 @@ test("init and new produce the same scaffold bytes (except generation time)", (t
     ok(run(js, args));
   }
   assert.deepEqual(normalized(snapshot(js)), normalized(snapshot(py)));
+});
+test("both runtimes preserve existing agent settings, other hooks and ignore rules even with force", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    git(root, "init", "-q");
+    const files = [".claude/settings.json", ".codex/hooks.json", ".github/hooks/okf-render.json", ".github/hooks/other.json", ".gitignore"];
+    for (const file of files) put(root, file, "user content\n");
+    for (const force of [false, true]) {
+      const output = ok(run(root, ["init", ...(force ? ["--force"] : [])], {runtime}));
+      for (const file of files) assert.equal(fs.readFileSync(path.join(root, file), "utf8"), "user content\n", file);
+      assert.match(output, /既存のエージェント設定は保持/);
+      assert.match(output, /既存の .gitignore は保持/);
+    }
+  }
 });
 for (const style of ["relative", "bundle-absolute"])
   test(`index golden parity: ${style}, draft/deprecated/backlog/escaped paths`, (t) => {
