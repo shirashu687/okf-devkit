@@ -10,7 +10,8 @@
     "node": ">=22"
   },
   "files": [
-    "node/*.mjs",
+    "node/cli.mjs",
+    "src/node/*.mjs",
     "src/okf_devkit/defaults.yml",
     "src/okf_devkit/scaffold/",
     "src/okf_devkit/assets/",
@@ -21,7 +22,7 @@
     "okf": "node node/cli.mjs",
     "test": "node --test tests/node/native.test.mjs tests/node/render-cleanup.test.mjs",
     "test:compat": "node --test tests/node/compatibility.test.mjs tests/node/cleanup-compatibility.test.mjs",
-    "test:release": "node --test scripts/release-guards.test.mjs",
+    "test:release": "node --test tests/node/release-guards.test.mjs",
     "test:package": "node --test tests/node/package-distribution.test.mjs"
   },
   "dependencies": {

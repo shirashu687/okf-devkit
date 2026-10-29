@@ -4,9 +4,9 @@ import { mkdtempSync, writeFileSync, readFileSync, rmSync, mkdirSync } from 'nod
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { verifySource, loadBundle, sha256 } from './release-bundle.mjs';
-import { ensureDraft, githubTransport } from './release-github.mjs';
-import { writeCiManifest, verifyCiBundle } from './ci-package.mjs';
+import { verifySource, loadBundle, sha256 } from '../../scripts/release-bundle.mjs';
+import { ensureDraft, githubTransport } from '../../scripts/release-github.mjs';
+import { writeCiManifest, verifyCiBundle } from '../../scripts/ci-package.mjs';
 
 const commit = 'a'.repeat(40);
 const manifest = { schema: 1, repository: 'owner/project', tag: 'v1.2.3', version: '1.2.3', commit, package: 'example' };

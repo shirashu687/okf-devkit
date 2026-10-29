@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import YAML from "yaml";
 
 export const dataDir = fileURLToPath(
-  new URL("../src/okf_devkit/", import.meta.url),
+  new URL("../okf_devkit/", import.meta.url),
 );
 export class OkfError extends Error {}
 export class MarkerError extends OkfError {}

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "base": "2d9e5f8c6497f3655f4aa5cfd9f038c7ec0bae1f",
+  "worklog": "harness/state/journal/issue-58-layout.md",
+  "changes": [
+    {
+      "path": "okf.yml",
+      "reason": "Follow relocated Node implementation in layer_map while preserving the stable CLI entrypoint."
+    },
+    {
+      "path": "package.json",
+      "reason": "Ship relocated Node implementation and stable bin; run unchanged release guard suite from tests/node."
+    },
+    {
+      "path": "pyproject.toml",
+      "reason": "Restrict Python discovery to okf_devkit so relocated Node sources do not become namespace packages; preserve package-data."
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "Update imports for relocated Node implementation, preserve existing assertions, and verify stable CLI import/direct execution compatibility."
+    },
+    {
+      "path": "tests/node/release-guards.test.mjs",
+      "reason": "Update imports for relocated Node implementation, preserve existing assertions, and verify stable CLI import/direct execution compatibility."
+    },
+    {
+      "path": "tests/node/render-cleanup.test.mjs",
+      "reason": "Update imports for relocated Node implementation, preserve existing assertions, and verify stable CLI import/direct execution compatibility."
+    }
+  ]
+}

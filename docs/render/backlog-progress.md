@@ -10,7 +10,7 @@ generated:
   at: "2026-10-04T01:48:12Z"
 code_globs:
   - src/okf_devkit/renderer.py
-  - node/renderer.mjs
+  - src/node/renderer.mjs
   - src/okf_devkit/assets/*
   - tests/test_render.py
   - tests/node/native.test.mjs

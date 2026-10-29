@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Bundle } from '../../node/core.mjs';
-import { renderBundle } from '../../node/renderer.mjs';
-import { executeCleanup, planCleanup } from '../../node/render-cleanup.mjs';
+import { Bundle } from '../../src/node/core.mjs';
+import { renderBundle } from '../../src/node/renderer.mjs';
+import { executeCleanup, planCleanup } from '../../src/node/render-cleanup.mjs';
 import { temp, run, ok, put, snapshot } from './helpers.mjs';
 
 function fixture(t) { const root = temp(t); ok(run(root, ['init'])); put(root,'docs/index.md','# Index\n'); return root; }
