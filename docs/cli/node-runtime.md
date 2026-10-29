@@ -9,7 +9,7 @@ generated:
   by: codex/gpt-6
   at: 2026-10-04T09:15:06Z
 code_globs:
-  - node/*.mjs
+  - src/node/*.mjs
   - package.json
   - package-lock.json
   - tests/node/*.mjs

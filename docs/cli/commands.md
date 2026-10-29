@@ -9,6 +9,7 @@ generated:
   by: codex/gpt-6
   at: 2026-10-04T11:43:53Z
 code_globs:
+  - src/node/cli.mjs
   - src/okf_devkit/compat.py
   - src/okf_devkit/parser.py
   - tests/test_cli_facade.py
@@ -32,7 +33,7 @@ code_globs:
   - src/okf_devkit/doc.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
-  - node/*.mjs
+  - src/node/*.mjs
   - .github/workflows/ci.yml
 related:
   - /cli/architecture.md

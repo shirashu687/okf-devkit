@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-29
+- **Update** Nodeの初期化実装をsrc/nodeへ移し、共有雛形と既存hookの起動パスを維持した。 ([#58](https://github.com/shirashu687/okf-devkit/issues/58), `2e2fe55`)
 - **Update** 初期設定と自己完結する操作案内を簡潔にした（#49、`2487f78`）。
 
 ## 2026-10-04

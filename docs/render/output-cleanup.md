@@ -20,9 +20,10 @@ code_globs:
   - src/okf_devkit/renderer.py
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
-  - node/render-cleanup.mjs
-  - node/renderer.mjs
+  - src/node/render-cleanup.mjs
+  - src/node/renderer.mjs
   - node/cli.mjs
+  - src/node/cli.mjs
   - tests/test_render_cleanup.py
   - tests/node/render-cleanup.test.mjs
   - tests/node/cleanup-compatibility.test.mjs

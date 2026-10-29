@@ -12,7 +12,7 @@ import {
   matches,
   timestamp,
   write,
-} from "../../node/core.mjs";
+} from "../../src/node/core.mjs";
 import {
   cli,
   document,
@@ -25,6 +25,23 @@ import {
   snapshot,
   temp,
 } from "./helpers.mjs";
+
+test("stable CLI imports silently and shares main with the relocated implementation", async () => {
+  const legacy = await import("../../node/cli.mjs");
+  const implementation = await import("../../src/node/cli.mjs");
+  assert.equal(legacy.main, implementation.main);
+  const imported = spawnSync(process.execPath, ["--input-type=module", "-e",
+    "await import('./node/cli.mjs');"], { cwd: repo, encoding: "utf8" });
+  assert.equal(imported.status, 0, imported.stderr);
+  assert.equal(imported.stdout, "");
+  assert.equal(imported.stderr, "");
+  const args = ["--help"];
+  const oldHelp = spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
+  const newHelp = spawnSync(process.execPath, [path.join(repo, "src/node/cli.mjs"), ...args], { encoding: "utf8" });
+  assert.equal(oldHelp.status, 0, oldHelp.stderr);
+  assert.equal(newHelp.status, 0, newHelp.stderr);
+  assert.equal(oldHelp.stdout, newHelp.stdout);
+});
 
 test("Node alone initializes, indexes, lints, creates docs, reports and renders", (t) => {
   const root = temp(t),
@@ -455,7 +472,7 @@ test("sidebar search opens matching directories and restores current ancestors",
 });
 
 test("render opens the generated homepage only on explicit non-hook writes", async (t) => {
-  const { cmdRender } = await import("../../node/renderer.mjs");
+  const { cmdRender } = await import("../../src/node/renderer.mjs");
   const { pathToFileURL } = await import("node:url");
   const root = temp(t);
   init(root);
@@ -476,7 +493,7 @@ test("render opens the generated homepage only on explicit non-hook writes", asy
 
 test("browser launch uses argument arrays on Windows, macOS and Linux", async () => {
   const { EventEmitter } = await import("node:events");
-  const { openBrowser } = await import("../../node/browser.mjs");
+  const { openBrowser } = await import("../../src/node/browser.mjs");
   const url = "file:///tmp/%25%20日本語/index.html";
   for (const [platform, command, args] of [["win32", "rundll32.exe", ["url.dll,FileProtocolHandler", url]], ["darwin", "open", [url]], ["linux", "xdg-open", [url]]]) {
     const launch = (actualCommand, actualArgs, options) => {

@@ -10,7 +10,7 @@ generated:
   at: 2026-10-04T09:04:08Z
 code_globs:
   - src/okf_devkit/cli.py
-  - node/*.mjs
+  - src/node/*.mjs
   - src/okf_devkit/scaffold/AGENTS.md.tmpl
 related:
   - /cli/commands.md

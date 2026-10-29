@@ -12,7 +12,7 @@ code_globs:
   - src/okf_devkit/commands/init.py
   - src/okf_devkit/scaffold/agent-hooks/*
   - src/okf_devkit/scaffold/hooks/*
-  - node/scaffold.mjs
+  - src/node/scaffold.mjs
   - .okf/hooks/*
   - .claude/settings.json
   - .github/hooks/*.json

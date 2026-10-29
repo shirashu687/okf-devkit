@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-29
+- **Update** NodeのHTML生成実装をsrc/nodeへ移し、Pythonと共有するHTMLアセットと既存CLIの出力を維持した。 ([#58](https://github.com/shirashu687/okf-devkit/issues/58), `2e2fe55`)
+
 ## 2026-10-04
 - **Update** 更新済み親とのGit分離統合でもrender/cleanupと文書root/projectroot境界を保持。 (`7171733`)
 - **Update** Git helper分離後もrender/cleanup所有境界とroot区別を維持する記録を更新。 (`d1fd3c9`)

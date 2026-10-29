@@ -47,6 +47,7 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["okf_devkit", "okf_devkit.*"]
 
 [tool.setuptools.package-data]
 okf_devkit = [

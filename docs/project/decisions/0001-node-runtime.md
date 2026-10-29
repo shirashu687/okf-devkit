@@ -9,7 +9,7 @@ generated:
   by: codex/gpt-6
   at: 2026-10-04T07:26:56Z
 code_globs:
-  - node/*.mjs
+  - src/node/*.mjs
   - package.json
   - tests/node/*.mjs
 related:
@@ -36,7 +36,9 @@ Pythonのない環境で同等のCLIを使いたいという依頼があり、�
 
 ## 決定
 
-`node/` にNode.js 22+向け実装を追加し、npmパッケージのbin名を `okf` とする。
+Node.js 22+向け独立実装を追加し、npmパッケージのbin名を `okf` とする。
+当初は `node/` に配置した。Issue #58の構成整理で本体を `src/node/` へ移し、`node/cli.mjs` を互換入口として維持する。
+配置と共有資産の詳細は[構成ガイド](/project/repository-layout.md)を参照する。
 Python本体のダウンロード・起動には依存しない。Python版も継続して利用できる。
 
 ## 理由

@@ -11,7 +11,7 @@ generated:
 code_globs:
   - package.json
   - package-lock.json
-  - node/*.mjs
+  - src/node/*.mjs
   - .github/workflows/release.yml
   - scripts/release-*.mjs
   - scripts/package-smoke.mjs

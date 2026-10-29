@@ -80,6 +80,22 @@ npm run test:compat
 
 Node 版の利用と比較テストについては [Node.js 版の利用手順](docs/cli/node-runtime.md)、配布の手順は [Release 手順](docs/agents/release-node.md) を参照してください。
 
+## 開発時のフォルダ構成
+
+| パス | 役割 |
+| --- | --- |
+| `src/node/` | Python不要で動くNode.js版CLI本体 |
+| `src/okf_devkit/` | Python版CLIと、両実装で共有する既定設定・雛形・HTMLアセット |
+| `node/cli.mjs` | 既存の直接起動・hook・npm binを維持する互換入口 |
+| `scripts/` | 配布物の作成・検査とCI・Release用処理 |
+| `tests/` / `tests/node/` | Pythonテスト / Node単独・互換・配布テスト |
+| `docs/` | このリポジトリのOKFドキュメント |
+| `harness/` | 開発エージェントの手順・プロジェクト設定・作業記録 |
+
+`src/okf_devkit/` はPythonの標準的なsrc layoutで、配布名 `okf-devkit` に対するimport名が `okf_devkit` となる。プロジェクトを二重に格納しているわけではない。
+Python版とNode.js版は同じ仕様の独立実装で、共有資産は1組だけを両方が読む。
+構成の理由、互換層や雛形が似て見える理由は[構成ガイド](docs/project/repository-layout.md)を参照する。整理方針と進捗は[Issue #58](https://github.com/shirashu687/okf-devkit/issues/58)で管理する。
+
 ## ライセンス
 
 [MIT](LICENSE)

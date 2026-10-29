@@ -2,7 +2,7 @@
 
 ## プロジェクト
 
-okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を保つ CLI である。Python実装は src/okf_devkit/、Python不要のNode.js実装は node/、標準テストは tests/、利用者向け説明は README.md にある。
+okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を保つ CLI である。Python実装は src/okf_devkit/、Python不要のNode.js実装は src/node/、node/cli.mjs は互換入口、scripts/ は配布・CI処理、標準テストは tests/、利用者向け説明は README.md にある。
 
 ## 正本と用語
 

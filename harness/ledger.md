@@ -21,7 +21,7 @@
 | IMP-0012 | 観測 | 2026-10-03 | 2 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)と[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。2026-10-04に実HTML hook fixtureの必須config不足を追加観測。修正確認済み、恒久採用なし。 |
 | IMP-0001 | 観測 | 2026-09-06 | 1 | automated checks | 中 | T-0004の作業記録に、検査スクリプトの期待文言不一致による初回2回の失敗と、期待条件修正後の再実行成功が記録されている。 | 未定（期待条件を対象文書と同期する方法と、失敗履歴を保持する負担を次回同形式の検証で確認） | okf-devkitの文書契約・検証プローブ | 同形式の検証で、期待条件の不一致と再試行を対象版・出力つきで比較する | 未定（試行未開始） | T-0004 worklogから得た実作業の観測要約と根拠参照のみ。演習の入力・出力は保存していない。試行・改善効果・採用承認なし。 |
 | IMP-0005 | 観測 | 2026-09-10 | 4 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 Issue #34: inherited npm global/prefix settings could defeat temporary install isolation; fixed before publication and verified with a hostile-environment sentinel. [Distribution worklog](state/journal/issue-34-github-distribution.md). |
-| IMP-0004 | 観測 | 2026-09-07 | 1 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。 |
+| IMP-0004 | 観測 | 2026-09-07 | 2 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。Issue #58で保護対象へのrename旧名宣言漏れを検出・修正（[記録](state/journal/issue-58-layout.md)）。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
 | IMP-0009 | 観測 | 2026-10-03 | 2 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
 | IMP-0014 | 観測 | 2026-10-03 | 1 | coding standards / review | 高 | 旧生成物退避の独立reviewで復元hash・receipt原子的保存とpartialcopy識別の不足を検出した。 | 障害境界ごとの復旧証拠を実装と注入テストで照合する候補 | Python/Node render cleanup | copy/unlink/receipt/restore各失敗で原本保持と記録を照合 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。公開前に本件修正、恒久採用なし。 |
@@ -195,3 +195,10 @@
 - 原因仮説: 手書きログ作成時にlint規則とlogの二重追記防止契約を一緒に確認しなかった可能性。
 - 候補: automated checks / 低。文書履歴に限定、通常検査で検出し修正済み。対象範囲のlog実行とlint確認を併用する候補で、恒久ルールは採用しない。
 - 未確認: CIと独立reviewはworklogで別に記録する。試行なし、採用判断待ちなし。
+
+### IMP-0004: Issue #58 の追加観測（2026-10-29）
+
+- 症状・根拠: commit前の削除+未追跡検査は成功したが、2e2fe55/e833913後のrename検出で旧scripts/release-guards.test.mjsの宣言欠落によりtask/PR検査が失敗。Issue #58 worklogの最終検査欄を参照する。
+- 原因仮説: commit前の状態を最終rename差分と同じと扱い、保護対象へ入るrenameの旧名を一覧から漏らした可能性。チェックの分類自体は維持する。
+- 分類・重要度: automated checks / 中。公開・CI前の必須検査で検知できるが、宣言不備はPR検証を停止させる。同一範囲不一致の独立発生を1回加算し、再試行回数は加算しない。
+- 対処案・確認方法: 最終commit差分でrename両端とtask/PR scopeを照合する候補。今回は旧名を追加して両scopeを再実行する。状態は観測、試行未開始・期限未定を維持し、恒久採用や効果を推定しない。
