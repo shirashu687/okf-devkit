@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-29
+- **Update** 初期化時にエージェント設定を用意し、既存設定とignoreを保持する動作とhelpを追加した（#48、`7687999`）。
+
 ## 2026-10-04
 - **Update** refactor: split parser and live compatibility facade from CLI entry。 (`f8b08d9`)
 
