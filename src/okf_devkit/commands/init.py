@@ -8,6 +8,11 @@ from ..fsutil import now_iso, write_if_changed
 from ..yamlio import yaml_scalar
 
 SCAFFOLD_DIR = Path(__file__).resolve().parents[1] / "scaffold"
+AGENT_SETTINGS = (
+    (".claude/settings.json", "agent-hooks/claude.json"),
+    (".codex/hooks.json", "agent-hooks/codex.json"),
+    (".github/hooks/okf-render.json", "agent-hooks/copilot.json"),
+)
 
 def _scaffold_text(rel: str, *, scaffold_dir: Path | None = None) -> str:
     path = (SCAFFOLD_DIR if scaffold_dir is None else scaffold_dir) / rel
@@ -94,13 +99,23 @@ def cmd_init(repo_root: Path, args, *, scaffold_dir: Path | None = None, scaffol
         raise OkfError(f"bundle_root が不正です: {raw!r}")
     site_name = (args.site_name or repo_root.name).strip() or "Project"
 
+    # Agent settings may already belong to the user. Never write through a
+    # parent symlink outside the project, including on the first init.
+    for rel in [dest for dest, _source in AGENT_SETTINGS] + [".gitignore"]:
+        try:
+            (repo_root / rel).resolve().relative_to(repo_root.resolve())
+        except (ValueError, RuntimeError) as exc:
+            raise OkfError(f"指定範囲の外には作成できません: {rel}") from exc
+
     created: list[str] = []
     skipped: list[str] = []
+    skipped_settings: list[str] = []
+    skipped_ignore: list[str] = []
 
-    def emit(rel: str, text: str) -> None:
+    def emit(rel: str, text: str, *, preserve: str = "") -> None:
         path = repo_root / rel
-        if path.exists() and not args.force:
-            skipped.append(rel)
+        if (path.exists() or path.is_symlink()) and (preserve or not args.force):
+            (skipped_settings if preserve == "settings" else skipped_ignore if preserve == "ignore" else skipped).append(rel)
             return
         path.parent.mkdir(parents=True, exist_ok=True)
         (write_if_changed if writer is None else writer)(path, text)
@@ -131,6 +146,11 @@ def cmd_init(repo_root: Path, args, *, scaffold_dir: Path | None = None, scaffol
         emit(f"{bundle_root}/_templates/{tmpl.name}", scaffold_reader(f"templates/{tmpl.name}"))
     for hook in sorted((scaffold_dir / "hooks").iterdir()):
         emit(f".okf/hooks/{hook.name}", scaffold_reader(f"hooks/{hook.name}"))
+    for name in ("agent_stop.sh", "agent_stop.ps1"):
+        emit(f".okf/hooks/{name}", scaffold_reader(f"agent-hooks/{name}"))
+    for dest, source in AGENT_SETTINGS:
+        emit(dest, scaffold_reader(source), preserve="settings")
+    emit(".gitignore", "/_site/\n/.okf/render-backups/\n", preserve="ignore")
 
     def empty_log(layer_name: str) -> str:
         return (
@@ -150,11 +170,18 @@ def cmd_init(repo_root: Path, args, *, scaffold_dir: Path | None = None, scaffol
         print(f"既存のためスキップ（--force で上書き）: {len(skipped)} 件")
         for rel in skipped:
             print(f"  {rel}")
+    if skipped_settings:
+        print("既存のエージェント設定は保持しました（--force でも上書きしません）:")
+        for rel in skipped_settings:
+            print(f"  {rel}")
+        print("必要なら既存設定に .okf/hooks/agent_stop を手動で登録してください。")
+    if skipped_ignore:
+        print("既存の .gitignore は保持しました。/_site/ と /.okf/render-backups/ の除外を確認してください。")
     print()
     print("次の手順:")
-    print(f"  1. {bundle_root}/CONVENTIONS.md の語彙を確認・調整する")
-    print(f"  2. {CONFIG_FILENAME} の layer_map が実際のコード配置と合っているか確認する")
-    print("  3. okf index --write で目次を生成する")
-    print("  4. okf lint で規約違反が無いか確認する")
-    print("  5. .gitignore に _site/ を追加する（HTML生成物）")
+    print("  1. okf index --write で目次を生成する")
+    print("  2. okf lint で規約を確認する")
+    print("  3. okf render で HTML を生成する")
+    print(f"  必要な場合だけ {CONFIG_FILENAME} と {bundle_root}/CONVENTIONS.md を調整する")
+    print("  エージェント設定と .gitignore の出力を確認する")
     return 0

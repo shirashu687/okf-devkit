@@ -129,7 +129,7 @@ node node_modules/okf-devkit/node/cli.mjs lint
 node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
-現行 `init` は既存ファイルをスキップし、`--force` は対象ファイル全体を置換する。管理部分だけを更新する仕組みではない。
+新しいソースの `init` は、エージェントのプロジェクト設定が未作成なら終了hookも登録する。既存ファイルはスキップし、`--force` は多くの生成物を置換するが、エージェント設定と `.gitignore` は保持する。上記の固定SHA版はこの自動登録を含まない。どちらも管理部分だけを更新する仕組みではない。
 既存 `okf.yml`、文書、hookやAI入口は、保存した変更前内容と差分を取り、所有範囲が分かる部分だけを更新する。利用者の編集があれば調整し、競合時は止める。`init --force` を更新手段にしない。
 AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製品別対応と信頼を確認し、repo内の承認済み箇所だけを扱う。global hookは変更しない。
 インストール版の選択だけでhookの実行版は決まらない。ローカル/主worktree/Python/開発checkoutの探索順と実配置を確認し、選んだNode版へ到達することを検証する。実AIイベント未検証ならその限界を報告する。

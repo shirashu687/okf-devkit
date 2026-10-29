@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-29
+- **Update** 初期設定と自己完結する操作案内を簡潔にした（#49、`2487f78`）。
+
 ## 2026-10-04
 - **Update** 更新済み親の目的別AI案内を保持し、Git helper分離とinit/scaffoldの生成契約を統合。 (`7171733`)
 - **Update** Git helper分離後もinit/scaffold生成入口を維持する記録を更新。 (`d1fd3c9`)

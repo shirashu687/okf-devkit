@@ -12,65 +12,35 @@ related:
   - /CONVENTIONS.md
 ---
 
-# docs ディレクトリの歩き方
+# {{BUNDLE_ROOT}}/ での作業
 
-> **このファイルは `{{BUNDLE_ROOT}}/` で作業する前に必ず読むこと。** 詳細な書式は [CONVENTIONS.md](/CONVENTIONS.md) にある。
+利用先リポジトリの指示に従い、このバンドルの執筆規約 [CONVENTIONS.md](/CONVENTIONS.md) を読む。外部の harness は不要。コマンドの詳細は導入済みの `okf <command> --help` を使う。
 
-## 1. ここは何か
+以下の `okf` は導入した実体に読み替える。repo-local Node版はリポジトリルートから `node node_modules/okf-devkit/node/cli.mjs`、Python版は導入した環境の `python -m okf_devkit.cli` を使える。未導入の npx で別版を取得しない。
 
-`{{BUNDLE_ROOT}}/` は **OKF (Open Knowledge Format) v0.2 バンドル**である。
-
-- 1ファイル = 1コンセプト。**ファイルパスがそのドキュメントの ID**
-- すべての `.md` は **YAML frontmatter を持ち、`type` が必須**（`index.md` / `log.md` を除く）
-- リンクは**バンドルルート起点の絶対パス**（例: `/project/glossary.md` = `{{BUNDLE_ROOT}}/project/glossary.md`）で書く
-- 仕様: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
-
-## 2. 構成
-
-| パス | 役割 | 編集方法 |
-|---|---|---|
-| `index.md`（各階層） | 目次。段階的開示の入口 | **自動生成。手で書かない**（マーカー外の前文のみ手書き可） |
-| `log.md`（各層） | 変更履歴 | `okf log --write` で追記。手書き修正も可 |
-| `CONVENTIONS.md` | 語彙・書式の唯一の基準 | 手書き |
-| `AGENTS.md` | 本ファイル | 手書き |
-| `project/` | 層をまたぐ知識（概要・用語集・ADR） | 手書き / LLM |
-| {{LAYER_DIRS}} | 層ごとの仕様・手順書 | 手書き / LLM |
-| `backlog/` | やること1件1ファイル | `okf new backlog` |
-| `_templates/` | テンプレート集。**バンドル対象外**（index にも lint にも出ない） | 手書き |
-| `_assets/` / `*.html` | `okf render` の閲覧用生成物。**バンドル対象外・Git管理外** | 手で編集しない |
-
-## 3. 日常の最小操作
-
-まず利用先repoの指示とCONVENTIONS.mdを読む。以下の `okf` は選んだCLIに読み替える。repo-local Node版ならrepoルートから `node node_modules/okf-devkit/node/cli.mjs`、Python版なら確認済み環境の `python -m okf_devkit.cli` 等を明示する。PATHの別版や未導入のnpxで取り違えない。
+## 日常操作
 
 | 目的 | 操作 |
 |---|---|
-| コード変更後 | `affected --base <固定SHA>` → 対象と未カバーを照合 → 本文更新 → `sync` の各診断を確認 |
-| 新規文書 | `new doc --layer <layer> --type Reference --title "<title>" --code-globs "<実コードglob>"` → 本文補完 → `index --write` → `lint` |
-| 読み取り点検 | `lint` / `index --check` / `stale` / `render --check`。ファイルを書かない |
-| 閲覧 | `render` は `_site/` に書く。必要なら `render --open` |
-| 初回導入・更新 | 環境・CLI・生成先を確認し、installとinitを分ける。既存ファイルは保持 |
-| backlog採用時 | `new backlog --title "<title>" --layer <layer>` で雛形 → 背景・進め方・完了条件を補完。`status` で集計 |
+| コード変更後 | `okf affected --base <変更前の固定SHA>` で対象を調べ、本文を更新して `okf sync` の各診断を確認 |
+| 文書を新規作成 | `okf new doc --layer shared --type Reference --title "<title>" --code-globs "<実コードのパス>"` で雛形を作り、本文を補完して `okf index --write` → `okf lint` |
+| 書き込まずに点検 | `okf lint`、`okf index --check`、`okf stale`、`okf render --check` |
+| 閲覧 | `okf render` は `_site/` に HTML を生成。必要なら `okf render --open` |
+| backlog を使う場合 | `okf new backlog --title "<title>"` で雛形を作り、本文を補完。`okf status` で集計 |
 
-`affected` の対象だけでなく、未カバーパス、code_globs未設定文書、README等バンドル外も影響を確認する。出力ゼロを更新不要の証明にしない。本文を実コードに合わせ、更新不要の根拠や未検証を区別する。generated.atだけを新しくして完了にしない。
-`sync` はindex/logを書き、log失敗は警告で継続し得る。Gitの未コミット変更はlogへ記録しない。各段階の結果を確認し、必要ならコミット後に承認済み範囲で `log --write` を実行する。
-`stale` は指摘があってもexit0、`sync --gate` は同じlint error再検出でもexit0になり得る。exit0だけで指摘解消・全更新完了・CI成功と判断しない。
-`render --check` は既存HTML差分ではなく生成可否の非書き込み検査。`render --hook` は書き込みを伴う終了hook用操作で、advisory adapterのexit0も成功証明ではない。sync/gateを読み取り点検に使わない。
+`affected` の対象に加えて未カバーのパス、`code_globs` のない文書、バンドル外も確認する。出力ゼロや `generated.at` の更新だけで本文が最新とは判断しない。
+
+`sync` は目次と、設定された層の履歴を書き込む。引数なしで初期化した場合 `log.layers` は空で、履歴の自動追記は行われない。必要ならコミット後に `okf log --layer shared --dry-run` で内容を確認し、`okf log --layer shared --write` で記録する。既存の手書き履歴には `log.baseline` が必要になる場合がある。log はコミット済みの変更だけを対象とし、失敗時も警告して継続することがある。各診断とスキップを確認する。`stale` の指摘や `sync --gate` の再検出は exit 0 でも残り得る。
 
 新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。
-エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は全体置換なので更新用に使わない。
+エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は多くの生成物を置換するので更新用に使わない。エージェント設定と `.gitignore` はforceでも保持する。
 詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `okf <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
 
-## 4. やってはいけないこと
+## 書式と生成物
 
-- ❌ `index.md` を手で書く（自動生成物。`<!-- okf:auto:start -->` 〜 `<!-- okf:auto:end -->` の中身は上書きされる）
-- ❌ `type` を [CONVENTIONS.md](/CONVENTIONS.md) の語彙表にない値で書く（lint が error にする）
-- ❌ `status`（ドキュメントの状態）と `state`（backlog の進捗）を混同する。**別物**
-- ❌ 巨大な1ファイルに追記し続ける。分割して `related` で繋ぐ
-- ❌ `{{BUNDLE_ROOT}}/` の外に恒久ドキュメントを置く
+- Markdown は原則 1 ファイル 1 事項とし、`index.md` / `log.md` を除いて frontmatter の `type` を指定する。型や `layer` は [執筆規約](/CONVENTIONS.md) に従う。
+- `index.md` の自動生成部分は手で編集しない。新規文書の本文と必要な `related` を補う。
+- `render --check` は生成可能性を読み取り確認し、既存 HTML との差分比較はしない。`render --hook` は HTML に書き込む。
+- `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` は Git 管理外にする。旧出力の整理には `render --cleanup-from` の `--check` で計画を確認し、未知・編集済みファイルを保護する。通常の render / hook では整理しない。
 
-## 5. 出力の安全境界
-
-生成HTMLの `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はGit管理外とする。
-出力先の変更だけでは旧HTMLを整理しない。`render --output _site --cleanup-from {{BUNDLE_ROOT}} --check` で計画を確認し、対象と依頼を確認してからcheckを外す。新出力成功後、識別できる未編集生成物だけを退避する。手書き・編集済み・識別不能ファイルは保ち、hookに整理を設定しない。
-復元はreceiptと元パスを確認し、既存ファイルを上書きしない。詳細は [upstreamの整理手順](https://github.com/shirashu687/okf-devkit/blob/main/docs/render/output-cleanup.md) を導入済み版と照合する。
+初期設定は `shared` 層と同梱の語彙をそのまま利用できる。複数層や別の配置が必要になったときに設定を見直す。エラーや競合があれば未完了として報告する。
