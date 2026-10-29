@@ -21,11 +21,17 @@
     },
     {
       "path": "tests/node/release-guards.test.mjs",
-      "reason": "Update imports for relocated Node implementation, preserve existing assertions, and verify stable CLI import/direct execution compatibility."
+      "reason": "Move the entire release guard suite from scripts to tests/node and update imports without removing assertions."
     },
     {
       "path": "tests/node/render-cleanup.test.mjs",
       "reason": "Update imports for relocated Node implementation, preserve existing assertions, and verify stable CLI import/direct execution compatibility."
+    },
+    {
+      "path": "scripts/release-guards.test.mjs",
+      "reason": "Declare the old path too: rename into protected tests/ makes both rename endpoints protected. Preserve all release guard assertions."
     }
-  ]
+  ],
+  "scope": "task-and-pull-request",
+  "pull_request_base": "ec493d190c213067f87c314adf766432dd45f133"
 }

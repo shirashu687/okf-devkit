@@ -3,6 +3,7 @@
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
 ## 2026-10-29
+- **Update** Node本体をsrc/nodeへ集約し、node/cli.mjsの互換入口と配布時の資産参照を保持した。Release guardテストをtests/nodeへ移し、構成ガイドを追加した。 ([#58](https://github.com/shirashu687/okf-devkit/issues/58), `2e2fe55`)
 - **Update** 初期化時に終了hookを用意し、既存の設定とignoreを保持する（#48、`9299ac6`）。
 
 ## 2026-10-04
