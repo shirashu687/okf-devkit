@@ -6,3 +6,5 @@
 - 利用者依頼により対象repoへbranch push・PR作成する。検証と仕様/標準reviewの結果は後に記録する。
 - 検証: Linux既存venv Python 266件、失敗0・エラー0・skip5。npm test 31件中29成功・Windows固有2 skip、Node/Python互換15件とパッケージ導入3件成功。index write/check、lint error0/warn0、変更宣言検査成功。実AIイベントとWindows実行は未確認。
 - review: 開始SHAと生成設定・既存ファイル保持・両runtime・配布物を仕様軸/標準軸で照合。launcher起動前の失敗も検査。full retroの対象をIMP-0005に追記、試行・恒久採用なし。
+
+- 実装コミット `9299ac6` の後、cli/shared logに実ハッシュを追記。

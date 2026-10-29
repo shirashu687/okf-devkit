@@ -2,6 +2,9 @@
 
 <!-- `okf log --write` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->
 
+## 2026-10-29
+- **Update** 初期化時に終了hookを用意し、既存の設定とignoreを保持する（#48、`9299ac6`）。
+
 ## 2026-10-04
 - **Update** refactor: split parser and live compatibility facade from CLI entry。 (`f8b08d9`)
 
