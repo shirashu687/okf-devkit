@@ -161,6 +161,14 @@ export function cmdInit(repo, args) {
     .readdirSync(path.join(dataDir, "scaffold/hooks"))
     .sort(compare))
     plan.push([`.okf/hooks/${file}`, scaffold(`hooks/${file}`)]);
+  for (const file of ["agent_stop.sh", "agent_stop.ps1"])
+    plan.push([`.okf/hooks/${file}`, scaffold(`agent-hooks/${file}`)]);
+  for (const [file, source] of [
+    [".claude/settings.json", "claude.json"],
+    [".codex/hooks.json", "codex.json"],
+    [".github/hooks/okf-render.json", "copilot.json"],
+  ]) plan.push([file, scaffold(`agent-hooks/${source}`), "settings"]);
+  plan.push([".gitignore", "/_site/\n/.okf/render-backups/\n", "ignore"]);
   const emptyLog = (name) =>
     `# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
   for (const l of layers)
@@ -169,9 +177,18 @@ export function cmdInit(repo, args) {
   // Validate the entire plan (including symlinks) before the first write.
   for (const [file] of plan) inside(repo, path.resolve(repo, file));
   const skipped = [];
-  for (const [file, content] of plan) {
+  const skippedSettings = [];
+  const skippedIgnore = [];
+  for (const [file, content, preserve] of plan) {
     const out = path.resolve(repo, file);
-    if (fs.existsSync(out) && !args.force) skipped.push(file);
+    // lstat also detects dangling symlinks; agent settings are never replaced.
+    let exists = true;
+    try { fs.lstatSync(out); } catch (e) {
+      if (e.code === "ENOENT") exists = false;
+      else throw e;
+    }
+    if (exists && (preserve || !args.force))
+      (preserve === "settings" ? skippedSettings : preserve === "ignore" ? skippedIgnore : skipped).push(file);
     else {
       write(out, content);
       console.log(`作成: ${file}`);
@@ -181,8 +198,15 @@ export function cmdInit(repo, args) {
     console.log(`既存のためスキップ（--force で上書き）: ${skipped.length} 件`);
     skipped.forEach((p) => console.log(`  ${p}`));
   }
+  if (skippedSettings.length) {
+    console.log("既存のエージェント設定は保持しました（--force でも上書きしません）:");
+    skippedSettings.forEach((p) => console.log(`  ${p}`));
+    console.log("必要なら既存設定に .okf/hooks/agent_stop を手動で登録してください。");
+  }
+  if (skippedIgnore.length)
+    console.log("既存の .gitignore は保持しました。/_site/ と /.okf/render-backups/ の除外を確認してください。");
   console.log(
-    `\n次の手順:\n  1. ${bundle}/CONVENTIONS.md の語彙を確認・調整する\n  2. okf.yml の layer_map が実際のコード配置と合っているか確認する\n  3. okf index --write で目次を生成する\n  4. okf lint で規約違反が無いか確認する\n  5. .gitignore に _site/ を追加する（HTML生成物）`,
+    `\n次の手順:\n  1. okf index --write で目次を生成する\n  2. okf lint で規約を確認する\n  3. okf render で HTML を生成する\n  必要な場合だけ okf.yml と ${bundle}/CONVENTIONS.md を調整する\n  エージェント設定と .gitignore の出力を確認する`,
   );
   return 0;
 }

@@ -1,298 +1,77 @@
 # okf-devkit
 
-**Keep an [OKF](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2 documentation bundle in sync with the code it describes.**
+`okf-devkit` は、[OKF v0.2](https://github.com/GoogleCloudPlatform/open-knowledge-format) のドキュメントをコードと一緒に保守する CLI です。変更に影響される文書の確認、目次と履歴の更新、規約の検査、HTML での閲覧を支援します。
 
-`okf-devkit` は、OKF v0.2 バンドルを**ソフトウェア開発リポジトリで運用する**ための CLI。
-「ドキュメントを書く」ことではなく、**書いたドキュメントがコードから乖離しないようにする**ことに重心がある。
+ドキュメントは Markdown と Git で管理します。利用先に別リポジトリの harness を導入する必要はありません。
 
-Node.js 22+・npm・Gitを用意して、[AI向け導入手順](docs/agents/install-okf.md)をAIへ渡すと、対象repoに合う固定版の導入から検証まで依頼できる。Python版の導入方法も下に掲載する。
+## はじめる
 
----
-
-## なぜ別のツールなのか
-
-OKF には既に良いツールがある。**役割が違うので、併用できる。**
-
-| ツール | 担当 |
-|---|---|
-| [okfctl](https://github.com/cwest/okfctl) | 汎用の OKF バンドル操作（validate / lint / index / search / graph / migrate） |
-| [okf-skills](https://github.com/scaccogatto/okf-skills) | Claude Code から OKF を書く・グラフ可視化する |
-| **okf-devkit** | **コードとドキュメントの連動**。リポジトリの git 履歴とソースツリーが入力になる |
-
-okf-devkit だけが持っているのは次の4つ。
-
-| 機能 | 内容 |
-|---|---|
-| **`affected`** | 変更したソースファイルから、**更新すべきドキュメントを逆引き**する。ドキュメント化漏れのパスも列挙する |
-| **`log --write`** | git 履歴から `log.md` を**自動生成**する。層ごとに振り分け、コミットハッシュで冪等 |
-| **`stale`** | `generated.at` と**実際のコードの最終コミット日時**を突き合わせ、内容が古くなった文書を検出する |
-| **`render`** | バンドル全体を**読み物として読める複数ページ HTML** に変換する（グラフ可視化ではない） |
-
-これを支えるのが独自 frontmatter キー **`code_globs`** ——「この文書はどのコードから導出されたか」の宣言である。
-
-```yaml
-code_globs:
-  - src/api/*.ts
-  - src/db/schema.sql
-```
-
-OKF v0.2 §5 は独自キーの追加を明示的に許可しており、consumer は未知キーを保持する。
-つまり `code_globs` を付けても**バンドルは他の OKF ツールと互換のまま**である。
-
----
-
-## インストール
+Node.js 22 以上、npm、Git を用意し、導入先リポジトリのルートで実行します。以下は既存の npm プロジェクトにローカル導入する例です。`package.json` と lockfile を変更し、依存パッケージを取得します。
 
 ```bash
-python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"
-```
-
-Python 3.11+ / Windows・macOS・Linux 対応。依存は `markdown-it-py` と `PyYAML` のみ。
-Python本体は未公開のPyPI package名から取得せず、確認済み完全SHAのソースを選んだ仮想環境へ導入する。Gitと依存取得の通信が必要。既存cloneを同じSHAへcheckoutした場合は、そのclone内で`python -m pip install -e .`を使える。Python wheel/sdistのRelease assetはない。
-
-### Python がない環境（Node.js 版）
-
-Node.js 22+ と npm で、同じ10コマンドを実行できる。Git履歴を扱う `log` / `affected --base` とhookにはGitも必要。
-本体はGitHubから固定版で導入し、npmレジストリには公開しない。依存の取得にはnpmを使う。
-標準はrepo-local、globalは明示選択。Node同梱exeと自動更新は提供しない。
-v0.1.0タグは完全SHA `12cdb44c2876b50bd7337a5ea20f7744a27d7802` を指し、配布workflowの全10job成功と3assetの照合を済ませたDraftがある。現在は未公開で、公開済みPreReleaseとしての導入確認はまだ行っていない。公開前は確認済み完全Git SHAのソース経路を使う。実利用者への導入は別工程である。
-配布担当者は [タグ・Draft検査・公開の手順](docs/agents/release-node.md) を参照する。
-既存v0.1.0の検証済みtgzはタグ対象12cdb44のまま固定しており、同梱READMEには修正前のPyPI例・古い公開状態の説明が残る。このリポジトリのREADME/導入ガイド修正は既存assetのバイトへ反映されない。導入時は現在の [導入ガイド](docs/agents/install-okf.md) を参照し、同じassetを差し替えたり再packしたりしない。
-
-**AIに任せる入口**: [導入・更新・rollbackの手順と貼り付け用依頼文](docs/agents/install-okf.md)。環境確認、管理方式の選択、固定版導入、初期化、実CLI検証を順に扱う。インストールと `init` は別操作で、既存ファイルは `init` でスキップする。更新に `init --force` を使わない。
-
-### 公開後のGitHub配布物を取得する
-
-次のURLと例は**公開後の予定**で、現在の未公開Draftから匿名取得できるURLではない。公開後にv0.1.0の実Releaseとasset URLを再確認して使う。このrepoは現在publicだが、公開Releaseとrepoの可視性は別の条件である。private repoの場合は既存の認可されたGitHub取得経路を使い、tokenをURLへ埋め込んだりrepoを公開したりしない。
-
-```powershell
-# 公開後のみ。新しい空の取得ディレクトリで実行
-$assetBase = "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0"
-foreach ($assetName in @("okf-devkit-0.1.0.tgz", "release-manifest.json", "SHA256SUMS")) {
-    Invoke-WebRequest "$assetBase/$assetName" -OutFile $assetName
-}
-Get-FileHash okf-devkit-0.1.0.tgz,release-manifest.json -Algorithm SHA256
-Get-Content SHA256SUMS
-Get-Content release-manifest.json
-```
-
-導入前にmanifestのrepository、tag=`v0.1.0`、version=`0.1.0`、commit=`12cdb44c2876b50bd7337a5ea20f7744a27d7802`、tgzの名前・サイズ・SHA-256を確認する。計算したtgz/manifestのhashとSHA256SUMSの両行が一致しなければ停止する。詳細な[取得・照合手順](docs/agents/install-okf.md)に従い、同じassetを利用する。チェックサムはバイト照合であり取得元の信頼性の証明ではない。
-
-```powershell
-# 標準のrepo-local。globalは利用者が明示選択した場合だけ
-npm.cmd install --save-dev --save-exact --ignore-scripts "C:/verified/path/okf-devkit-0.1.0.tgz"
+npm install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#main"
 node node_modules/okf-devkit/node/cli.mjs --help
-# 明示的にglobalを選び、既存版と復旧元を保存した場合の代替
-npm.cmd install --global --ignore-scripts "C:/verified/path/okf-devkit-0.1.0.tgz"
 ```
 
-上のlocal/globalは代替の選択肢で、両方を実行する手順ではない。POSIXでは`npm.cmd`を`npm`に読み替える。取得済みtgzの保持場所はCI/他端末でも使える方式を選ぶ。repo-localの更新時はmanifest/lockfileと既存の検証済み配布物を保存し、復旧は保存したmanifest/lockfileを戻して`npm ci --ignore-scripts`を使う。globalでは`npm ci`を復旧手順とせず、保存した旧版tgzを`npm.cmd install --global --ignore-scripts "C:/saved/path/old-version.tgz"`で再導入し、`Get-Command okf`などで元の解決パスと版・実CLIの動作を確認する。同じ0.1.0という版名だけで同じバイトと判断せず、既存assetの差替えや再packをしない。
+`main` は更新されます。チームで再現するには作成された lockfile を管理し、固定版が必要な場合は確認済みコミット SHA を指定してください。npm レジストリと PyPI に本体は公開されておらず、v0.1.0 の GitHub Release は未公開の Draft です。v0.1.0 の固定版には今回の hook 設定は含まれず、同梱 README も古いため、このリポジトリの[導入ガイド](docs/agents/install-okf.md)を参照してください。
 
-```powershell
-# このリポジトリ内で実行（PowerShell / bash 共通）
-npm ci
-node node/cli.mjs --help
-node node/cli.mjs lint
-node node/cli.mjs index --check
+npm 以外の管理方式、manifest のないリポジトリ、更新・復旧の場合は、[導入ガイド](docs/agents/install-okf.md)で手順を確認してください。global インストールや未導入時の `npx` は上の手順では使いません。
 
-# 別プロジェクトを対象にする（--root のパスは置き換える）
-node node/cli.mjs --root "C:/path/to/project" init --layer "app=src/**"
-node node/cli.mjs --root "C:/path/to/project" index --write
-node node/cli.mjs --root "C:/path/to/project" render
-```
+### 初期化と動作確認
 
-開発checkoutから試す場合は、パッケージを作ってローカルインストールできる。次の`npm pack`は開発用であり、公開済みReleaseの検証済みassetを再作成する手順ではない。
+初めて使うリポジトリで、同じルートから実行します。
 
-```powershell
-# okf-devkit のチェックアウトで実行
-npm pack
-
-# 導入先プロジェクトで実行（tgzのパスは置き換える）
-npm.cmd install --save-dev --save-exact --ignore-scripts "C:/path/to/okf-devkit/okf-devkit-0.1.0.tgz"
-node node_modules/okf-devkit/node/cli.mjs --help
-# 初期化を依頼した場合だけ（layerは対象repoに合わせる）
-node node_modules/okf-devkit/node/cli.mjs init --layer "app=src/**"
+```bash
+node node_modules/okf-devkit/node/cli.mjs init
 node node_modules/okf-devkit/node/cli.mjs index --write
 node node_modules/okf-devkit/node/cli.mjs lint
+node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
-Python本体の取得・起動は行わない。設定・テンプレート・HTMLアセットはPython版と共用し、生成物の比較テストを持つ。
-POSIXでは `npm.cmd` を `npm` に読み替える。ローカルtgzの保存先はCI/他端末でも利用できる方式に合わせる。
-詳細な対応範囲と既存hookの更新方法は [Node.js版の利用手順](docs/cli/node-runtime.md) を参照する。
+`init` は `okf.yml`、`docs/` 内の作業ガイド・規約・テンプレートと終了 hook の設定を生成します。既定は `docs/` と `shared` 層です。既存ファイルはスキップします。`--force` は多くの既存ファイルを上書きするため、更新には使わないでください。`index --write` は目次を書き込み、`lint` と `render --check` は検査結果を表示します。
 
-## クイックスタート
+内容をブラウザで見るには `node node_modules/okf-devkit/node/cli.mjs render --open` を実行します。HTML は既定で `_site/` に生成されます。既存の `.gitignore` がある場合は `_site/` と `.okf/render-backups/` の除外を確認してください。
+
+### Python 版
+
+Python 3.11 以上と Git を使う場合は、選んだ仮想環境に導入できます。依存の取得には通信が必要です。再現性が必要な場合は `main` の代わりに確認済みコミット SHA を指定してください。
 
 ```bash
-okf init --site-name "My Project" --layer client=src/client/** --layer server=src/server/**
+python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@main"
+okf init
+okf index --write
+okf lint
 ```
 
-生成されるもの:
+## 日常の使い方
 
-| パス | 中身 |
-|---|---|
-| `okf.yml` | このリポジトリ固有の設定（層・パス対応・log 出力先） |
-| `docs/AGENTS.md` | **LLM 向けの入口**。作業手順と「完了の定義」 |
-| `docs/CONVENTIONS.md` | 語彙・書式の唯一の基準。lint が強制する内容の人間向け説明 |
-| `docs/_templates/` | type ごとのテンプレート |
-| `docs/<layer>/log.md` | 層ごとの変更履歴（空） |
-| `.okf/hooks/` | エージェントの Stop hook 用ラッパー |
+以下の `okf` は選んだ CLI を表します。ローカル Node 版では `node node_modules/okf-devkit/node/cli.mjs` に置き換えてください。
 
-続けて:
+1. 文書に根拠となるコードを `code_globs` として記載します。
+2. コードを変更したら `okf affected --base <変更前のコミットSHA>` で影響を確認します。未カバーのパスや `code_globs` のない文書も確認し、必要な本文を更新します。
+3. `okf sync` で目次・履歴を更新し、lint と stale の診断を確認します。未コミットの変更は履歴に記録されないため、log のスキップや警告も確認してください。
 
-```bash
-okf index --write   # 目次を生成
-okf lint            # 規約違反の確認（init 直後は 0 件）
-okf render          # _site/ に閲覧用 HTML を生成する
-okf render --open   # 生成後にトップページをブラウザで開く
-```
+読み取りだけの点検には `okf lint`、`okf index --check`、`okf stale`、`okf render --check` を使います。文書作成や閲覧を含む目的別の案内は [日常操作ガイド](docs/agents/operate-okf.md)、全コマンドの引数・副作用・終了状態は [コマンド仕様](docs/cli/commands.md) を参照してください。
 
-## コマンド
+## エージェントと設定
 
-| コマンド | 役割 |
-|---|---|
-| `init` | リポジトリに OKF バンドルと設定一式を生成する |
-| `index` | 各ディレクトリの `index.md` を frontmatter から再生成する |
-| `log` | git 履歴から各層の `log.md` に追記する（冪等） |
-| `lint` | OKF 適合 + 語彙の検証（L1〜L14） |
-| `stale` | 陳腐化レポート（expired / orphan / outdated / unverified / draft-stale） |
-| `affected` | 変更パスから更新すべきドキュメントを列挙する |
-| `new` | backlog / doc の雛形を生成する（ID 採番込み） |
-| `status` | backlog の集計を表示する |
-| `render` | バンドルの Markdown を閲覧用 HTML に変換する |
-| `sync` | `index` → `log` → `lint` → `stale` を一括実行する |
+初期化は Claude Code、Codex、GitHub Copilot のプロジェクト用終了 hook 設定を用意します。既存の設定と `.gitignore` は上書きされません。スキップされた設定がある場合は内容を確認し、必要に応じて手動で登録してください。製品側の信頼設定や実行環境も必要です。設定例、重複実行の注意と対応範囲は [終了 hook の手順](docs/agents/completion-hooks.md) にあります。
 
-共通オプション: `--root <dir>`（プロジェクトルート）、`--config <path>`（設定ファイル）。
-どちらも省略時は、CWD から上に遡って `okf.yml` を探し、無ければ git のトップレベルを使う。
-
-`okf new doc --layer cli --type Reference --title API --slug api --code-globs "src/**/*.py"` は根拠コードを指定して文書を生成する。
-`--code-globs` は複数のパス/globを受け取る。Project Overview / Architecture / Reference / How-To 型では必須で、既存の自動化もこの引数を追加する必要がある。
-それ以外の型は省略でき、空の code_globs / related リストを生成する。指定globが存在するコードに一致し、索引を更新した状態で lint --strict を確認する。
-
-### AIの日常操作
-
-[目的別の短いガイド](docs/agents/operate-okf.md)から、コード変更後・新規文書・読み取り点検・閲覧・初回導入・backlogを選べる。全コマンドの副作用と終了状態は [コマンド仕様](docs/cli/commands.md) を参照する。
-最小経路は `affected --base <固定SHA>` → 対象と未カバーを判断 → 本文更新 → `sync` の各診断確認。code_globs未設定やバンドル外の文書も照合し、generated.atだけを更新しない。syncはindex/logを書き、未コミット変更はlogに記録しない。
-読み取りだけなら `lint` / `index --check` / `stale` / `render --check`。終了0だけで指摘なし・CI成功と判断しない。ローカルNode版など、選んだ実CLIで実行する。
-
-## 設定
-
-設定は **「パッケージ同梱の `defaults.yml`」＋「プロジェクトルートの `okf.yml`」** のマージで決まる。
-
-- `types` / `statuses` / `kind_rules` / `backlog` の語彙、`index` のマーカーとリンク形式といった**普遍的な設定は同梱側**にある
-- `okf.yml` には**このリポジトリ固有の設定だけ**を書けばよい（`bundle_root` / `layers` / `layer_map` / `index.link_style` / `log.paths` / `log.baseline` / `site_name`）
-- マージ規則: **dict は再帰的にマージし、リストとスカラーは丸ごと置換**する
-
-生成 `index.md` のリンク形式は `index.link_style` で選ぶ。既定は既存互換の `bundle-absolute`、このリポジトリはObsidianで階層をそのまま辿れる `relative` を明示している。
-
-```yaml
-index:
-  link_style: relative  # bundle-absolute（既定）または relative
-```
-
-`relative` は各 `index.md` の親ディレクトリから解決される（例: `docs/index.md` から `./project/index.md`）。`index --write`、`index --check`、`lint`、`sync` で同じ設定が使われ、不正値は索引を書き込まずにエラーになる。
-
-### 既存リポジトリへの導入
-
-`log.md` に手書きの既存エントリがある状態で `okf log --write` を実行すると二重追記になる。
-`okf.yml` の `log.baseline` に**移行済みの最後のコミット SHA** を入れること
-（未設定かつハッシュ無しエントリがある場合、`okf` は書き込みを拒否する）。
-
-## Obsidianでの閲覧
-
-Obsidianでは、このリポジトリのルートフォルダをそのままVaultとして開く。Markdown、YAML frontmatter、生成 `index.md`、`harness/` のworklog・台帳を同じファイルとして検索・閲覧し、内容・差分・履歴の正本はGitに置く。別Vault、専用コピー、community plugin、自動同期・公開は作らない。
-
-主な入口と役割対応は [プロジェクト設定](harness/project/config.md) にまとめている。frontmatterのネストした値は平坦化せず、必要ならPropertiesのソース表示で確認する。リンクの自動更新で生成indexやMarkdownを変更せず、移動・改名は既存の編集手順と `okf index --write` で扱う。
-
-`.obsidian/` は個人の画面状態としてGit管理外にする。GitのignoreはObsidianの表示・検索を制御する機能ではない。OKFを採用しないリポジトリでは、同じハーネスのMarkdown + Git、役割対応表、検証契約を使い、OKF CLIの導入を必須にしない。
-
-## エージェント連携
-
-`okf init` が `.okf/hooks/render_hook.sh` / `.ps1` を置く。共通の `render --hook` で
-作業終了時に閲覧用HTMLをローカル生成する。手動実行は失敗を非0の終了値で返す。
-
-このリポジトリにはClaude Code、GitHub Copilot、Codexの終了hook設定と
-`.okf/hooks/agent_stop.sh` / `.ps1` を置く。終了イベント用アダプターは失敗を標準エラーへ表示し、
-`{}` と終了値0を返す。モデル継続・公開・整理は行わない。
-Copilot互換設定の追加読込みで二重生成する場合がある。
-設定の信頼、CLI/IDE/cloudの対応表、runtime準備、実イベントが未検証の範囲は
-[終了hookの手順](docs/agents/completion-hooks.md) に記載する。
-利用者のグローバル設定や `okf init` の配布内容は変更しない。
-
-`render` の既定出力先はプロジェクトルートの `_site/`。`.gitignore` に `_site/` を追加する。
-`okf render --output docs` で従来のMarkdown隣接配置を使える（bundle_rootが異なる場合はそのディレクトリを指定）。
-出力先を変えるだけでは、旧出力先のHTMLを移動・削除しない。旧生成物を整理する場合は、先に計画を確認する。
-
-```bash
-okf render --output _site --cleanup-from docs --check
-okf render --output _site --cleanup-from docs
-```
-
-`--cleanup-from` は、新出力の成功後に未編集と確認できた旧生成物だけを `.okf/render-backups/<id>/` へ退避する。削除せず、旧リポジトリ相対パスと `receipt.json` を残す。手書きHTML・編集済み生成物・Markdownは移動しない。通常のrenderは出力先ごとに `.okf-render-manifest.json` を記録する。manifestのない旧版は、現在のレンダラーの生成内容と完全一致するものだけが対象になり、版違い・判別できない出力は残る。
-
-`--check` は計画表示のみで、HTML・manifest・退避先を作らない。`--cleanup-from` と `--hook` は併用できない。同一・入れ子の旧新出力先、リポジトリ外、リンク経路、退避領域との重複は拒否する。新出力先に手書き・編集済みファイルが衝突した場合も、旧出力を動かす前に失敗する。`.gitignore` には `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` を追加する。
-
-復元時はreceiptで旧パスと退避ファイルを確認し、旧パスにファイルがないことを確かめてから戻す。既存ファイルは上書きしない。途中失敗では移動済み旧ファイルの復元を試み、衝突で戻せないものは退避先に保持して報告する。新出力そのものの巻戻しは行わない。詳細は [生成済みHTMLの整理](docs/render/output-cleanup.md) を参照。
-Stop hookも `_site/` を更新し、`--check` は出力先にファイルを作らず生成可否を検証する。
-
-`render --open` は出力先の `index.html` を既定のブラウザで開く。`--output _site` も使用できる。
-`--check` / `--hook` と併用してもブラウザは開かない。起動APIが失敗を返した場合は警告を出し、HTML生成は成功のまま扱う。
-Node.js版はOSの起動コマンドを開始できたことまで確認し、起動後のブラウザ表示やコマンドの終了結果は確認しない。
-Mermaid が `file://` で描画されない場合は、出力先をローカルHTTPサーバで配信して閲覧する。
-
-`render --hook` は成功時に `{}`、失敗時に終了コード 1 を返す。**終了コード 2 や `decision: block` は返さない**ため、
-HTML 生成を理由にモデルの継続実行が発生することはない。
-
-### `sync --gate`
-
-LLM に差し戻したい場合は別コマンドの `okf sync --gate` を使う。機械的に直せるものは自動修正し、
-残った lint error は stderr に修正指示を出して **exit 2** を返す。
-同じ error 集合に対して 2 回目は警告のみで exit 0 にするため、無限ループにはならない。
-
-## CI
-
-```yaml
-- run: python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"
-- run: okf lint
-- run: okf index --check
-- run: okf render --check
-```
+まず既定の `shared` 層で始められます。コードと層の対応など、プロジェクト固有の設定は `okf.yml` に置き、共通の語彙はパッケージから読み込みます。複数層や設定の詳細は [初期化と同梱雛形](docs/scaffold/reference.md) と [コマンド仕様](docs/cli/commands.md) を参照してください。
 
 ## 開発
 
 ```bash
 python -m venv .venv
-.venv/Scripts/python -m pip install -e .   # POSIX: .venv/bin/python
-python tests/run_all.py                    # 標準ライブラリの unittest のみ
+.venv/bin/python -m pip install -e .  # Windows: .venv/Scripts/python -m pip install -e .
+.venv/bin/python tests/run_all.py
 npm ci
-npm test                                  # Python不要のNodeテスト
-npm run test:compat                       # .venv のPython版との生成結果比較
+npm test
+npm run test:compat
 ```
 
-テストは実バンドルに触れず、一時ディレクトリ上のバンドルと一時 git リポジトリで完結する。
-
-| ファイル | 内容 |
-|---|---|
-| `test_init.py` | 設定マージ、ルート探索、`init` の生成物と入力検証 |
-| `test_index.py` | index の golden test、冪等性、マーカー破損時の非書き込み |
-| `test_log.py` | log の冪等性、baseline、層のルーティング |
-| `test_yaml.py` | PyYAML 有無での同値性、曖昧構文の拒否 |
-| `test_lint.py` | L4〜L12 の見逃し防止 |
-| `test_git.py` | rename / 非 ASCII パス / shallow / detached HEAD / コミット 0 件 |
-| `test_gate.py` | finding 指紋ごとの回数管理、fail-closed、stdin のハング防止 |
-| `test_atomic.py` | 書き込み失敗時に元ファイルが壊れないこと |
-| `test_render.py` | リンク書き換え、冪等性、hook の非ブロッキング契約 |
-| `test_new.py` | YAML 安全性、`..` / 絶対パスの拒否、連番採番 |
-
-## 設計方針
-
-- **決定的にできることは全部スクリプトに寄せる。** LLM のクレジットは「文章の中身を書く」非決定的な作業だけに使う
-- すべてのファイル書き込みは一時ファイル + `fsync` + `os.replace()` による**原子的置換**
-- **内容が変わらなければ書き込まない**（hook から連打しても安全）
-- 読み書きは UTF-8 / LF 固定
-- PyYAML が無い環境では内蔵の**厳格な**簡易 YAML パーサへフォールバックする。曖昧な構文は黙って誤読せず必ずエラーにする
+Node 版の利用と比較テストについては [Node.js 版の利用手順](docs/cli/node-runtime.md)、配布の手順は [Release 手順](docs/agents/release-node.md) を参照してください。
 
 ## ライセンス
 
-MIT
-
-Backlog の状態・件数は生成したルート HTML と Backlog 索引で確認できます。タイトル・採番を含む元ファイル名・状態・本文リンクを読み取り専用で表示します。[閲覧手順](docs/render/backlog-progress.md)を参照してください。
+[MIT](LICENSE)

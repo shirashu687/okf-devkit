@@ -28,10 +28,10 @@ related:
 
 # 初期化と同梱雛形
 
-Python の scaffold 配置は `commands/init.py` が明示した project root に対して行い、素材はインストール済みパッケージ内の `scaffold/` を参照する。文書の新規作成は `commands/new.py` が Bundle の root 内に限定する。旧CLIの素材 reader・設定 renderer・writer の差し替えは `compat.py` のadapter経由で維持し、既存ファイルの skip/force 条件は変更しない。
+Python の scaffold 配置は `commands/init.py` が明示した project root に対して行い、素材はインストール済みパッケージ内の `scaffold/` を参照する。文書の新規作成は `commands/new.py` が Bundle の root 内に限定する。旧CLIの素材 reader・設定 renderer・writer の差し替えは `compat.py` のadapter経由で維持する。
 
 第4段階ではGit helperを `gitutil.py` に分離したが、initと同梱scaffold生成は従来入口に残る。生成したプロジェクトのGit呼出しはproject rootを明示して処理し、文書rootをGitのcwdには使わない。
-Doc/config分離後もdefaultsはパッケージ内の `defaults.yml`、scaffoldは同梱の `scaffold/` を参照する。利用先のCWDや文書rootから配布素材を探さない。initの引数・生成先・既存ファイル保持は変更しない。
+Doc/config分離後もdefaultsはパッケージ内の `defaults.yml`、scaffoldは同梱の `scaffold/` を参照する。利用先のCWDや文書rootから配布素材を探さない。
 
 
 CLIの純粋helpers分離後も、initの配置物・設定と同梱素材の解決位置は維持する。素材位置はパッケージから解決し、現在のCWDや利用者rootへ移さない。
@@ -45,20 +45,21 @@ Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジ�
 | okf.yml.tmpl と設定生成処理 | ルートの `okf.yml` |
 | AGENTS.md.tmpl / CONVENTIONS.md.tmpl | バンドル内の作業入口と執筆規約 |
 | templates/*.md | バンドルの `_templates/` |
-| hooks/* | ルートの `.okf/hooks/` |
+| hooks/*、agent-hooks/* | `.okf/hooks/` のラッパーとエージェント設定 |
+| 初期ignore設定 | `.gitignore` がない場合に生成HTMLと退避領域を除外 |
 | 層定義と empty_log | 各層の log と shared 用 log |
 
-`--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。既存ファイルは通常スキップし、`--force` を指定した場合だけ置き換える。
+`--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。既存ファイルは通常スキップする。`--force` は多くの生成物を置き換えるが、既存のエージェント設定と `.gitignore` は保持する。
 
-init は本文ドキュメントや目次を完成させない。配置後に語彙と layer_map を確認し、`okf new doc` で本文を作り、`okf index --write` と lint を実行する。hooks はリポジトリへ置くのみで、グローバルなエージェント設定への自動登録は行わない。
+init は本文ドキュメントや目次を完成させない。`okf new doc` で本文を作り、`okf index --write` と lint を実行する。リポジトリ内の Claude Code、Codex、Copilot 設定が存在しない場合は終了 hook を配置する。既存設定は自動統合しないため、スキップされた場合は [終了 hook の手順](/agents/completion-hooks.md) に従い確認する。グローバル設定は変更しない。
 
 ## 配布する日常操作案内
 
-生成するAGENTSは目的からコード変更後・新規文書・読み取り点検・閲覧・初回導入・backlogへ案内する。詳細なコマンド仕様は上流の参照表へ接続し、版差は利用するCLIのhelpと照合する。`affected`未カバーとバンドル外文書の影響、syncの書き込み/logスキップ、stale/gateの終了0の限界を明示する。ローカルNodeの実CLIを優先し、利用者の既存案内は通常initで保持する。開発者向けharnessを利用先へコピーしない。
+生成するAGENTSはコード変更後・新規文書・読み取り点検・閲覧・backlogの操作を案内する。執筆規約は生成したバンドル内、コマンドの詳細は導入済みCLIのhelpを参照するため、別リポジトリのharnessを必要としない。`affected`未カバーとバンドル外文書の影響、syncの書き込み/logスキップ、stale/gateの終了0の限界を明示する。ローカルNodeの実CLIを案内し、利用者の既存案内は通常initで保持する。
 
 ## 既定設定
 
-`defaults.yml` は type/status、backlog の語彙、目次マーカー、commit kind 等の共通規則を持つ。プロジェクトの okf.yml は辞書を再帰的に上書きし、リスト・スカラーを丸ごと置換する。語彙変更時は CONVENTIONS.md と一致させる。
+`defaults.yml` は type/status、backlog の語彙、目次マーカー、commit kind 等の共通規則を持つ。引数なしのinitは `docs` と `shared` を使い、そのまま利用できる。生成する `log.layers` は空なのでsyncは履歴を自動追記しない。`log.baseline` の既定値は空文字。ハッシュのない手書き履歴がある場合、重複防止のため対応する移行済みコミットの SHA を設定してから書き込む。プロジェクトの okf.yml は辞書を再帰的に上書きし、リスト・スカラーを丸ごと置換する。語彙変更時は CONVENTIONS.md と一致させる。
 
 shared のログ出力先は設定の `log.paths.shared` で決まる。生成雛形の配置を変更する場合は、この設定と実際の配置が一致するかを確認する。
 

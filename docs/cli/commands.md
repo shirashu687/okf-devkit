@@ -55,7 +55,7 @@ related:
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|
-| init | バンドル、設定、テンプレート、hook を初期配置 | 既存ファイルは `--force` がない限りスキップ |
+| init | バンドル、設定、テンプレート、エージェントhook を初期配置 | 既存ファイルは通常スキップ。エージェント設定と `.gitignore` は `--force` でも保持 |
 | index | frontmatter から各階層の目次を計画 | `--write`。`--check` は差分があれば exit 1 |
 | log | Git のコミットを層別履歴へ変換 | `--write`。`--range` / `--layer` で範囲を限定 |
 | lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |
@@ -73,7 +73,7 @@ related:
 `sync` のlogはGitのコミット済み履歴だけを扱う。未コミット変更はlogに記録せず、logの警告・スキップを確認する。index更新や最終exit0からlog追記成功を推定しない。
 `stale` の指摘と `sync --gate` の同じlint error再検出はexit0になり得る。gateは初回errorでexit2、同一error集合の再検出ではexit0としてループを抑える。指摘が解消したことやCI成功を意味しない。
 `render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
-`init --force` は既存ファイル全体を置換する。設定の部分更新や新しい案内の移行には使わず、既存ファイルとの必要な差分だけを確認して更新する。
+`init --force` は既存の OKF 設定、文書やhookスクリプトを置換する。エージェント設定と `.gitignore` は例外で、常に保持する。設定の部分更新や新しい案内の移行に使わず、既存ファイルとの必要な差分だけを確認して更新する。初回導入時の登録と既存設定への追加は [終了hookの手順](/agents/completion-hooks.md) を参照する。
 
 ## 新規文書の根拠コードと検査
 

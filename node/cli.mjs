@@ -38,7 +38,7 @@ const helpPages = {
       ["--bundle-root BUNDLE_ROOT", "バンドルのルート（既定: docs）", false],
       ["--site-name SITE_NAME", "ドキュメントの表示名（既定: ルートのディレクトリ名）", false],
       ["--layer NAME=GLOB[:DIR]", "層とコード配置の対応（例: client=src/client/**）。複数指定可", false],
-      ["--force", "既存ファイルを上書きする", false],
+      ["--force", "既存ファイルを上書きする（エージェント設定と .gitignore は保持）", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf init --site-name MyProject",
     kinds: [],
