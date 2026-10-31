@@ -1,13 +1,13 @@
 ---
 type: How-To
-title: AIにokf-devkitの導入と更新を依頼する
-description: AIが環境と変更範囲を確認し固定Node版の導入・検証・更新・復旧を支援する。
+title: AIにokf-devkitの導入・セットアップ・更新を依頼する
+description: AIが対象repoに合う固定Node版の導入・初期設定・検証・更新・復旧を支援する。
 tags: [agents, node, distribution, how-to]
 status: draft
 layer: shared
 generated:
   by: codex/gpt-6
-  at: 2026-10-04T14:59:46Z
+  at: 2026-10-29T15:09:10Z
 code_globs:
   - package.json
   - package-lock.json
@@ -20,14 +20,43 @@ related:
   - /project/decisions/0002-github-node-distribution.md
   - /project/releases/v0.1.0.md
   - /cli/node-runtime.md
+  - /agents/operate-okf.md
   - /agents/completion-hooks.md
   - /render/output-cleanup.md
 ---
 
-# AIにokf-devkitの導入と更新を依頼する
+# AIにokf-devkitの導入・セットアップ・更新を依頼する
 
 明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
 本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
+
+## 初回セットアップを任されたAIへ
+
+「導入して初期設定と検証まで」という依頼は、パッケージ導入に加え、対象repoへの初期配置とAI向け入口の接続までを含む。以下の手順1〜5を実施し、完了条件を確認する。導入だけの依頼では初期化・AI設定を追加しない。
+依頼済みの範囲では、調査結果と変更予定を短く伝えて作業を進める。環境やコードから分かるレイヤー構成などを利用者へ再質問せず、新しいパッケージ管理の追加、依頼範囲を越える変更、利用者編集との競合がある場合に具体案を確認する。
+
+このガイドは **okf-devkit側の文書** であり、導入先に `docs/agents/install-okf.md` があることを前提にしない。外部から読んだ場合、本文の `/agents/...` 等のリンクは、ガイドを取得した同じリビジョンの `docs/` 配下として解決する。案内URLの `main` はガイドの参照先であり、インストールする本体は手順3の完全SHAまたは検証済み配布物へ固定する。
+
+1. **対象repoを調べる。** 手順1で既存の指示・パッケージ管理・OKF導入状態を確認し、実在するソースディレクトリからレイヤーと `code_globs` の候補を決める。`app=src/**` を一律に使わない。
+2. **固定版をローカル導入する。** 手順2〜4に従い、既存の管理方式で導入してCLIの実体と由来を確認する。manifestがない場合は手順2の具体案を確認する。導入済みなら重ねて初期化せず、必要な差分を調べる。
+3. **設定と文書を初期配置する。** 手順5の `init` を対象repoに合わせて実行し、`okf.yml`、バンドルの `AGENTS.md`・`CONVENTIONS.md`・テンプレート・層別logを確認する。既存docsがある場合は配置と衝突を先に調べ、既存文書を一括変換しない。新規バンドルには、実コードを根拠に `code_globs` を持つ最小の概要文書を作り、雛形の本文を補完する。作成方法は [日常操作ガイド](/agents/operate-okf.md) を参照する。
+4. **利用中のAIの入口へつなぐ。** 対象repoのルート `AGENTS.md`、`CLAUDE.md` 等の既存の入口へ、バンドルの `AGENTS.md` を読む案内と実際のCLI呼び出し方を必要な範囲だけ追記する。入口がなければ利用中のAIに合うものを作る。次回のコード変更時に `affected --base <変更前の固定SHA>` から文書更新へ進めるよう案内する。パスは選んだバンドル配置へ合わせ、既存ルールを保持する。okf-devkit開発用の `harness/` やルートの指示全文をコピーしない。
+5. **生成物と動作を確認する。** 手順5の索引生成・検査に加えて `index --check` と対象repoで必須の既存テストを実行する。HTMLの出力先とGit除外を確認して `render` を実行し、閲覧先を報告する。選んだ版のhook生成・登録状態を確認し、実AIイベントの検証とCLI単体の検証を区別する。人による信頼設定が必要なら、その操作を案内する。
+
+### セットアップの完了条件
+
+| 確認対象 | 完了の根拠 |
+| --- | --- |
+| CLI | 導入元の完全SHAまたは配布物、lockfile、実行したCLIの実体を確認し、`--help` が成功する |
+| 設定と文書 | 実ソースとレイヤーが対応し、新規バンドルには本文と `code_globs` を補完した文書がある。既存の利用者編集を保持している |
+| AI向け入口 | 利用中のAIの入口から、実在するバンドルの規約と実CLIの使い方を参照できる |
+| 検証 | `index --write`、`lint`、`index --check`、`render --check`、`render` と対象repoの必須テストの結果を個別に確認する。警告も対応または残件として報告する |
+| 引継ぎ | 変更ファイル、日常操作、HTML閲覧先、復旧方法、人の操作待ち・未検証範囲を報告する |
+
+失敗・未実行・実行不能があれば、対応する項目を完了扱いにしない。hookの実イベント確認や人の信頼操作が残る場合は、ローカルのセットアップ・CLI検証の結果と分けて示す。
+
+## 配布状況と導入経路
+
 この文書のRelease経路は別途承認された公開後に使う。v0.1.0はタグ用workflow全10jobと3assetの検証済みDraftがあるが、現在未公開。公開済みPreReleaseの取得・実利用者への導入は未実施。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。公開前は確認済み完全Git SHAのソース経路を選ぶ。
 既存v0.1.0の検証済みtgzはタグ対象12cdb44の固定バイトで、同梱READMEには修正前のPyPI例と古い公開状態の説明が残る。今回のリポジトリ文書修正はそのassetへ反映されないため、現在のこの導入ガイドを参照する。タグの移動、再pack、既存assetの差替えで案内を更新しない。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
@@ -126,6 +155,7 @@ globalの場合もbin shim/対象packageを解決してNode版であることを
 node node_modules/okf-devkit/node/cli.mjs init --layer "app=src/**"
 node node_modules/okf-devkit/node/cli.mjs index --write
 node node_modules/okf-devkit/node/cli.mjs lint
+node node_modules/okf-devkit/node/cli.mjs index --check
 node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
@@ -150,7 +180,19 @@ OKF文書・設定・HTML・AI設定をパッケージ撤去と一緒に削除�
 
 ## AIへ貼り付ける依頼文
 
-> このrepoにokf-devkitのNode版を導入してください。docs/agents/install-okf.mdを読み、Node22以上/npm/Git、既存manifest・lockfile・workspace・Python/globalのokfを調べてください。本体はGitHubの確認済み完全SHAまたは公開済みReleaseの固定tgz、標準はrepo-localです。初期化とAI設定は別に提案し、既存ユーザー編集を守ってください。未承認の新しいmanifest管理やglobal変更は具体的な差分案で確認してください。実CLIと版・由来を検証し、更新/rollbackの保存元と結果を報告してください。自動更新、init --force、npm本体公開は行わないでください。
+導入先repoをAIエージェントで開いて渡す。導入先にこのガイドを事前配置する必要はない。
+
+```text
+次の導入ガイドを読み、このリポジトリにokf-devkitを導入し、
+初期設定と検証まで実施してください。
+https://raw.githubusercontent.com/shirashu687/okf-devkit/main/docs/agents/install-okf.md
+
+リポジトリの構成に合うレイヤーとソースの対応を設定し、
+利用中のAIがドキュメントの規約を参照できる入口も整えてください。
+既存の文書・設定・未コミット変更は保持してください。
+```
+
+URLを取得できない環境では、ガイド本文を添えて同じ依頼を渡す。導入だけを依頼する場合は「初期設定と検証まで」を「インストールとCLIの検証まで。初期化・AI設定の変更は不要」に変え、レイヤー設定・入口整備の2行を外す。更新・復旧は手順6の対象版と範囲を指定する。
 
 ## 公式資料
 
