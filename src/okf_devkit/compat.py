@@ -221,8 +221,8 @@ def install_legacy_exports(ns: dict) -> None:
     def last_commit_time(paths: list[str]) -> str | None:
         return ns['gitutil'].latest_commit_time(paths, ns['path_commit_times']())
 
-    def resolve_resource(resource: str) -> list[str]:
-        return ns['gitutil'].resolve_resource(ns['REPO_ROOT'], resource)
+    def resolve_resource(resource: str, *, exclude=()) -> list[str]:
+        return ns['gitutil'].resolve_resource(ns['REPO_ROOT'], resource, exclude=exclude)
 
     def render_index(bundle: Bundle, directory: Path, block: str) -> str:
         return ns['_index'].render_index(bundle, directory, block, repo_root=ns['REPO_ROOT'])
@@ -239,14 +239,20 @@ def install_legacy_exports(ns: dict) -> None:
     def cmd_log(bundle: Bundle, args) -> int:
         return ns['_log'].cmd_log(bundle, args, repo_root=ns['REPO_ROOT'], runner=ns['git'], writer=ns['write_if_changed'])
 
+    def bundle_resource_resolver(bundle: Bundle):
+        resolve = ns['resolve_resource']
+        if not bundle.code_glob_exclude:
+            return resolve
+        return lambda pattern: resolve(pattern, exclude=bundle.code_glob_exclude)
+
     def run_lint(bundle: Bundle) -> list[Finding]:
-        return ns['_lint'].run_lint(bundle, repo_root=ns['REPO_ROOT'], resource_resolver=ns['resolve_resource'], index_renderer=ns['render_index'])
+        return ns['_lint'].run_lint(bundle, repo_root=ns['REPO_ROOT'], resource_resolver=bundle_resource_resolver(bundle), index_renderer=ns['render_index'])
 
     def cmd_lint(bundle: Bundle, args) -> int:
         return ns['_lint'].cmd_lint(bundle, args, linter=ns['run_lint'])
 
     def run_stale(bundle: Bundle) -> list[dict]:
-        return ns['_stale'].run_stale(bundle, resource_resolver=ns['resolve_resource'], commit_time=ns['last_commit_time'])
+        return ns['_stale'].run_stale(bundle, resource_resolver=bundle_resource_resolver(bundle), commit_time=ns['last_commit_time'])
 
     def cmd_stale(bundle: Bundle, args) -> int:
         return ns['_stale'].cmd_stale(bundle, args, runner=ns['git'], reporter=ns['run_stale'])

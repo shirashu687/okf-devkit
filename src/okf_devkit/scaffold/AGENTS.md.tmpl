@@ -30,6 +30,8 @@ related:
 
 `affected` の対象に加えて未カバーのパス、`code_globs` のない文書、バンドル外も確認する。出力ゼロや `generated.at` の更新だけで本文が最新とは判断しない。
 
+初回コミット前の `affected` は作業ツリーの変更を対象にし、`log` は追記をスキップする。`main` がない場合は比較元の実在する SHA を `okf affected --base <比較元SHA>` に渡す。対象パスが分かる場合は `okf affected --paths src/main.js` のように直接指定できる。
+
 `sync` は目次と、設定された層の履歴を書き込む。引数なしで初期化した場合 `log.layers` は空で、履歴の自動追記は行われない。必要ならコミット後に `okf log --layer shared --dry-run` で内容を確認し、`okf log --layer shared --write` で記録する。既存の手書き履歴には `log.baseline` が必要になる場合がある。log はコミット済みの変更だけを対象とし、失敗時も警告して継続することがある。各診断とスキップを確認する。`stale` の指摘や `sync --gate` の再検出は exit 0 でも残り得る。
 
 新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。

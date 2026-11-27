@@ -211,6 +211,26 @@ test("L1-L14 finding rules, severity, locations and exit codes agree", (t) => {
   assert.equal(js.status, py.status);
   assert.equal(js.stdout, py.stdout);
 });
+
+test("both CLIs prune code glob directories", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    put(root, "src/app/node_modules/pkg/vendored.ts", "code\n");
+    put(root, "src/app/dist/bundled.ts", "code\n");
+    put(root, "src/app/local/generated.ts", "code\n");
+    fs.symlinkSync(path.join(root, "src", "app"), path.join(root, "src", "app", "cycle"), "junction");
+    const config = path.join(root, "okf.yml");
+    fs.appendFileSync(config, "\ncode_glob_exclude: [src/app/local/**]\n");
+    put(root, "docs/api/explicit.md", document().replace("src/**", "src/app/dist/**"));
+    put(root, "docs/api/broad.md", document());
+    ok(run(root, ["index", "--write"], {runtime}));
+    const result = run(root, ["lint", "--strict"], {runtime});
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /docs\/api\/broad\.md:\d+ warn L10.*走査除外/);
+    assert.doesNotMatch(result.stdout, /docs\/api\/explicit\.md:/);
+  }
+});
 test("HTML golden parity and idempotence on shared Markdown and assets", (t) => {
   const root = temp(t);
   init(root);

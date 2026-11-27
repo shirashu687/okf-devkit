@@ -20,6 +20,9 @@ exclude:
   - ".*"
   - ".*/**"
 
+# コードの走査に追加する除外 glob。プロジェクトルート起点。
+code_glob_exclude: []
+
 # OKF v0.2 の予約ファイル。frontmatter を持たず、index の対象にもならない。
 reserved:
   - index.md

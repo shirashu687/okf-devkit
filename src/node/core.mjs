@@ -211,6 +211,10 @@ export function matches(file, pattern) {
   }
   return globCache.get(pattern).test(file);
 }
+const skippedCodeDirs = new Set(["node_modules", "dist", ".git"]);
+export const codeGlobNoMatch = (pattern) =>
+  "にマッチするファイルがありません" +
+  (/[*?[]/.test(pattern) ? "（走査除外と code_glob_exclude を確認してください）" : "");
 export function git(root, ...args) {
   const proc = spawnSync("git", args, {
     cwd: root,
@@ -329,6 +333,10 @@ export class Bundle {
       parseYaml(read(path.join(dataDir, "defaults.yml"))),
       project,
     );
+    this.codeGlobExclude = this.cfg.code_glob_exclude;
+    if (!Array.isArray(this.codeGlobExclude) ||
+        this.codeGlobExclude.some((rule) => typeof rule !== "string" || !rule.trim()))
+      throw new OkfError("code_glob_exclude は空でない glob 文字列のリストで指定してください");
     this.root = inside(repo, path.resolve(repo, this.cfg.bundle_root));
     if (!fs.existsSync(this.root))
       throw new OkfError(`バンドルルートがありません: ${this.root}`);
@@ -396,13 +404,20 @@ export class Bundle {
   resources(pattern) {
     pattern = slash(pattern).replace(/^\/+/, "");
     if (!pattern) return [];
+    const excluded = (relative) => relative && this.codeGlobExclude.some((rule) =>
+      matches(relative, rule) || matches(relative + "/", rule),
+    );
     if (!/[*?[]/.test(pattern)) {
+      const components = pattern.split("/");
+      if (components.some((_, index) => excluded(components.slice(0, index + 1).join("/"))))
+        return [];
       const file = path.resolve(this.repo, pattern);
       return fs.existsSync(file) && fs.statSync(file).isFile() ? [pattern] : [];
     }
     const parts = pattern.split("/"),
       found = new Set();
     const walk = (directory, index, relative, ancestors) => {
+      if (excluded(relative)) return;
       if (!fs.existsSync(directory)) return;
       const stat = fs.statSync(directory);
       if (index === parts.length) {
@@ -423,8 +438,11 @@ export class Bundle {
           if (entry.name.startsWith(".")) continue;
           const child = path.join(directory, entry.name);
           if (!fs.existsSync(child)) continue;
-          if (fs.statSync(child).isDirectory())
-            walk(child, index, childRel(entry.name), next);
+          if (excluded(childRel(entry.name))) continue;
+          if (fs.statSync(child).isDirectory()) {
+            if (!skippedCodeDirs.has(entry.name))
+              walk(child, index, childRel(entry.name), next);
+          }
           else if (index === parts.length - 1)
             walk(child, index + 1, childRel(entry.name), next);
         }
@@ -438,9 +456,13 @@ export class Bundle {
       } else {
         for (const entry of fs.readdirSync(directory)) {
           if (entry.startsWith(".") && !segment.startsWith(".")) continue;
+          const child = path.join(directory, entry);
+          if (excluded(childRel(entry))) continue;
+          if (skippedCodeDirs.has(entry) &&
+              fs.statSync(child, { throwIfNoEntry: false })?.isDirectory()) continue;
           if (matches(entry, segment))
             walk(
-              path.join(directory, entry),
+              child,
               index + 1,
               childRel(entry),
               new Set(),

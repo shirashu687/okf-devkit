@@ -95,7 +95,9 @@ export function changedPaths(root, base) {
   if (hasCommits(root)) {
     const ref =
       resolveCommit(root, base) || resolveCommit(root, `origin/${base}`);
-    if (!ref) throw new OkfError(`base ref を解決できませんでした: ${base}`);
+    if (!ref) throw new OkfError(
+      `base ref を解決できませんでした: ${base}。実在するコミット SHA を --base で指定するか、--paths src/main.js のように変更パスを指定してください。`,
+    );
     const [rc, mb] = git(root, "merge-base", ref, "HEAD");
     const [diffRc, out] =
       rc === 0

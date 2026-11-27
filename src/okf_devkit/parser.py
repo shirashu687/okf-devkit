@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_stale.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
     p_affected = sub.add_parser("affected", help="更新すべきドキュメントを列挙する")
-    p_affected.add_argument("--base", default="main", help="比較対象のブランチ（既定: main）")
+    p_affected.add_argument("--base", default="main", help="比較対象のコミット SHA またはブランチ（既定: main）")
     p_affected.add_argument("--paths", nargs="+", help="変更パスを直接指定する")
 
     p_new = sub.add_parser("new", help="雛形を生成する")
@@ -85,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
         "log": "okf log --dry-run",
         "lint": "okf lint --strict",
         "stale": "okf stale --format json",
-        "affected": "okf affected --base main",
+        "affected": "okf affected --base <比較元のコミットSHA> / okf affected --paths src/main.js",
         "new": "okf new doc --help / okf new backlog --help",
         "new doc": 'okf new doc --layer shared --type "Reference" --title "Guide" --code-globs "src/**"',
         "new backlog": 'okf new backlog --title "Follow-up"',
@@ -96,6 +96,10 @@ def build_parser() -> argparse.ArgumentParser:
     common = ("共通オプション（サブコマンドの前に指定）:\n"
               "  --root DIR     プロジェクトルート\n"
               "  --config FILE  設定ファイルのパス")
+    notes = {
+        "affected": "初回コミット前は作業ツリーだけを調べます。main がなければ実在する基準または変更パスを指定します。",
+        "log": "初回コミット前は履歴の追記をスキップします。",
+    }
 
     def describe(command_parser, command_actions, prefix=""):
         for action in command_actions:
@@ -104,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
             child.description = action.help
             child.formatter_class = argparse.RawDescriptionHelpFormatter
             child.epilog = f"{common}\n\n例: {examples[name]}"
+            if name in notes:
+                child.epilog += f"\n{notes[name]}"
             for nested in child._actions:
                 if isinstance(nested, argparse._SubParsersAction):
                     describe(nested, nested._choices_actions, f"{name} ")
