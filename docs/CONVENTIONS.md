@@ -107,7 +107,7 @@ related:
 
 | type | 用途 | 主な置き場所 | テンプレート |
 |---|---|---|---|
-| `Project Overview` | プロジェクト全体像 | `project/` | — |
+| `Project Overview` | プロジェクト全体像 | `project/` | project-overview.md |
 | `Architecture` | 構造・データフロー・ER 図 | 各層 / `project/` | `_templates/architecture.md` |
 | `Reference` | 一覧・仕様（API / コンポーネント / テーブル） | 各層 | `_templates/reference.md` |
 | `How-To` | 手順書・使用ドキュメント | 各層 `guides/` | `_templates/how-to.md` |

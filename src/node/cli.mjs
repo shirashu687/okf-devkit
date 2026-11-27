@@ -213,7 +213,7 @@ function parse(argv) {
       if (rest[i] === `--${key}` || rest[i]?.startsWith(`--${key}=`)) {
         const eq = rest[i].indexOf("=");
         const value = eq < 0 ? rest[i + 1] : rest[i].slice(eq + 1);
-        if (!value || value.startsWith("--"))
+        if (!value || value.startsWith("--") || (eq < 0 && value === "-h"))
           throw new OkfError(`--${key} に値が必要です`);
         args[key] = value;
         rest.splice(i, eq < 0 ? 2 : 1);
@@ -250,7 +250,7 @@ function parse(argv) {
     }
     const values = match[2] !== undefined ? [match[2]] : [];
     if (!values.length) {
-      while (i + 1 < rest.length && !rest[i + 1].startsWith("--")) {
+      while (i + 1 < rest.length && !rest[i + 1].startsWith("--") && rest[i + 1] !== "-h") {
         values.push(rest[++i]);
         if (mode !== "+") break;
       }

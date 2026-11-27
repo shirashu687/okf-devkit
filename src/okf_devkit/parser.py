@@ -28,7 +28,7 @@ def forwarded_args(argv: list[str]) -> list[str]:
             options.append(argv[index])
             index += 1
             continue
-        if not equals and (index + 1 >= len(argv) or argv[index + 1].startswith("--")):
+        if not equals and (index + 1 >= len(argv) or (argv[index + 1].startswith("--") or argv[index + 1] == "-h")):
             return argv
         width = 1 if equals else 2
         common.extend(argv[index:index + width])
@@ -36,15 +36,21 @@ def forwarded_args(argv: list[str]) -> list[str]:
     return common + argv[command:boundary] + options
 
 
+def _common_option_value(value: str) -> str:
+    if not value:
+        raise argparse.ArgumentTypeError("空の値は指定できません")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="okf", description="OKF v0.2 バンドルを開発リポジトリで運用する CLI"
     )
     parser.add_argument(
-        "--config", help=f"設定ファイルのパス（既定: プロジェクトルートの {CONFIG_FILENAME}）"
+        "--config", type=_common_option_value, help=f"設定ファイルのパス（既定: プロジェクトルートの {CONFIG_FILENAME}）"
     )
     parser.add_argument(
-        "--root", help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
+        "--root", type=_common_option_value, help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

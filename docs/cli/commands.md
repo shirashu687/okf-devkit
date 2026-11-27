@@ -81,7 +81,7 @@ related:
 
 `new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。生成後は本文を補完し、目次を更新してから規約検査を実行する。`lint --strict` は残っている記入例も失敗扱いにする。
 
-日本語タイトルでは `--slug` でファイル名を指定できる。`new --index` の索引更新に失敗した場合は、作成済みの Markdown を使い、原因を修正して `index --write` を実行する。既存バンドルに `Project Overview` の雛形がなければ、同梱の `_templates/project-overview.md` を追加する。
+日本語タイトルでは `--slug` でファイル名を指定できる。`new --index` の索引更新に失敗した場合は、作成済みの Markdown を使い、原因を修正して `index --write` を実行する。既存バンドルに `Project Overview` の雛形がなければ、インストール済みパッケージの `scaffold/templates/project-overview.md` を、バンドルの `_templates/project-overview.md` へコピーする。別の空ディレクトリで `init` して生成した同名の雛形も使える。既に配置済みの雛形はそのまま使う。
 
 パッケージスクリプトが引数列の先頭で渡す区切り `--` は1個まで受け取る。`new doc` / `new backlog` では種類名の直後に置く。オプション列の途中にある区切りや追加の区切りは受け付けない。
 
