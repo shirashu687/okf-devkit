@@ -8,5 +8,6 @@
       "path": "tests/node/compatibility.test.mjs",
       "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
     }
-  ]
+  ],
+  "pull_request_base": "bcb137d7539a8cc429f59edf22d981a941a562ed"
 }
