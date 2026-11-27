@@ -24,12 +24,12 @@ related:
 # Node.js配布物をDraft Releaseで検査して公開する
 
 配布担当者向けの手順。利用者repoへの導入・初期化・更新は [導入ガイド](/agents/install-okf.md) を使う。
-この手順はmainに統合済みの配布workflowを対象とする。公開予定版は **v0.1.0のPreRelease**。準備PR時点ではタグとReleaseがなかったが、その後v0.1.0タグ対象 `12cdb44c2876b50bd7337a5ea20f7744a27d7802` のタグ用Actions全10jobと3asset照合を完了し、現在は未公開Draftである。公開済みPreReleaseへの移行と公開後consumer導入は未実施。この手順にある将来の公開操作は別承認の工程として扱う。
-日本語の公開予定内容は [v0.1.0リリースノート](/project/releases/v0.1.0.md)。準備PRのレビュー・main統合・その最終SHAのCI成功を済ませ、その後のタグ作成と公開を別途承認された工程として進める。文書の作成や準備PRの成功は公開の許可にならない。
+この手順は main に統合済みの配布 workflow を対象とする。v0.1.0 は公開済みプレリリースで、タグは `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。タグ用 Actions 全10 job と3 asset の照合を完了している。収録内容は [v0.1.0 リリースノート](/project/releases/v0.1.0.md) を参照する。
+次回版は準備 PR のレビュー・main 統合・その最終 SHA の CI 成功を確認し、タグ作成と公開を別途承認された工程として進める。
 
 ## 1. レビュー済みの版とコミットを選ぶ
 
-配布対象はこのrepoのmainに含まれるレビュー済みコミット。完全SHAとpackage.json、package-lock.jsonのトップレベル・ルートpackage、pyproject.tomlの版を照合する。現在はいずれも0.1.0であり、準備のための版更新は不要。
+配布対象はこのrepoのmainに含まれるレビュー済みコミット。完全SHAとpackage.json、package-lock.jsonのトップレベル・ルートpackage、pyproject.tomlの版を照合する。各 manifest と lockfile の版が承認済みの配布対象の版と一致することを確認する。
 タグは `v<package version>` と一致させる。workflowはrepo-source、タグが指す実コミット、対象版、origin/mainの祖先であることを検査する。
 版を変更するならレビュー用PRでmanifestとlockfileを更新し、必須検証を通してからmainへ統合する。`npm version <新しい版> --no-git-tag-version` 等の版更新はそのPRの工程として扱い、配布作業中に現行0.1.0へ機械的に再適用したり、勝手に版・タグ・コミットを生成しない。
 
@@ -81,10 +81,10 @@ workflow全体が完了し、必要な全jobが成功したことを対象タグ
 private repoの認証情報はURL・文書・ログへ埋め込まない。公開範囲を拡げない。
 内容を確認した人が明示的に公開を承認した後、**PreReleaseとして公開し、Latestには設定しない**。Draftは非公開の準備状態、公開済みPreReleaseは利用者が取得する試行版であり、同じ状態ではない。AIがこの手順を読んだことを公開の許可と扱わない。
 
-公開前に、レビュー済みの日本語ノートからRelease本文を準備する。OKF frontmatterは本文へ含めず、予定状態の注記は実際の公開状況と照合する。公開対象の完全SHA・版・検証結果を確認してから、承認された操作として既存Draftだけを変更する。次は未実行の例であり、レビュー済み本文ファイルのパスを指定する。
+公開前に、レビュー済みの日本語ノートからRelease本文を準備する。OKF frontmatterは本文へ含めず、予定状態の注記は実際の公開状況と照合する。公開対象の完全SHA・版・検証結果を確認してから、承認された操作として既存Draftだけを変更する。次は未実行の例。承認済みの版で `VERSION` を置き換え、レビュー済み本文ファイルのパスを指定する。
 
 ```text
-gh release edit v0.1.0 --repo shirashu687/okf-devkit --verify-tag --draft=false --prerelease --latest=false --notes-file REVIEWED_RELEASE_NOTES
+gh release edit vVERSION --repo shirashu687/okf-devkit --verify-tag --draft=false --prerelease --latest=false --notes-file REVIEWED_RELEASE_NOTES
 ```
 
 この操作でタグ、target、assetを変更・再アップロードしない。直前にDraftのID・タグ・完全SHA・3asset・全job完了を再確認し、公開後は`draft=false`、`prerelease=true`、対象タグ・asset不変を読み取り確認して結果を記録する。承認前はこのコマンドを実行しない。
