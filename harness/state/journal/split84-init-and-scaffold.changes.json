@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "0ab82f3d8b1beb16cb71206f4d5996790cad27c4",
+  "worklog": "harness/state/journal/split84-init-and-scaffold.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
+    },
+    {
+      "path": "tests/test_init.py",
+      "reason": "初期化で生成した OS 別の hook を対応するシェルで検証"
+    }
+  ]
+}
