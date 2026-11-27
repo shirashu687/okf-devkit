@@ -21,24 +21,26 @@ https://raw.githubusercontent.com/shirashu687/okf-devkit/main/docs/agents/instal
 AIが構成と既存環境を調べ、固定版のローカル導入、`okf.yml` と文書の初期配置、AI向け入口の接続、索引生成・lint・HTML生成の確認まで進める。詳細と完了条件は [導入ガイド](docs/agents/install-okf.md) にまとめている。
 新しいパッケージ管理の追加、既存設定との競合、認証やエージェントの信頼設定など、人の判断・操作が必要な箇所は具体的な内容を確認する。URLを取得できない環境では、導入ガイドの本文をAIへ渡す。
 
+導入済みのリポジトリは、既存設定の点検と移行用の AI 依頼文を使えます。[既存リポジトリの更新ガイド](docs/agents/upgrade-existing-okf.md)
+
 ## はじめる
 
-Node.js 22 以上、npm、Git を用意し、導入先リポジトリのルートで実行します。以下は既存の npm プロジェクトにローカル導入する例です。`package.json` と lockfile を変更し、依存パッケージを取得します。
+Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。[導入ガイド](docs/agents/install-okf.md#公開済み-tgz) に従って tgz と SHA-256 を照合し、`vendor/` に置いてから実行します。
 
 ```bash
-npm install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#main"
+npm install --save-dev --save-exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
 ```
 
 次に、導入先の `package.json` に `okf` スクリプトを登録します。すでに `scripts.okf` がある場合は上書きされるため、内容を確認して別の名前を選んでください。
 
 ```bash
-npm pkg set "scripts.okf=okf"
+npm pkg set "scripts.okf=node node_modules/okf-devkit/node/cli.mjs"
 npm run okf -- --help
 ```
 
-これは導入先への一度だけの設定です。npm はローカルにインストールした `okf` を使えます。以降のコマンドでは `npm run okf --` に続けて引数を渡します。ローカル版が見つからない場合は、PATH 上の別の `okf` が使われることもあるので、先にインストールを確認してください。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
+以降のコマンドでは `npm run okf --` に続けて引数を渡します。スクリプトは導入済みのローカル CLI を直接起動します。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
 
-`main` は更新されます。チームで再現するには作成された lockfile を管理し、固定版が必要な場合は確認済みコミット SHA を指定してください。npm レジストリと PyPI に本体は公開されておらず、v0.1.0 の GitHub Release は未公開の Draft です。v0.1.0 の固定版には最新の変更は含まれず、同梱 README も古いため、このリポジトリの[導入ガイド](docs/agents/install-okf.md)を参照してください。
+チームで同じ構成を使うには lockfile を管理してください。開発版を試す場合は導入ガイドに従って完全な Git SHA に固定します。v0.1.0 に含まれる機能は [リリースノート](docs/project/releases/v0.1.0.md) を参照してください。
 
 npm 以外の管理方式、manifest のないリポジトリ、更新・復旧の場合は、[導入ガイド](docs/agents/install-okf.md)で手順を確認してください。global インストールや未導入時の `npx` は上の手順では使いません。
 

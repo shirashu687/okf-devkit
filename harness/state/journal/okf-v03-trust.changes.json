@@ -16,5 +16,6 @@
       "path": "pyproject.toml",
       "reason": "公開パッケージの説明に対応するバンドル仕様を記載する"
     }
-  ]
+  ],
+  "pull_request_base": "8d665bdd85fdb67d83c831ce87039e9485b52888"
 }
