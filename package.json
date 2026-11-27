@@ -1,7 +1,7 @@
 {
   "name": "okf-devkit",
   "version": "0.1.0",
-  "description": "Keep an OKF v0.2 documentation bundle in sync with code, without Python.",
+  "description": "Keep an OKF 0.2 or 0.3 documentation bundle in sync with code, without Python.",
   "type": "module",
   "bin": {
     "okf": "node/cli.mjs"
