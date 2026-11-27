@@ -367,3 +367,18 @@ test("command help has Python/Node option and purpose parity without writes", (t
     assert.deepEqual(capture(), before);
   }
 });
+
+test("both CLIs preserve YAML-sensitive layer names and directories", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    ok(run(root, ["init", "--layer", "on=src/**:appClient", "--layer", "0x1=lib/**:libCode"], {runtime}));
+    const config = YAML.parse(fs.readFileSync(path.join(root, "okf.yml"), "utf8"), { version: "1.1" });
+    assert.deepEqual(config.log.layers, ["on", "0x1"]);
+    for (const [layer, dir] of [["on", "appClient"], ["0x1", "libCode"]]) {
+      assert.equal(config.log.paths[layer], dir + "/log.md");
+      const relative = ok(run(root, ["new", "doc", "--layer", layer, "--type", "Glossary", "--title", "Example"], {runtime})).trim();
+      assert.equal(relative, "docs/" + dir + "/example.md");
+      assert.match(fs.readFileSync(path.join(root, relative), "utf8"), new RegExp('^layer: "' + layer + '"$', "m"));
+    }
+  }
+});

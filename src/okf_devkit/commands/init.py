@@ -6,7 +6,7 @@ from pathlib import Path
 from ..config import CONFIG_FILENAME
 from ..errors import OkfError
 from ..fsutil import now_iso, write_if_changed
-from ..yamlio import yaml_scalar
+from ..yamlio import yaml_flow_list, yaml_scalar
 
 SCAFFOLD_DIR = Path(__file__).resolve().parents[1] / "scaffold"
 AGENT_SETTINGS = {
@@ -71,7 +71,7 @@ def _render_okf_yml(
     names = [name for name, _glob, _dir in layers]
 
     layer_lines = [f"  - {yaml_scalar(n)}" for n in names] + ["  - shared"]
-    dir_lines = [f"  {n}: {yaml_scalar(d)}" for n, _g, d in layers]
+    dir_lines = [f"  {yaml_scalar(n)}: {yaml_scalar(d)}" for n, _g, d in layers]
     dir_lines.append("  shared: project")
     map_lines = [
         f"  - {{ glob: {yaml_scalar(g)}, layer: {yaml_scalar(n)} }}"
@@ -80,7 +80,7 @@ def _render_okf_yml(
     map_lines.append(f"  - {{ glob: {yaml_scalar(bundle_root + chr(47) + chr(42) * 2)}, layer: skip }}")
     map_lines.append('  - { glob: "**", layer: shared }')
     # log.paths は log: > paths: の下なのでインデントは4スペース
-    log_path_lines = [f"    {n}: {yaml_scalar(d + '/log.md')}" for n, _g, d in layers]
+    log_path_lines = [f"    {yaml_scalar(n)}: {yaml_scalar(d + '/log.md')}" for n, _g, d in layers]
     log_path_lines.append("    shared: log.md")
 
     return (_scaffold_text if scaffold_reader is None else scaffold_reader)("okf.yml.tmpl").format(
@@ -90,7 +90,7 @@ def _render_okf_yml(
         layers="\n".join(layer_lines),
         layer_dirs="\n".join(dir_lines),
         layer_map="\n".join(map_lines),
-        log_layers=("[" + ", ".join(names) + "]") if names else "[]",
+        log_layers=yaml_flow_list(names),
         log_paths="\n".join(log_path_lines),
     )
 
@@ -130,6 +130,7 @@ def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | No
     tokens = {
         "GENERATED_AT": now_iso(),
         "RUNNER": runner,
+        "LAYER_EXAMPLE": " | ".join([name for name, _glob, _dir in layers] + ["shared"]),
         "BUNDLE_ROOT": bundle_root,
         "SITE_NAME": site_name,
         "LAYER_LIST": "、".join(n for n, _g, _d in layers) or "（層なし）",
@@ -144,12 +145,8 @@ def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | No
     emit(f"{bundle_root}/AGENTS.md", expand(scaffold_reader("AGENTS.md.tmpl")))
     emit(f"{bundle_root}/CONVENTIONS.md", expand(scaffold_reader("CONVENTIONS.md.tmpl")))
 
-    layer_example = " | ".join([name for name, _glob, _dir in layers] + ["shared"])
     for tmpl in sorted((scaffold_dir / "templates").glob("*.md")):
-        text = expand(scaffold_reader(f"templates/{tmpl.name}")).replace(
-            "layer: <client | server | batch | shared>", f"layer: <{layer_example}>",
-        )
-        emit(f"{bundle_root}/_templates/{tmpl.name}", text)
+        emit(f"{bundle_root}/_templates/{tmpl.name}", expand(scaffold_reader(f"templates/{tmpl.name}")))
     for hook in sorted((scaffold_dir / "hooks").iterdir()):
         emit(f".okf/hooks/{hook.name}", scaffold_reader(f"hooks/{hook.name}"))
     if agents:

@@ -121,7 +121,7 @@ function parseLayers(specs) {
 }
 
 export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
-  const bundle = validDir(slash(args.bundleRoot || "docs").trim().replace(/\/+$/, ""));
+  const bundle = validDir(slash(args.bundleRoot ?? "docs").trim().replace(/\/+$/, ""));
   const site = (args.siteName || path.basename(repo)).trim() || "Project";
   const agents = selectedAgents(args.agent);
   const runner = args.runner?.trim() ?? "okf";
@@ -135,7 +135,7 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
       "\n",
     ),
     layer_dirs: [
-      ...layers.map((l) => `  ${l.name}: ${scalar(l.dir)}`),
+      ...layers.map((l) => `  ${scalar(l.name)}: ${scalar(l.dir)}`),
       "  shared: project",
     ].join("\n"),
     layer_map: [
@@ -145,9 +145,9 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
       `  - { glob: ${scalar(bundle + "/**")}, layer: skip }`,
       '  - { glob: "**", layer: shared }',
     ].join("\n"),
-    log_layers: `[${layers.map((l) => l.name).join(", ")}]`,
+    log_layers: flow(layers.map((l) => l.name)),
     log_paths: [
-      ...layers.map((l) => `    ${l.name}: ${scalar(l.dir + "/log.md")}`),
+      ...layers.map((l) => `    ${scalar(l.name)}: ${scalar(l.dir + "/log.md")}`),
       "    shared: log.md",
     ].join("\n"),
   };
@@ -180,10 +180,7 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/templates"))
     .sort(compare))
-    plan.push([`${bundle}/_templates/${file}`, expand(scaffold(`templates/${file}`)).replace(
-      "layer: <client | server | batch | shared>",
-      () => "layer: <" + tokens.LAYER_EXAMPLE + ">",
-    )]);
+    plan.push([`${bundle}/_templates/${file}`, expand(scaffold(`templates/${file}`))]);
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/hooks"))
     .sort(compare))
