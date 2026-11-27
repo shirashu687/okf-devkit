@@ -51,15 +51,22 @@ export function timestamp(value) {
   );
   return Number.isFinite(result) ? result : null;
 }
-export function parseYaml(text, source = "<yaml>") {
+export function parseYaml(text, source = "<yaml>", core = false) {
   try {
     // YAML 1.1 matches PyYAML's booleans, dates and numeric scalars.
-    const doc = YAML.parseDocument(text, { version: "1.1", uniqueKeys: true });
+    const doc = YAML.parseDocument(text, core
+      ? { version: "1.2", schema: "core", uniqueKeys: true }
+      : { version: "1.1", uniqueKeys: true });
+    if (core && doc.warnings.length) throw doc.warnings[0];
     if (doc.errors.length) throw doc.errors[0];
     YAML.visit(doc, {
       Scalar(_key, node) {
         if (node.value instanceof Date) {
           const source = node.source || "";
+          if (core) {
+            node.value = source;
+            return;
+          }
           const components = source.match(
             /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[Tt\s]+(\d{1,2}):(\d{1,2}):(\d{1,2}))?/,
           );
@@ -127,7 +134,7 @@ export function scalar(value) {
 }
 export const flow = (values) => `[${values.map(scalar).join(", ")}]`;
 export function write(file, content) {
-  const data = Buffer.from(content.replaceAll("\r\n", "\n"));
+  const data = Buffer.isBuffer(content) ? content : Buffer.from(content.replaceAll("\r\n", "\n"));
   if (fs.existsSync(file) && fs.readFileSync(file).equals(data)) return false;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = path.join(
@@ -247,7 +254,8 @@ export function merge(base, override) {
   return result;
 }
 export class Doc {
-  constructor(file, bundle) {
+  constructor(file, bundle, okf03 = bundle.okf03) {
+    this.okf03 = okf03;
     this.path = file;
     this.repoRel = rel(file, bundle.repo);
     this.bundleRel = "/" + rel(file, bundle.root);
@@ -260,10 +268,10 @@ export class Doc {
     this.fmOpened = false;
     this.fmError = null;
     const lines = this.text.split("\n");
-    if (lines[0]?.trim() === "---") {
+    if ((okf03 ? lines[0] : lines[0]?.trim()) === "---") {
       this.fmOpened = true;
       const end = lines.findIndex(
-        (line, i) => i > 0 && ["---", "..."].includes(line.trim()),
+        (line, i) => i > 0 && (okf03 ? line === "---" : ["---", "..."].includes(line.trim())),
       );
       if (end < 0) this.fmError = "frontmatter の終端 `---` がありません";
       else {
@@ -271,7 +279,8 @@ export class Doc {
         this.fmLines = lines.slice(1, end);
         this.body = lines.slice(end + 1).join("\n");
         try {
-          const fm = parseYaml(this.fmLines.join("\n"), this.repoRel) ?? {};
+          const data = parseYaml(this.fmLines.join("\n"), this.repoRel, okf03);
+          const fm = okf03 ? data : data ?? {};
           if (!isMap(fm))
             throw new OkfError("frontmatter がマップではありません");
           this.fm = fm;
@@ -307,6 +316,11 @@ export class Doc {
     return typeof this.fm.type === "string" ? this.fm.type.trim() : "";
   }
   get status() {
+    const value = this.fm.status;
+    if (this.okf03) {
+      if (value == null || value === "" || (Array.isArray(value) && !value.length)) return "stable";
+      return typeof value === "string" ? value.trim() : String(value);
+    }
     return typeof this.fm.status === "string"
       ? this.fm.status.trim()
       : "stable";
@@ -360,11 +374,23 @@ export class Bundle {
     this.types = this.cfg.types;
     this.layers = this.cfg.layers;
     this.siteName = this.cfg.site_name || path.basename(repo);
+    this.declaredVersion = null;
+    const rootIndex = path.join(this.root, "index.md");
+    if (fs.lstatSync(rootIndex, { throwIfNoEntry: false })?.isFile()) {
+      let metadata = new Doc(rootIndex, this, true);
+      if (!metadata.hasFm || metadata.fmError) metadata = new Doc(rootIndex, this, false);
+      const value = metadata.get("okf_version");
+      if (["string", "number"].includes(typeof value) && String(value).trim())
+        this.declaredVersion = String(value).trim();
+    }
+    const version = this.declaredVersion ?? (fs.existsSync(rootIndex) ? null : String(this.index.okf_version));
+    const parts = /^(\d+)\.(\d+)$/.exec(version ?? "");
+    this.okf03 = version !== null && (!parts || Number(parts[1]) > 0 || Number(parts[2]) >= 3);
   }
   excluded(file) {
-    return (this.cfg.exclude || []).some((p) =>
-      matches(rel(file, this.root), p),
-    );
+    const relative = rel(file, this.root);
+    if (this.okf03 && relative.split("/").some((part) => part.startsWith("."))) return true;
+    return (this.cfg.exclude || []).some((p) => matches(relative, p));
   }
   dirs() {
     const found = [];
@@ -373,31 +399,37 @@ export class Bundle {
       for (const e of fs.readdirSync(d, { withFileTypes: true }))
         if (
           e.isDirectory() &&
-          !/^[_.]/.test(e.name) &&
-          !this.excluded(path.join(d, e.name))
+          this.includesDir(path.join(d, e.name))
         )
           walk(path.join(d, e.name));
     };
     walk(this.root);
     return found.sort((a, b) => compare(rel(a, this.root), rel(b, this.root)));
   }
-  files(reserved = false) {
-    return this.dirs().flatMap((d) =>
+  includesDir(directory) {
+    return (this.okf03 || !/^[_.]/.test(path.basename(directory))) && !this.excluded(directory);
+  }
+  isReserved(name) {
+    return this.cfg.reserved.includes(name) || (this.okf03 && ["index.md", "log.md"].includes(name));
+  }
+  files(reserved = false, directory = null) {
+    return (directory ? [directory] : this.dirs()).flatMap((d) =>
       fs
         .readdirSync(d, { withFileTypes: true })
         .filter(
           (e) =>
             e.isFile() &&
             e.name.endsWith(".md") &&
-            (reserved || !this.cfg.reserved.includes(e.name)),
+            (reserved || !this.isReserved(e.name)),
         )
         .map((e) => path.join(d, e.name))
         .filter((p) => !this.excluded(p))
         .sort(compare),
     );
   }
-  docs() {
-    return this.files().map((p) => new Doc(p, this));
+  docs(directory = null) {
+    const docs = this.files(false, directory).map((p) => new Doc(p, this));
+    return this.okf03 ? docs.filter((doc) => doc.type) : docs;
   }
   backlogDir() {
     return inside(this.root, path.resolve(this.root, this.backlog.dir));

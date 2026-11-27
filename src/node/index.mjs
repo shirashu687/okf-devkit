@@ -37,20 +37,6 @@ function indexLink(b, dir, target) {
     ? "/" + rel(target, b.root)
     : "./" + rel(target, dir);
 }
-function localDocs(b, dir) {
-  return fs
-    .readdirSync(dir, { withFileTypes: true })
-    .filter(
-      (e) =>
-        e.isFile() &&
-        e.name.endsWith(".md") &&
-        !b.cfg.reserved.includes(e.name),
-    )
-    .map((e) => path.join(dir, e.name))
-    .filter((p) => !b.excluded(p))
-    .sort(compare)
-    .map((p) => new Doc(p, b));
-}
 export function indexBlock(b, dir) {
   if (dir === b.backlogDir()) return backlogBlock(b, dir);
   const sections = [],
@@ -60,15 +46,15 @@ export function indexBlock(b, dir) {
     .sort((a, c) => compare(a.name, c.name))) {
     const sub = path.join(dir, e.name),
       idx = path.join(sub, "index.md");
-    if (!e.isDirectory() || /^[_.]/.test(e.name) || b.excluded(sub)) continue;
+    if (!e.isDirectory() || !b.includesDir(sub)) continue;
     const title =
-      (fs.existsSync(idx) ? new Doc(idx, b).h1 : null) ||
+      ((b.okf03 ? fs.lstatSync(idx, { throwIfNoEntry: false })?.isFile() : fs.existsSync(idx)) ? new Doc(idx, b).h1 : null) ||
       `${e.name}${b.index.heading_suffix}`;
     children.push(entry(title, indexLink(b, dir, idx), ""));
   }
   if (children.length)
     sections.push([b.index.subdir_section, children.sort(compare)]);
-  const docs = localDocs(b, dir),
+  const docs = b.docs(dir),
     active = docs.filter((d) => d.status !== "deprecated");
   const lines = (items) =>
     items
@@ -97,7 +83,7 @@ function backlogBlock(b, dir) {
   const states = b.backlog.state_order,
     priorities = b.backlog.priorities,
     groups = new Map(states.map((s) => [s, []]));
-  for (const d of localDocs(b, dir)) {
+  for (const d of b.docs(dir)) {
     const state = d.get("state", "todo");
     if (!groups.has(state)) groups.set(state, []);
     groups.get(state).push(d);
@@ -153,10 +139,15 @@ function backlogBlock(b, dir) {
   }
   return sections.join("\n\n") + "\n";
 }
+export const readIndex = (bundle, file) =>
+  bundle.okf03 ? new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(fs.readFileSync(file)) : read(file);
+
 export function renderIndex(b, dir, block = indexBlock(b, dir)) {
   const { start_marker: start, end_marker: end } = b.index,
-    file = path.join(dir, "index.md"),
-    auto = `${start}\n${block}${end}\n`;
+    file = path.join(dir, "index.md");
+  let auto = `${start}\n${block}${end}\n`;
+  if (b.okf03 && fs.lstatSync(file, { throwIfNoEntry: false })?.isSymbolicLink())
+    throw new MarkerError(`${file}: index.md のシンボリックリンクは更新できません`);
   if (!fs.existsSync(file)) {
     const root = dir === b.root;
     return (
@@ -164,14 +155,18 @@ export function renderIndex(b, dir, block = indexBlock(b, dir)) {
       `# ${root ? b.index.root_heading : path.basename(dir) + b.index.heading_suffix}\n\n${auto}`
     );
   }
-  const text = read(file),
-    ns = text.split(start).length - 1,
-    ne = text.split(end).length - 1;
-  if (!ns && !ne) return text.replace(/\n+$/, "") + "\n\n" + auto;
+  const text = readIndex(b, file);
+  const newline = b.okf03 && text.includes("\r\n") ? "\r\n" : "\n";
+  auto = auto.replaceAll("\n", newline);
+  const ns = text.split(start).length - 1, ne = text.split(end).length - 1;
+  if (!ns && !ne) {
+    if (b.okf03) return text + newline.repeat(text.endsWith(newline) ? 1 : 2) + auto;
+    return text.replace(/\n+$/, "") + "\n\n" + auto;
+  }
   if (ns === 1 && ne === 1 && text.indexOf(start) < text.indexOf(end))
     return (
       text.slice(0, text.indexOf(start)) +
-      auto.slice(0, -1) +
+      auto.slice(0, -newline.length) +
       text.slice(text.indexOf(end) + end.length)
     );
   throw new MarkerError(
@@ -202,9 +197,9 @@ export function cmdIndex(b, args = {}) {
   }
   const changed = [];
   for (const [file, content] of plan) {
-    if (fs.existsSync(file) && read(file) === content) continue;
+    if (fs.existsSync(file) && readIndex(b, file) === content) continue;
     changed.push(rel(file, b.repo));
-    if (args.write) write(file, content);
+    if (args.write) write(file, b.okf03 ? Buffer.from(content) : content);
   }
   if (args.check && changed.length) {
     console.log("index.md が最新ではありません:");

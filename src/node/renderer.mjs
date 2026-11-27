@@ -304,7 +304,9 @@ function backlinks(page, pages) {
 export function renderBundle(b, output = b.root, doWrite = true, removeStale = true) {
   output = inside(b.repo, output);
   const md = markdown(),
-    pages = b.files(true).map((p) => prepare(new Doc(p, b), b, md)),
+    pages = b.files(true).map((p) => new Doc(p, b))
+      .filter((doc) => !b.okf03 || b.isReserved(doc.name) || doc.type)
+      .map((doc) => prepare(doc, b, md)),
     sources = new Set(pages.map((p) => p.source)),
     warnings = [];
   for (const page of pages) {
@@ -349,6 +351,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
       ),
       SITE_NAME: escape(b.siteName),
       LANG: "ja",
+      OKF_VERSION: escape("v" + (b.declaredVersion || (b.okf03 ? "0.3" : "0.2"))),
       ASSETS: escape(
         path.posix.relative(path.posix.dirname(p.output), "_assets"),
       ),

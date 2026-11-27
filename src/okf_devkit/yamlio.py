@@ -14,6 +14,37 @@ except Exception:  # pragma: no cover - environment dependent
 
 _DEFAULT_BACKEND = object()
 
+if _pyyaml is not None:
+    class _CoreLoader(_pyyaml.SafeLoader):
+        yaml_implicit_resolvers = {}
+
+        def construct_mapping(self, node, deep=False):
+            seen = set()
+            for key_node, _ in node.value:
+                key = self.construct_object(key_node, deep=deep)
+                if key in seen:
+                    raise ValueError(f"duplicate YAML key: {key!r}")
+                seen.add(key)
+            return super().construct_mapping(node, deep=deep)
+
+    _CORE_TAG = "tag:yaml.org,2002:"
+    _CoreLoader.add_implicit_resolver(_CORE_TAG + "null", re.compile(r"^(?:~|null|Null|NULL)?$"), ["~", "n", "N", ""])
+    _CoreLoader.add_implicit_resolver(_CORE_TAG + "bool", re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"), list("tTfF"))
+    _CoreLoader.add_implicit_resolver(_CORE_TAG + "int", re.compile(r"^(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$"), list("-+0123456789"))
+    _CoreLoader.add_implicit_resolver(
+        _CORE_TAG + "float",
+        re.compile(r"^(?:[-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"),
+        list("-+0123456789."),
+    )
+
+    def _core_int(loader, node):
+        value = loader.construct_scalar(node)
+        return int(value[2:], 8) if value.startswith("0o") else int(value, 16 if value.startswith("0x") else 10)
+
+    _CoreLoader.add_constructor(_CORE_TAG + "int", _core_int)
+    # Retain timestamp precision and offset for OKF's time comparisons.
+    _CoreLoader.add_constructor(_CORE_TAG + "timestamp", _CoreLoader.construct_scalar)
+
 class YamlSubsetError(OkfError):
     """内蔵パーサが対応していない YAML 構文に当たった。"""
 
@@ -33,8 +64,15 @@ def _normalize(value):
     return value
 
 
-def parse_yaml(text: str, source: str = "<yaml>", *, backend=_DEFAULT_BACKEND):
+def parse_yaml(text: str, source: str = "<yaml>", *, backend=_DEFAULT_BACKEND, core=False):
     """YAML を dict / list に変換する。PyYAML 優先、無ければ内蔵パーサ。"""
+    if core:
+        if _pyyaml is None:
+            raise OkfError("OKF 0.3 を解析するには PyYAML が必要です")
+        try:
+            return _normalize(_pyyaml.load(text, Loader=_CoreLoader))
+        except Exception as exc:
+            raise OkfError(f"{source}: YAML のパースに失敗しました: {exc}") from exc
     selected = _pyyaml if backend is _DEFAULT_BACKEND else backend
     if selected is not None:
         try:

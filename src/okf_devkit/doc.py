@@ -13,7 +13,8 @@ CODE_GLOBS_REQUIRED_TYPES = ("Project Overview", "Architecture", "Reference", "H
 class Doc:
     """バンドル内の 1 ファイルを表す。"""
 
-    def __init__(self, path: Path, bundle_root: Path, *, repo_root: Path):
+    def __init__(self, path: Path, bundle_root: Path, *, repo_root: Path, okf03: bool = False):
+        self.okf03 = okf03
         self.path = path
         self.repo_rel = rel_posix(path, repo_root)
         self.bundle_rel = "/" + rel_posix(path, bundle_root)
@@ -29,12 +30,12 @@ class Doc:
 
     def _parse(self) -> None:
         lines = self.text.split("\n")
-        if not lines or lines[0].strip() != "---":
+        if not lines or (lines[0] if self.okf03 else lines[0].strip()) != "---":
             return
         self.fm_opened = True
         end = None
         for idx in range(1, len(lines)):
-            if lines[idx].strip() in ("---", "..."):
+            if (lines[idx] == "---" if self.okf03 else lines[idx].strip() in ("---", "...")):
                 end = idx
                 break
         if end is None:
@@ -44,11 +45,11 @@ class Doc:
         self._fm_lines = lines[1:end]
         self.body = "\n".join(lines[end + 1:])
         try:
-            data = _yamlio.parse_yaml("\n".join(self._fm_lines), self.repo_rel)
+            data = _yamlio.parse_yaml("\n".join(self._fm_lines), self.repo_rel, core=self.okf03)
         except OkfError as exc:
             self.fm_error = str(exc)
             return
-        if data is None:
+        if data is None and not self.okf03:
             data = {}
         if not isinstance(data, dict):
             self.fm_error = "frontmatter がマップではありません"
@@ -97,7 +98,9 @@ class Doc:
     @property
     def status(self) -> str:
         value = self.fm.get("status")
-        return value.strip() if isinstance(value, str) else "stable"
+        if self.okf03 and value not in (None, "", []):
+            return value.strip() if isinstance(value, str) else str(value)
+        return value.strip() if not self.okf03 and isinstance(value, str) else "stable"
 
     def code_globs(self) -> list[str]:
         """`code_globs` の一覧（正しい形式のものだけ）。更新検知の起点。

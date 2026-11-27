@@ -18,7 +18,7 @@ import {
   timestamp,
   today,
 } from "./core.mjs";
-import { renderIndex } from "./index.mjs";
+import { readIndex, renderIndex } from "./index.mjs";
 import { isShallow, pathTimes } from "./history.mjs";
 
 export const findingText = (f) =>
@@ -115,7 +115,7 @@ function remainingPlaceholders(doc) {
   const parsedStrings = [];
   if (candidates.size) {
     try {
-      parsedStrings.push(...yamlStrings(parseYaml(header)));
+      parsedStrings.push(...yamlStrings(parseYaml(header, doc.repoRel, doc.okf03)));
     } catch (error) {
       if (!(error instanceof OkfError)) throw error;
       // The original frontmatter was already validated.
@@ -135,7 +135,8 @@ function remainingPlaceholders(doc) {
     if (visible.has(marker) && !remaining.has(line)) remaining.set(line, token);
   return remaining;
 }
-export function runLint(b) {
+export function runLint(b, { project = false } = {}) {
+  project ||= !b.okf03;
   const findings = [];
   const add = (doc, key, level, rule, message) =>
     findings.push({
@@ -145,7 +146,9 @@ export function runLint(b) {
       rule,
       message,
     });
-  for (const d of b.docs()) {
+  const documents = b.okf03 ? b.files().map((file) => new Doc(file, b)) : b.docs();
+  for (const d of documents) {
+    if (b.okf03 && !d.fmOpened) continue;
     if (!d.hasFm || d.fmError) {
       add(
         d,
@@ -156,6 +159,7 @@ export function runLint(b) {
       );
       continue;
     }
+    if ((b.okf03 && !d.type) || !project) continue;
     for (const [line, token] of remainingPlaceholders(d))
       add(d, line, "warn", "L15", "雛形の記入例が残っています: " + token);
     if (!d.type) add(d, "type", "error", "L2", "`type` が空です");
@@ -371,7 +375,7 @@ export function runLint(b) {
   for (const dir of b.dirs()) {
     const index = path.join(dir, "index.md"),
       log = path.join(dir, "log.md");
-    if (fs.existsSync(index)) {
+    if (b.okf03 ? fs.lstatSync(index, { throwIfNoEntry: false })?.isFile() : fs.existsSync(index)) {
       const d = new Doc(index, b);
       if (d.fmOpened && !d.hasFm)
         add(
@@ -391,7 +395,7 @@ export function runLint(b) {
         );
       else if (
         d.hasFm &&
-        !(dir === b.root && Object.keys(d.fm).every((k) => k === "okf_version"))
+        !(dir === b.root && (b.okf03 || Object.keys(d.fm).every((k) => k === "okf_version")))
       )
         add(
           d,
@@ -401,7 +405,7 @@ export function runLint(b) {
           "index.md は frontmatter を持てません（ルートの `okf_version` のみ例外）",
         );
     }
-    if (fs.existsSync(log)) {
+    if (b.okf03 ? fs.lstatSync(log, { throwIfNoEntry: false })?.isFile() : fs.existsSync(log)) {
       const d = new Doc(log, b);
       if (d.fmOpened)
         add(
@@ -446,9 +450,10 @@ export function runLint(b) {
         prev = heading;
       });
     }
+    if (!project) continue;
     try {
       const content = renderIndex(b, dir);
-      if (!fs.existsSync(index) || read(index) !== content)
+      if (!fs.existsSync(index) || readIndex(b, index) !== content)
         findings.push({
           path: rel(index, b.repo),
           line: null,
@@ -476,7 +481,7 @@ export function runLint(b) {
   );
 }
 export function cmdLint(b, args = {}) {
-  const findings = runLint(b);
+  const findings = runLint(b, args);
   findings.forEach((f) => console.log(findingText(f)));
   const errors = findings.filter((f) => f.level === "error").length,
     warns = findings.length - errors;

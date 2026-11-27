@@ -495,3 +495,44 @@ test("both CLIs preserve YAML-sensitive layer names and directories", (t) => {
     }
   }
 });
+
+test("OKF 0.3 reads core YAML concepts and preserves the root index metadata", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    const config = path.join(root, "okf.yml");
+    fs.writeFileSync(config, fs.readFileSync(config, "utf8")
+      .replace(/^index:\n/m, 'index:\n  okf_version: "0.3"\n'));
+    put(root, "docs/api/sample.md", "---\ntype: on\ntitle: yes\ndescription: 00:00\nx-extra: { nested: [false, off, 0o17] }\n---\n\n# Heading\n");
+    put(root, "docs/api/readme.md", "# Plain Markdown\n");
+    put(root, "docs/api/tool.md", "---\nx-tool: yes\n---\n\n# Tool configuration\n");
+    put(root, "docs/api/.hidden.md", "---\ntype: Secret\n---\n# Dot path\n");
+    put(root, "docs/api/_nested/note.md", "---\ntype: Note\n---\n# Note\n");
+    ok(run(root, ["lint", "--strict"], {runtime}));
+    ok(run(root, ["index", "--write"], {runtime}));
+    const rootIndex = path.join(root, "docs/index.md");
+    assert.match(fs.readFileSync(rootIndex, "utf8"), /okf_version: "0\.3"/);
+
+    const header = '\uFEFF---\r\nokf_version: "0.3"\r\ntitle: yes\r\ndescription: Existing bundle\r\n' +
+      'license: CC-BY-4.0\r\nx-team: {keep: [on, false]} # keep comment\r\n---\r\n\r\n# Handwritten heading\r\n\r\n';
+    const tail = "\r\n\r\nAfter the marker.\n";
+    fs.writeFileSync(rootIndex, header + "<!-- okf:auto:start -->\r\nOld\r\n<!-- okf:auto:end -->" + tail);
+    ok(run(root, ["index", "--write"], {runtime}));
+    const rebuilt = fs.readFileSync(rootIndex, "utf8");
+    assert.ok(rebuilt.startsWith(header));
+    assert.ok(rebuilt.endsWith(tail));
+    ok(run(root, ["index", "--check"], {runtime}));
+    ok(run(root, ["render"], {runtime}));
+    const html = fs.readFileSync(path.join(root, "_site/api/sample.html"), "utf8");
+    assert.match(html, /<title>yes — Test Site<\/title>/);
+    assert.match(html, /OKF <span>v0\.3<\/span>/);
+    assert.equal(fs.existsSync(path.join(root, "_site/api/readme.html")), false);
+    assert.equal(fs.existsSync(path.join(root, "_site/api/.hidden.html")), false);
+    assert.equal(fs.existsSync(path.join(root, "_site/api/_nested/note.html")), true);
+    const project = run(root, ["lint", "--project"], {runtime});
+    assert.equal(project.status, 1);
+    assert.match(project.stdout, /warn L9|error L3/);
+    put(root, "docs/api/duplicate.md", "---\ntype: Note\nx-meta: {again: 1, again: 2}\n---\n");
+    assert.match(run(root, ["lint"], {runtime}).stdout, /duplicate\.md:1 error L1/);
+  }
+});

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "6ded0fa399c73f8c83f4055621f6f414f192b70d",
+  "worklog": "harness/state/journal/okf-v03-bundle.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "公開 CLI から YAML 1.2、コンセプトの抽出、索引の原文保持を両実装で再現する"
+    }
+  ],
+  "pull_request_base": "79a80ffaa5b8ac83c8c9b55227d5a1800fbec80b"
+}

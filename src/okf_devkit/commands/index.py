@@ -7,7 +7,7 @@ from pathlib import Path
 from ..config import Bundle
 from ..doc import Doc
 from ..errors import MarkerError
-from ..fsutil import extract_date, read_text, rel_posix, write_if_changed
+from ..fsutil import atomic_write_bytes, extract_date, read_text, rel_posix, write_if_changed
 
 def md_escape_label(text: str) -> str:
     """Markdown のリンクラベルとして安全な文字列にする。"""
@@ -67,13 +67,13 @@ def build_index_block(bundle: Bundle, directory: Path) -> str:
     # サブディレクトリ（その index.md を 1 エントリとして表現する＝段階的開示）
     subdir_lines = []
     for sub in sorted(p for p in directory.iterdir() if p.is_dir()):
-        if sub.name.startswith(("_", ".")) or bundle.is_excluded(sub):
+        if not bundle.includes_dir(sub):
             continue
         idx = sub / "index.md"
         # index.md が未生成でも同じ結果になるよう、既定値は render_index の見出しと揃える
         title = f"{sub.name}{icfg.get('heading_suffix', ' ドキュメント')}"
-        if idx.exists():
-            doc = Doc(idx, bundle.root, repo_root=bundle.repo_root)
+        if idx.exists() and (not bundle.okf03 or not idx.is_symlink()):
+            doc = bundle.document(idx)
             title = doc.h1 or title
         link = _index_link(bundle, directory, idx)
         subdir_lines.append(_entry_line(title, link, ""))
@@ -81,13 +81,7 @@ def build_index_block(bundle: Bundle, directory: Path) -> str:
         sections.append((str(icfg.get("subdir_section", "ディレクトリ")), sorted(subdir_lines)))
 
     # 直下の非予約ファイル
-    docs: list[Doc] = []
-    for p in sorted(directory.iterdir()):
-        if not (p.is_file() and p.suffix == ".md"):
-            continue
-        if p.name in bundle.reserved or bundle.is_excluded(p):
-            continue
-        docs.append(Doc(p, bundle.root, repo_root=bundle.repo_root))
+    docs = bundle.docs(directory)
 
     deprecated = [d for d in docs if d.status == "deprecated"]
     active = [d for d in docs if d.status != "deprecated"]
@@ -123,11 +117,7 @@ def build_backlog_block(bundle: Bundle, directory: Path) -> str:
     state_order = list(bcfg.get("state_order") or ["doing", "todo", "done", "dropped"])
     prio_order = list(bcfg.get("priorities") or ["high", "medium", "low"])
 
-    docs = [
-        Doc(p, bundle.root, repo_root=bundle.repo_root)
-        for p in sorted(directory.iterdir())
-        if p.is_file() and p.suffix == ".md" and p.name not in bundle.reserved and not bundle.is_excluded(p)
-    ]
+    docs = bundle.docs(directory)
 
     by_state: dict[str, list[Doc]] = {s: [] for s in state_order}
     for d in docs:
@@ -221,6 +211,10 @@ def split_markers(text: str, start: str, end: str, where: str) -> tuple[str, str
     )
 
 
+def read_index(bundle: Bundle, path: Path) -> str:
+    return path.read_bytes().decode("utf-8") if bundle.okf03 else read_text(path)
+
+
 def render_index(bundle: Bundle, directory: Path, block: str, *, repo_root: Path | None = None) -> str:
     """既存 index.md のマーカー間だけを置換した全文を返す。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
@@ -232,6 +226,8 @@ def render_index(bundle: Bundle, directory: Path, block: str, *, repo_root: Path
     index_path = directory / "index.md"
     is_root = directory.resolve() == bundle.root.resolve()
 
+    if bundle.okf03 and index_path.is_symlink():
+        raise MarkerError(f"{index_path}: index.md のシンボリックリンクは更新できません")
     if not index_path.exists():
         head = ""
         if is_root:
@@ -241,13 +237,18 @@ def render_index(bundle: Bundle, directory: Path, block: str, *, repo_root: Path
             heading = f"{directory.name}{icfg.get('heading_suffix', ' ドキュメント')}"
         return f"{head}# {heading}\n\n{auto}"
 
-    text = read_text(index_path)
+    text = read_index(bundle, index_path)
     where = rel_posix(index_path, repo_root)
+    newline = ("\r\n" if "\r\n" in text else "\n") if bundle.okf03 else "\n"
+    auto = auto.replace("\n", newline)
     parts = split_markers(text, start, end, where)
     if parts is not None:
         pre, post = parts
-        return f"{pre}{auto[:-1]}{post}"
+        return f"{pre}{auto[:-len(newline)]}{post}"
     # マーカーが無ければ末尾に追加する
+    if bundle.okf03:
+        separator = newline if text.endswith(newline) else newline * 2
+        return text + separator + auto
     return text.rstrip("\n") + "\n\n" + auto
 
 
@@ -278,12 +279,15 @@ def cmd_index(bundle: Bundle, args, *, repo_root: Path | None = None, writer=Non
 
     changed: list[str] = []
     for index_path, content in plan:
-        current = read_text(index_path) if index_path.exists() else None
+        current = read_index(bundle, index_path) if index_path.exists() else None
         if current == content:
             continue
         changed.append(rel_posix(index_path, repo_root))
         if args.write:
-            (write_if_changed if writer is None else writer)(index_path, content)
+            if bundle.okf03:
+                atomic_write_bytes(index_path, content.encode("utf-8"))
+            else:
+                (write_if_changed if writer is None else writer)(index_path, content)
 
     if args.check:
         if changed:

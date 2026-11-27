@@ -83,6 +83,12 @@ Git を使う log、stale、affected と sync gate の実処理は段階的に `
 
 `upgrade --check` は生成ガイドの frontmatter の生成時刻を比較から除き、来歴が分からない差分をファイル単位で手動確認として表示する。必要な変更は配布 scaffold と照合する。hook と Git 除外の追記箇所は [終了hookの手順](/agents/completion-hooks.md) を参照する。既存の初期化で `--runner` や `--agent` を指定した場合は、比較時にも同じ値を渡せる。`doctor` の hook 診断は設定の読み取り結果で、実行環境の確認には製品側のイベント検証を使う。
 
+## OKF のバンドル仕様を選ぶ
+
+新規バンドルを OKF 0.3 として生成するには、初回の `index --write` より前に `okf.yml` の `index.okf_version` に `"0.3"` を指定する。既存バンドルではルート `index.md` の `okf_version` が優先され、索引更新は既存のメタデータと手書き部分を保持する。版宣言の追加・変更は手動で行う。新規生成時の既定は 0.2。
+
+OKF 0.3 では、予約ファイル以外の Markdown に空でない `type` があればコンセプトとして扱う。型のない Markdown や未知の型を含むバンドルも読み込める。`lint` は OKF の書式を検査し、独自の型・レイヤー・根拠コード・索引の最新性も検査する場合は `lint --project` を使う。0.2 と版未宣言の既存バンドルには従来の検査を適用する。
+
 ## 新規文書の根拠コードと検査
 
 `new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。生成後は本文を補完し、目次を更新してから規約検査を実行する。`lint --strict` は残っている記入例も失敗扱いにする。
