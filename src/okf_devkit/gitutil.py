@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+import posixpath
 import re
 import subprocess
 import sys
@@ -213,8 +214,8 @@ _CODE_DIRS_TO_SKIP = {"node_modules", "dist", ".git"}
 _WILDCARDS = "*?["
 
 
-def code_glob_no_match(pattern: str) -> str:
-    suffix = "（走査除外と code_glob_exclude を確認してください）" if any(ch in pattern for ch in _WILDCARDS) else ""
+def code_glob_no_match(pattern: str, exclusions=()) -> str:
+    suffix = "（走査除外と code_glob_exclude を確認してください）" if exclusions or any(ch in pattern for ch in _WILDCARDS) else ""
     return "にマッチするファイルがありません" + suffix
 
 
@@ -224,10 +225,15 @@ def resolve_resource(root: Path, resource: str, *, exclude=()) -> list[str]:
     if not pattern:
         return []
     parts = pattern.split("/")
+    try:
+        path_matches("", pattern)
+    except re.error:
+        return []
 
     def excluded(relative: str) -> bool:
-        return bool(relative) and any(
-            path_matches(relative, rule) or path_matches(relative + "/", rule)
+        normalized = posixpath.normpath(relative)
+        return normalized != "." and any(
+            path_matches(normalized, rule) or path_matches(normalized + "/", rule)
             for rule in exclude
         )
 

@@ -185,13 +185,13 @@ def cmd_new(bundle: Bundle, args, *, repo_root: Path | None = None, writer=None,
         raise OkfError(f"既に存在します: {rel_posix(out_path, repo_root)}")
     (write_if_changed if writer is None else writer)(out_path, text)
     print(rel_posix(out_path, repo_root))
-    if not args.slug and re.search(r"[\u3040-\u30ff\u3400-\u9fff\U00020000-\U000323af]", args.title):
+    if not args.slug and re.search(r"[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f\U00020000-\U000323af]", args.title):
         print("題名の日本語は自動 slug に入りません。ファイル名を指定するには --slug を使ってください。", file=sys.stderr)
     if getattr(args, "index", False):
         try:
             if not cmd_index(bundle, Namespace(write=True, check=False, quiet=True), repo_root=repo_root, writer=writer):
                 return 0
-        except (OkfError, OSError) as exc:
+        except (OkfError, OSError, UnicodeError) as exc:
             print(exc, file=sys.stderr)
         print("文書は作成済みです。索引の問題を解消してから okf index --write を実行してください。", file=sys.stderr)
         return 1

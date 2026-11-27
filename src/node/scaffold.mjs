@@ -137,7 +137,7 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer), { all
       "\n",
     ),
     layer_dirs: [
-      ...layers.map((l) => `  ${l.name}: ${scalar(l.dir)}`),
+      ...layers.map((l) => `  ${scalar(l.name)}: ${scalar(l.dir)}`),
       "  shared: project",
     ].join("\n"),
     layer_map: [
@@ -147,9 +147,9 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer), { all
       `  - { glob: ${scalar(bundle + "/**")}, layer: skip }`,
       '  - { glob: "**", layer: shared }',
     ].join("\n"),
-    log_layers: `[${layers.map((l) => l.name).join(", ")}]`,
+    log_layers: flow(layers.map((l) => l.name)),
     log_paths: [
-      ...layers.map((l) => `    ${l.name}: ${scalar(l.dir + "/log.md")}`),
+      ...layers.map((l) => `    ${scalar(l.name)}: ${scalar(l.dir + "/log.md")}`),
       "    shared: log.md",
     ].join("\n"),
   };
@@ -182,10 +182,7 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer), { all
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/templates"))
     .sort(compare))
-    plan.push([`${bundle}/_templates/${file}`, expand(scaffold(`templates/${file}`)).replace(
-      "layer: <client | server | batch | shared>",
-      () => "layer: <" + tokens.LAYER_EXAMPLE + ">",
-    )]);
+    plan.push([`${bundle}/_templates/${file}`, expand(scaffold(`templates/${file}`))]);
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/hooks"))
     .sort(compare))

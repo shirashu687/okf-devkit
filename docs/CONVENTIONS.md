@@ -107,7 +107,7 @@ related:
 
 | type | 用途 | 主な置き場所 | テンプレート |
 |---|---|---|---|
-| `Project Overview` | プロジェクト全体像 | `project/` | — |
+| `Project Overview` | プロジェクト全体像 | `project/` | project-overview.md |
 | `Architecture` | 構造・データフロー・ER 図 | 各層 / `project/` | `_templates/architecture.md` |
 | `Reference` | 一覧・仕様（API / コンポーネント / テーブル） | 各層 | `_templates/reference.md` |
 | `How-To` | 手順書・使用ドキュメント | 各層 `guides/` | `_templates/how-to.md` |
@@ -122,7 +122,7 @@ related:
 
 ## 3. `code_globs` — 更新検知の起点
 
-ワイルドカード走査では `node_modules`、`dist`、`.git` に自動で降りない。根拠にする生成物のディレクトリがある場合は `src/dist/**` のように名前まで明示する。追加の走査除外は、リポジトリルートを起点とした glob を `okf.yml` の `code_glob_exclude` に指定する。
+ワイルドカード走査では `node_modules`、`dist`、`.git` に自動で降りない。根拠にする生成物のディレクトリがある場合は `src/dist/**` のように名前まで明示する。追加の走査除外は、リポジトリルートを起点とした glob を `okf.yml` の `code_glob_exclude` に指定する。この設定は `lint` と `stale` のファイル走査に適用され、同じパスを直接指定した場合も除外される。
 
 **このドキュメントを導出したコードの場所**を書く独自拡張キー。仕組み全体の起点になるので、コード由来のドキュメントには**必ず書く**。
 
@@ -140,7 +140,7 @@ code_globs:
 
 | できること | コマンド |
 |---|---|
-| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base main` |
+| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base <比較元の参照またはSHA>` |
 | コードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
 | コードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
 

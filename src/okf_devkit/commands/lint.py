@@ -3,10 +3,10 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 from pathlib import Path
-from .. import gitutil
+from .. import gitutil, yamlio
 from ..config import Bundle
 from ..doc import Doc
-from ..errors import MarkerError
+from ..errors import MarkerError, OkfError
 from ..fsutil import is_iso_date, parse_datetime, read_text, rel_posix
 from . import index as _index
 
@@ -39,34 +39,54 @@ def _template_placeholders() -> tuple[set[str], set[str]]:
     return frontmatter, body
 
 
+def _yaml_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, (dict, list)):
+        for child in value.values() if isinstance(value, dict) else value:
+            yield from _yaml_strings(child)
+
+
 def _remaining_placeholders(doc: Doc):
     frontmatter, body_tokens = _template_placeholders()
-    body = doc.body.split("\n")
-    lines = doc.text.split("\n")
-    body_start = len(lines) - len(body)
-    for number, line in enumerate(lines[:body_start], 1):
-        token = next((value for value in PLACEHOLDER_RE.findall(line) if value in frontmatter), None)
-        if token:
-            yield number, token
-    if not body_tokens.intersection(PLACEHOLDER_RE.findall(doc.body)):
-        return
-    markdown = _markdown_parser()
-    if markdown is None:
-        return
+    body_start = doc.text.count("\n") - doc.body.count("\n")
+    prefix = "<okf-placeholder-"
+    while prefix in doc.text:
+        prefix = "<x" + prefix[1:]
+    candidates = {}
+
+    # Keep the source location even when a known prompt contains Markdown syntax.
+    def mark(text, allowed, start):
+        def replace(match):
+            token = match.group()
+            if token not in allowed:
+                return token
+            marker = f"{prefix}{len(candidates)}>"
+            candidates[marker] = (start + text.count("\n", 0, match.start()), token)
+            return marker
+        return PLACEHOLDER_RE.sub(replace, text)
+
+    header = mark("\n".join(doc.text.split("\n")[1:body_start - 1]), frontmatter, 2)
+    parsed_strings = []
+    if candidates:
+        try:
+            parsed_strings = list(_yaml_strings(yamlio.parse_yaml(header)))
+        except OkfError:
+            # A marker can change unusual explicit YAML syntax. The original was already validated.
+            pass
+    body = mark(doc.body, body_tokens, body_start + 1)
+    if body != doc.body and (markdown := _markdown_parser()) is not None:
+        parsed_strings.extend(
+            inline.content
+            for block in markdown.parse(body) if block.type == "inline"
+            for inline in block.children or [] if inline.type == "text"
+        )
+
+    visible = {token for text in parsed_strings for token in PLACEHOLDER_RE.findall(text)}
     found = {}
-    for block in markdown.parse(doc.body):
-        if block.type != "inline" or block.map is None:
-            continue
-        index = block.map[0]
-        for inline in block.children or []:
-            if inline.type in ("softbreak", "hardbreak"):
-                index += 1
-            if inline.type != "text" or index >= len(body):
-                continue
-            token = next((value for value in PLACEHOLDER_RE.findall(inline.content)
-                          if value in body_tokens and value in body[index]), None)
-            if token:
-                found.setdefault(body_start + index + 1, token)
+    for marker, (line, token) in candidates.items():
+        if marker in visible:
+            found.setdefault(line, token)
     yield from found.items()
 
 
@@ -187,7 +207,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
         for pattern in globs:
             if not (gitutil.resolve_resource(repo_root, pattern, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(pattern)):
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
-                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern)}"))
+                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}"))
 
         for problem in doc.source_problems():
             add(Finding(path, doc.key_line("sources"), "warn", "L14", problem))

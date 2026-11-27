@@ -4,6 +4,7 @@ import MarkdownIt from "markdown-it";
 import {
   Doc,
   MarkerError,
+  OkfError,
   codeGlobNoMatch,
   compare,
   dataDir,
@@ -11,6 +12,7 @@ import {
   extractDate,
   inside,
   isMap,
+  parseYaml,
   read,
   rel,
   timestamp,
@@ -74,6 +76,12 @@ export function trust(doc) {
 const placeholderPattern = /<[^<>\r\n]+>/g;
 const markdown = new MarkdownIt("commonmark", { html: false });
 let templatePlaceholders;
+function* yamlStrings(value) {
+  if (typeof value === "string") yield value;
+  else if (Array.isArray(value) || isMap(value)) {
+    for (const child of Object.values(value)) yield* yamlStrings(child);
+  }
+}
 function remainingPlaceholders(doc) {
   if (!templatePlaceholders) {
     const directory = path.join(dataDir, "scaffold", "templates");
@@ -91,30 +99,40 @@ function remainingPlaceholders(doc) {
         templatePlaceholders.body.add(token);
     }
   }
-  const bodyLines = doc.body.split("\n");
-  const lines = doc.text.split("\n");
-  const bodyStart = lines.length - bodyLines.length;
-  const remaining = new Map();
-  for (let index = 0; index < bodyStart; index++) {
-    const token = lines[index].match(placeholderPattern)?.find((value) =>
-      templatePlaceholders.frontmatter.has(value));
-    if (token) remaining.set(index + 1, token);
-  }
-  // Markdown tokens identify code examples, including nested fences and multiline spans.
-  if (!(doc.body.match(placeholderPattern) || []).some((value) => templatePlaceholders.body.has(value)))
-    return remaining;
-  for (const block of markdown.parse(doc.body, {})) {
-    if (block.type !== "inline" || !block.map) continue;
-    let index = block.map[0];
-    for (const inline of block.children) {
-      if (inline.type === "softbreak" || inline.type === "hardbreak") index++;
-      if (inline.type !== "text") continue;
-      const line = bodyStart + index + 1;
-      const token = inline.content.match(placeholderPattern)?.find((value) =>
-        templatePlaceholders.body.has(value) && bodyLines[index]?.includes(value));
-      if (token && !remaining.has(line)) remaining.set(line, token);
+  const bodyStart = doc.fmLines.length + 2;
+  let prefix = "<okf-placeholder-";
+  while (doc.text.includes(prefix)) prefix = "<x" + prefix.slice(1);
+  const candidates = new Map();
+  // Keep the source location even when a known prompt contains Markdown syntax.
+  const mark = (text, allowed, start) => text.replace(placeholderPattern, (token, offset) => {
+    if (!allowed.has(token)) return token;
+    const marker = prefix + candidates.size + ">";
+    const line = start + text.slice(0, offset).split("\n").length - 1;
+    candidates.set(marker, [line, token]);
+    return marker;
+  });
+  const header = mark(doc.fmLines.join("\n"), templatePlaceholders.frontmatter, 2);
+  const parsedStrings = [];
+  if (candidates.size) {
+    try {
+      parsedStrings.push(...yamlStrings(parseYaml(header)));
+    } catch (error) {
+      if (!(error instanceof OkfError)) throw error;
+      // The original frontmatter was already validated.
     }
   }
+  const body = mark(doc.body, templatePlaceholders.body, bodyStart + 1);
+  if (body !== doc.body) {
+    for (const block of markdown.parse(body, {})) {
+      if (block.type !== "inline") continue;
+      for (const inline of block.children)
+        if (inline.type === "text") parsedStrings.push(inline.content);
+    }
+  }
+  const visible = new Set(parsedStrings.flatMap((text) => text.match(placeholderPattern) || []));
+  const remaining = new Map();
+  for (const [marker, [line, token]] of candidates)
+    if (visible.has(marker) && !remaining.has(line)) remaining.set(line, token);
   return remaining;
 }
 export function runLint(b) {
@@ -250,7 +268,7 @@ export function runLint(b) {
           "code_globs",
           "warn",
           "L10",
-          `\`code_globs: ${g}\` ${codeGlobNoMatch(g)}`,
+          `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
     const sources = d.fm.sources;
     if (sources != null) {
@@ -485,7 +503,7 @@ export function runStale(b) {
         add(
           "orphan",
           "warn",
-          `code_globs: ${g} ${codeGlobNoMatch(g)}`,
+          `code_globs: ${g} ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
         continue;
       }
