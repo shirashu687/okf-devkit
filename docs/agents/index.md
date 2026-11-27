@@ -6,6 +6,7 @@
 * [AIにokf-devkitの導入・セットアップ・更新を依頼する (draft)](./install-okf.md) - AIが対象repoに合う固定Node版の導入・初期設定・検証・更新・復旧を支援する。
 * [Node.js配布物をDraft Releaseで検査して公開する (draft)](./release-node.md) - 配布担当者がレビュー済みmainから固定タグを作り同じ配布物を検証して公開する。
 * [エージェント終了時の共通HTML生成](./completion-hooks.md) - Claude、Copilot、Codexでリポジトリ共通のHTML生成を呼ぶ設定と検証範囲。
+* [既存リポジトリの okf-devkit を更新する](./upgrade-existing-okf.md) - 導入方式や設定が異なるリポジトリで、現状の棚卸しから必要な設定差分の確認までを進める手順と AI への依頼文。
 
 ## Convention
 * [Domain docs](./domain.md) - single-context のドメイン文書を読む場所と順序を定義する。

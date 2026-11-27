@@ -21,6 +21,8 @@ https://raw.githubusercontent.com/shirashu687/okf-devkit/main/docs/agents/instal
 AIが構成と既存環境を調べ、固定版のローカル導入、`okf.yml` と文書の初期配置、AI向け入口の接続、索引生成・lint・HTML生成の確認まで進める。詳細と完了条件は [導入ガイド](docs/agents/install-okf.md) にまとめている。
 新しいパッケージ管理の追加、既存設定との競合、認証やエージェントの信頼設定など、人の判断・操作が必要な箇所は具体的な内容を確認する。URLを取得できない環境では、導入ガイドの本文をAIへ渡す。
 
+導入済みのリポジトリは、既存設定の点検と移行用の AI 依頼文を使えます。[既存リポジトリの更新ガイド](docs/agents/upgrade-existing-okf.md)
+
 ## はじめる
 
 Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。[導入ガイド](docs/agents/install-okf.md#公開済み-tgz) に従って tgz と SHA-256 を照合し、`vendor/` に置いてから実行します。
