@@ -211,6 +211,36 @@ test("L1-L14 finding rules, severity, locations and exit codes agree", (t) => {
   assert.equal(js.status, py.status);
   assert.equal(js.stdout, py.stdout);
 });
+
+test("both CLIs prune code glob directories", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    put(root, "src/app/node_modules/pkg/vendored.ts", "code\n");
+    put(root, "src/app/dist/bundled.ts", "code\n");
+    put(root, "src/app/local/generated.ts", "code\n");
+    fs.symlinkSync(path.join(root, "src", "app"), path.join(root, "src", "app", "cycle"), "junction");
+    const config = path.join(root, "okf.yml");
+    fs.appendFileSync(config, "\ncode_glob_exclude: [src/app/local/**]\n");
+    put(root, "docs/api/explicit.md", document().replace("src/**", "src/app/dist/**"));
+    put(root, "docs/api/broad.md", document());
+    put(root, "docs/api/relative.md", document().replace("src/**", "./src/**"));
+    put(root, "docs/api/literal.md", document().replace("src/**", "src/app/local/generated.ts"));
+    put(root, "docs/api/invalid-glob.md", document().replace("src/**", "'src/app/[z-a]*'"));
+    ok(run(root, ["index", "--write"], {runtime}));
+    const result = run(root, ["lint", "--strict"], {runtime});
+    assert.equal(result.status, 1);
+    for (const name of ["broad", "relative", "literal", "invalid-glob"]) {
+      assert.match(result.stdout, new RegExp(name + "\\.md:\\d+ warn L10.*走査除外"));
+    }
+    assert.doesNotMatch(result.stdout, /docs\/api\/explicit\.md:/);
+    fs.writeFileSync(config, fs.readFileSync(config, "utf8")
+      .replace("code_glob_exclude: [src/app/local/**]", "code_glob_exclude: ['src/[z-a]*']"));
+    const invalid = run(root, ["lint"], {runtime});
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /code_glob_exclude に不正な glob/);
+  }
+});
 test("HTML golden parity and idempotence on shared Markdown and assets", (t) => {
   const root = temp(t);
   init(root);

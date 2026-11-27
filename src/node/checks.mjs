@@ -3,6 +3,7 @@ import path from "node:path";
 import {
   Doc,
   MarkerError,
+  codeGlobNoMatch,
   compare,
   dateOnly,
   extractDate,
@@ -199,7 +200,7 @@ export function runLint(b) {
           "code_globs",
           "warn",
           "L10",
-          `\`code_globs: ${g}\` にマッチするファイルがありません`,
+          `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
     const sources = d.fm.sources;
     if (sources != null) {
@@ -434,7 +435,7 @@ export function runStale(b) {
         add(
           "orphan",
           "warn",
-          `code_globs: ${g} にマッチするファイルがありません`,
+          `code_globs: ${g} ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
         continue;
       }

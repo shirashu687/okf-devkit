@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import datetime as _dt
-import glob as _glob
+import posixpath
 import re
 import subprocess
 import sys
@@ -210,26 +210,82 @@ def latest_commit_time(paths: list[str], mapping: dict[str, str]) -> str | None:
     return best
 
 
-def resolve_resource(root: Path, resource: str) -> list[str]:
-    """sources[].resource（パス or glob）を実ファイルのリストに解決する。
+_CODE_DIRS_TO_SKIP = {"node_modules", "dist", ".git"}
+_WILDCARDS = "*?["
 
-    列挙は標準の :mod:`glob` で行い、最終的な採否は ``path_matches()``
-    （= `glob_to_regex`）で決める。これにより lint / stale / affected の
-    glob 解釈が 1 実装に揃う。
-    """
+
+def code_glob_no_match(pattern: str, exclusions=()) -> str:
+    suffix = "（走査除外と code_glob_exclude を確認してください）" if exclusions or any(ch in pattern for ch in _WILDCARDS) else ""
+    return "にマッチするファイルがありません" + suffix
+
+
+def resolve_resource(root: Path, resource: str, *, exclude=()) -> list[str]:
+    """code_globs を走査し、除外ディレクトリに降りる前に枝刈りする。"""
     pattern = resource.replace("\\", "/").lstrip("/")
     if not pattern:
         return []
-    if not any(ch in pattern for ch in "*?["):
-        p = root / pattern
-        return [pattern] if p.is_file() else []
-    matched = _glob.glob(pattern, root_dir=str(root), recursive=True)
-    out = []
-    for rel in matched:
-        rel = rel.replace("\\", "/")
-        if (root / rel).is_file() and path_matches(rel, pattern):
-            out.append(rel)
-    return sorted(out)
+    parts = pattern.split("/")
+    try:
+        path_matches("", pattern)
+    except re.error:
+        return []
+
+    def excluded(relative: str) -> bool:
+        normalized = posixpath.normpath(relative)
+        return normalized != "." and any(
+            path_matches(normalized, rule) or path_matches(normalized + "/", rule)
+            for rule in exclude
+        )
+
+    if not any(ch in pattern for ch in _WILDCARDS):
+        if any(excluded("/".join(parts[:index])) for index in range(1, len(parts) + 1)):
+            return []
+        return [pattern] if (root / pattern).is_file() else []
+
+    found: set[str] = set()
+
+    def walk(current: Path, index: int, relative: str, ancestors: frozenset[Path]) -> None:
+        if excluded(relative):
+            return
+        if index == len(parts):
+            if current.is_file() and path_matches(relative, pattern):
+                found.add(relative)
+            return
+        if not current.is_dir():
+            return
+        segment = parts[index]
+        if not any(ch in segment for ch in _WILDCARDS):
+            child_relative = f"{relative}/{segment}" if relative else segment
+            walk(current / segment, index + 1, child_relative, frozenset())
+            return
+        recursive = segment == "**"
+        if recursive:
+            walk(current, index + 1, relative, ancestors)
+            canonical = current.resolve()
+            if canonical in ancestors:
+                return
+            ancestors = ancestors | {canonical}
+        try:
+            children = list(current.iterdir())
+        except OSError:
+            return
+        for child in children:
+            name = child.name
+            if name.startswith(".") and not segment.startswith("."):
+                continue
+            child_relative = f"{relative}/{name}" if relative else name
+            if excluded(child_relative) or (name in _CODE_DIRS_TO_SKIP and child.is_dir()):
+                continue
+            if recursive:
+                if child.is_dir():
+                    walk(child, index, child_relative, ancestors)
+                elif index == len(parts) - 1:
+                    walk(child, index + 1, child_relative, ancestors)
+            elif path_matches(name, segment):
+                walk(child, index + 1, child_relative, frozenset())
+
+    walk(root, 0, "", frozenset())
+    return sorted(found)
 
 
 class Commit:
@@ -298,7 +354,7 @@ def changed_paths(root: Path, base: str, *, runner: GitRunner | None = None) -> 
         if ref is None:
             raise OkfError(
                 f"base ref を解決できませんでした: {base}"
-                f"（`{base}` も `origin/{base}` も存在しません。--base か --paths を指定してください）"
+                "。実在するコミット SHA を --base で指定するか、--paths src/main.js のように変更パスを指定してください。"
             )
         code, out = run("merge-base", ref, "HEAD")
         merge_base = out.strip() if code == 0 else ""

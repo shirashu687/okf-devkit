@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from .doc import Doc
 from .errors import OkfError
@@ -60,6 +61,16 @@ class Bundle:
             )
         cfg = load_merged_config(cfg_path, defaults_path=defaults_path)
         self.cfg = cfg
+        self.code_glob_exclude = cfg.get("code_glob_exclude", [])
+        if not isinstance(self.code_glob_exclude, list) or any(
+            not isinstance(rule, str) or not rule.strip() for rule in self.code_glob_exclude
+        ):
+            raise OkfError("code_glob_exclude は空でない glob 文字列のリストで指定してください")
+        try:
+            for rule in self.code_glob_exclude:
+                path_matches("", rule)
+        except re.error as exc:
+            raise OkfError("code_glob_exclude に不正な glob があります") from exc
         self.config_path = cfg_path
         self.root = (self.repo_root / str(cfg.get("bundle_root", "docs"))).resolve()
         self.exclude = list(cfg.get("exclude") or [])

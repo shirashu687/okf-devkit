@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "7d5b1d8cd015f3b823ce19526dfb23a82e0ce34b",
+  "worklog": "harness/state/journal/split84-code-globs-and-git-guidance.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
+    }
+  ],
+  "pull_request_base": "bcb137d7539a8cc429f59edf22d981a941a562ed"
+}

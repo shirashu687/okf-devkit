@@ -71,6 +71,7 @@ related:
 ## 結果と書き込みの境界
 
 `affected` は対応文書に加えて未カバーパスも読む。`code_globs` がない文書とバンドル外のREADME等は自動逆引きの保証外なので、変更内容から別途確認する。
+初回コミット前は作業ツリーを調べ、`log` は追記をスキップする。`main` がない場合は実在する基準の SHA を `affected --base` へ指定するか、`affected --paths src/main.js` のように変更を渡す。
 `sync` のlogはGitのコミット済み履歴だけを扱う。未コミット変更はlogに記録せず、logの警告・スキップを確認する。index更新や最終exit0からlog追記成功を推定しない。
 `stale` の指摘と `sync --gate` の同じlint error再検出はexit0になり得る。gateは初回errorでexit2、同一error集合の再検出ではexit0としてループを抑える。指摘が解消したことやCI成功を意味しない。
 `render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
