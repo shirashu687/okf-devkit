@@ -169,7 +169,8 @@ def cmd_sync(bundle: Bundle, args, *, runner=None, indexer=None, logger=None, li
 
     print("\n== lint ==")
     bundle._docs = None  # index / log の書き込み結果を反映させる
-    findings = (run_lint if linter is None else linter)(bundle)
+    lint = run_lint if linter is None else linter
+    findings = lint(bundle, project=True) if bundle.okf03 else lint(bundle)
     for finding in findings:
         print(finding)
     errors = [f for f in findings if f.level == "error"]
@@ -206,7 +207,7 @@ def cmd_sync(bundle: Bundle, args, *, runner=None, indexer=None, logger=None, li
         "",
         "修正の手順:",
         "  1. 上記ファイルの frontmatter / 本文を修正する",
-        "  2. okf lint で解消を確認する",
+        "  2. okf lint --project で解消を確認する" if bundle.okf03 else "  2. okf lint で解消を確認する",
     ]
     print("\n".join(lines), file=sys.stderr)
     return 2

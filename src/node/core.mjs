@@ -51,6 +51,30 @@ export function timestamp(value) {
   );
   return Number.isFinite(result) ? result : null;
 }
+const okfDatetime = /^([0-9]{4}-[0-9]{2}-[0-9]{2})[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\.([0-9]+))?([Zz]|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])$/;
+
+function okfInstant(value) {
+  if (typeof value !== "string") return null;
+  if (dateOnly(value)) value += "T00:00:00Z";
+  const match = okfDatetime.exec(value);
+  if (!match || match[0] !== value || !dateOnly(match[1])) return null;
+  const [, date, hour, minute, second, fraction, offset] = match;
+  const seconds = Date.parse(`${date}T${hour}:${minute}:${second}${offset}`) / 1000;
+  return Number.isFinite(seconds) ? [seconds, (fraction ?? "").replace(/0+$/, "")] : null;
+}
+
+const compareInstants = (a, b) => a[0] - b[0] || compare(a[1], b[1]);
+export const okfValues = (value) => value == null || value === "" ? [] : Array.isArray(value) ? value : [value];
+const okfActor = (value) => typeof value === "string" && /^(?:[A-Za-z][A-Za-z0-9+.-]*:\S+|[^\s/:]+\/[^\s/]+)$/.test(value);
+
+function* usageWindowProblems(value, key, label) {
+  if (isMap(value)) {
+    for (const name of ["from", "to"])
+      if (okfValues(value[name]).length && okfInstant(value[name]) === null)
+        yield [key, `\`${label}.${name}\` は RFC 3339 ではありません`];
+  }
+}
+
 export function parseYaml(text, source = "<yaml>", core = false) {
   try {
     // YAML 1.1 matches PyYAML's booleans, dates and numeric scalars.
@@ -324,6 +348,51 @@ export class Doc {
     return typeof this.fm.status === "string"
       ? this.fm.status.trim()
       : "stable";
+  }
+  currentTrust() {
+    const generated = this.get("generated");
+    const generatedAt = okfInstant(generated?.at);
+    if (okfValues(generated).length && generatedAt === null) return "unverified";
+    let tier = "unverified";
+    for (const event of okfValues(this.get("verified"))) {
+      if (!isMap(event) || !okfActor(event.by)) continue;
+      const at = okfInstant(event.at);
+      if (at === null || (generatedAt !== null && compareInstants(at, generatedAt) < 0)) continue;
+      if (event.by.startsWith("human:")) return "human-reviewed";
+      tier = "machine-confirmed";
+    }
+    return tier;
+  }
+  okfFreshness(now) {
+    const value = this.get("stale_after");
+    if (!okfValues(value).length) return null;
+    const expires = okfInstant(value);
+    if (expires === null) return "malformed";
+    return compareInstants(expires, okfInstant(now.toISOString())) <= 0 ? "stale" : null;
+  }
+  *okfMetadataProblems() {
+    const generated = this.get("generated");
+    if (okfValues(generated).length && (!isMap(generated) || !okfActor(generated.by) || okfInstant(generated.at) === null))
+      yield ["generated", "`generated` には Actor の by と RFC 3339 の at が必要です"];
+    for (const [i, event] of okfValues(this.get("verified")).entries()) {
+      if (!isMap(event) || !okfActor(event.by) || okfInstant(event.at) === null)
+        yield ["verified", `\`verified[${i + 1}]\` には Actor の by と RFC 3339 の at が必要です`];
+    }
+    for (const [i, source] of okfValues(this.get("sources")).entries()) {
+      if (!isMap(source) || typeof source.resource !== "string" || !source.resource.trim()) {
+        yield ["sources", `\`sources[${i + 1}].resource\` が空、または文字列ではありません`];
+        continue;
+      }
+      if (okfValues(source.author).length && !okfActor(source.author))
+        yield ["sources", `\`sources[${i + 1}].author\` は Actor 表記ではありません`];
+      if (okfValues(source.last_modified).length && okfInstant(source.last_modified) === null)
+        yield ["sources", `\`sources[${i + 1}].last_modified\` は RFC 3339 ではありません`];
+      yield* usageWindowProblems(source.usage_window, "sources", `sources[${i + 1}].usage_window`);
+    }
+    yield* usageWindowProblems(this.get("usage_window"), "usage_window", "usage_window");
+    const staleAfter = this.get("stale_after");
+    if (okfValues(staleAfter).length && okfInstant(staleAfter) === null)
+      yield ["stale_after", "`stale_after` は RFC 3339 ではありません"];
   }
   get globs() {
     return Array.isArray(this.fm.code_globs)

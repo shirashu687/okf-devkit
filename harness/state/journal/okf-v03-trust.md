@@ -1,0 +1,6 @@
+# OKF v0.3 の信頼と鮮度
+
+- 開始点は `aed71d42f21e2c6948bd314e56804b26aba65912`。worktree `/tmp/okf-v03-trust`、ブランチ `codex/okf-v03-trust`。着手時の追跡差分はなし。
+- [#90](https://github.com/shirashu687/okf-devkit/issues/90) の §5・§7・§11.2 に対応する。両 CLI の lint、stale、HTML で有効な検証イベントと鮮度を揃え、プロジェクトの検査は sync でも行う。
+- 仕様軸では古い人手確認、同じ時刻、オフセットと小数精度、単一イベント、チーム、日付のみ、空値・不正値を確認した。標準軸では既存のコマンドと JSON 形式を使い、両 CLI を公開入口から比較した。
+- この差分の commit、push、PR 作成を予定する。
