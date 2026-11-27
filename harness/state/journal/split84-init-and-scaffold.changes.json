@@ -12,5 +12,6 @@
       "path": "tests/test_init.py",
       "reason": "初期化で生成した OS 別の hook を対応するシェルで検証"
     }
-  ]
+  ],
+  "pull_request_base": "d743ece92816a53ee6f416f064145ecc790f3d9a"
 }

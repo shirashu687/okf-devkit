@@ -33,7 +33,7 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
             matched = (gitutil.resolve_resource(bundle.repo_root, resource, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(resource))
             if not matched:
                 results.append({"path": path, "kind": "orphan", "level": "warn",
-                                "message": f"code_globs: {resource} {gitutil.code_glob_no_match(resource)}"})
+                                "message": f"code_globs: {resource} {gitutil.code_glob_no_match(resource, bundle.code_glob_exclude)}"})
                 continue
             if gen_dt is None:
                 continue
