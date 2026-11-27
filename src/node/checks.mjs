@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import MarkdownIt from "markdown-it";
 import {
   Doc,
   MarkerError,
@@ -71,34 +72,48 @@ export function trust(doc) {
       : "machine-confirmed";
 }
 const placeholderPattern = /<[^<>\r\n]+>/g;
+const markdown = new MarkdownIt("commonmark", { html: false });
 let templatePlaceholders;
 function remainingPlaceholders(doc) {
   if (!templatePlaceholders) {
     const directory = path.join(dataDir, "scaffold", "templates");
-    templatePlaceholders = new Set(fs.readdirSync(directory)
-      .filter((file) => file.endsWith(".md") && file !== "log.md")
-      .flatMap((file) => read(path.join(directory, file)).match(placeholderPattern) || []));
-  }
-  const lines = doc.text.split("\n");
-  const bodyStart = lines.length - doc.body.split("\n").length;
-  const remaining = [];
-  let fence = "";
-  for (let index = 0; index < lines.length; index++) {
-    let line = lines[index];
-    if (index >= bodyStart) {
-      const marker = line.match(/^ {0,3}(\x60{3,}|~{3,})(.*)$/);
-      if (fence) {
-        if (marker?.[1].startsWith(fence) && !marker[2].trim()) fence = "";
-        continue;
-      }
-      if (marker) {
-        fence = marker[1];
-        continue;
-      }
-      line = line.replace(/(\x60+).*?\1/g, "");
+    templatePlaceholders = { frontmatter: new Set(), body: new Set() };
+    for (const file of fs.readdirSync(directory)) {
+      if (!file.endsWith(".md") || file === "log.md") continue;
+      const text = read(path.join(directory, file));
+      const boundary = text.indexOf("\n---\n");
+      if (boundary < 0) continue;
+      const frontmatter = text.slice(0, boundary);
+      const body = text.slice(boundary + 5);
+      for (const token of frontmatter.match(placeholderPattern) || [])
+        templatePlaceholders.frontmatter.add(token);
+      for (const token of body.match(placeholderPattern) || [])
+        templatePlaceholders.body.add(token);
     }
-    const token = line.match(placeholderPattern)?.find((value) => templatePlaceholders.has(value));
-    if (token) remaining.push([index + 1, token]);
+  }
+  const bodyLines = doc.body.split("\n");
+  const lines = doc.text.split("\n");
+  const bodyStart = lines.length - bodyLines.length;
+  const remaining = new Map();
+  for (let index = 0; index < bodyStart; index++) {
+    const token = lines[index].match(placeholderPattern)?.find((value) =>
+      templatePlaceholders.frontmatter.has(value));
+    if (token) remaining.set(index + 1, token);
+  }
+  // Markdown tokens identify code examples, including nested fences and multiline spans.
+  if (!(doc.body.match(placeholderPattern) || []).some((value) => templatePlaceholders.body.has(value)))
+    return remaining;
+  for (const block of markdown.parse(doc.body, {})) {
+    if (block.type !== "inline" || !block.map) continue;
+    let index = block.map[0];
+    for (const inline of block.children) {
+      if (inline.type === "softbreak" || inline.type === "hardbreak") index++;
+      if (inline.type !== "text") continue;
+      const line = bodyStart + index + 1;
+      const token = inline.content.match(placeholderPattern)?.find((value) =>
+        templatePlaceholders.body.has(value) && bodyLines[index]?.includes(value));
+      if (token && !remaining.has(line)) remaining.set(line, token);
+    }
   }
   return remaining;
 }

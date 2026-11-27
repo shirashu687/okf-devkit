@@ -53,6 +53,9 @@ def cmd_doctor(root: Path, config: Path | None) -> int:
         candidate.root.relative_to(root.resolve())
         if not candidate.root.is_dir():
             raise OkfError(f"バンドルルートがありません: {candidate.root}")
+        names = candidate.cfg.get("layers")
+        if not isinstance(names, list) or any(not isinstance(name, str) or not name.strip() for name in names):
+            raise OkfError("layers は空でない層名のリストで指定してください")
         bundle = candidate
         print("設定: 読み込み成功")
         layer_map = bundle.cfg.get("layer_map")
@@ -67,7 +70,7 @@ def cmd_doctor(root: Path, config: Path | None) -> int:
             count = len(gitutil.resolve_resource(root, glob, exclude=bundle.code_glob_exclude))
             result = f"{count} 件一致" if count else "要確認（一致なし）"
             print(f"layer_map {layer} ({glob}): {result}")
-    except (OkfError, ValueError, OSError) as exc:
+    except (OkfError, TypeError, ValueError, OSError) as exc:
         failed = True
         print(f"設定 / layer_map: 要確認 ({exc})")
     for name, file in AGENT_SETTINGS.items():
@@ -85,6 +88,7 @@ def cmd_doctor(root: Path, config: Path | None) -> int:
             legacy = [
                 file
                 for directory in bundle.dirs()
+                if not directory.is_symlink()
                 for file in directory.iterdir()
                 if file.suffix == ".html" and file.is_file() and not bundle.is_excluded(file)
             ]
@@ -108,21 +112,33 @@ def _normalize_scaffold(text: str) -> str:
 
 def cmd_upgrade(bundle: Bundle, args) -> int:
     root = bundle.repo_root
+    try:
+        bundle_root = rel_posix(bundle.root, root)
+        config = bundle.config_path.absolute().relative_to(root.absolute()).as_posix()
+    except ValueError as exc:
+        raise OkfError("scaffold の比較対象はリポジトリ内に指定してください") from exc
     maps = bundle.cfg.get("layer_map") or []
     layers = []
+    log_files = {"log.md": bundle.log_path("shared")}
     for name in bundle.layers:
         if name == "shared":
             continue
         glob = next((entry["glob"] for entry in maps if entry.get("layer") == name), "**")
-        layers.append((name, glob, (bundle.cfg.get("layer_dirs") or {}).get(name, name)))
+        directory = (bundle.cfg.get("layer_dirs") or {}).get(name, name)
+        layers.append((name, glob, directory))
+        log_files[f"{directory}/log.md"] = bundle.log_path(name)
     plan, *_ = scaffold_plan(root, Namespace(
-        bundle_root=bundle.root.relative_to(root.resolve()).as_posix(),
+        bundle_root=bundle_root,
         site_name=bundle.site_name, agent=args.agent, runner=args.runner,
     ), layers=layers)
     counts = dict.fromkeys(("一致", "追加候補", "差分あり（手動確認）", "比較不能（手動確認）"), 0)
     for file, expected, _ in plan:
         if file == "okf.yml":
-            file = rel_posix(bundle.config_path, root)
+            file = config
+        elif file.startswith(bundle_root + "/"):
+            log_file = log_files.get(file[len(bundle_root) + 1:])
+            if log_file is not None:
+                file = log_file.relative_to(root).as_posix() if log_file.is_relative_to(root) else str(log_file)
         target = root / file
         try:
             target.resolve().relative_to(root.resolve())

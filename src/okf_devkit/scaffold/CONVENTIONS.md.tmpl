@@ -17,9 +17,9 @@ related:
 本リポジトリの `{{BUNDLE_ROOT}}/` は **OKF (Open Knowledge Format) v0.2** バンドルである。
 仕様本体: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
 
-OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`okf lint` が機械的に強制する。
+OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`{{RUNNER}} lint` が機械的に強制する。
 
-> このファイルは `okf init` が生成した規約であり、既定のまま使える。
+> このファイルは `{{RUNNER}} init` が生成した規約であり、既定のまま使える。
 > 必要に応じて語彙表（§2 / §5 / §1-1 の `layer`）を変更する場合は、`okf.yml` の対応するキーも必ず合わせること。
 > 食い違うと lint の判定と本ファイルの記述が矛盾する。
 
@@ -106,7 +106,7 @@ related:
 
 | type | 用途 | 主な置き場所 | テンプレート |
 |---|---|---|---|
-| `Project Overview` | プロジェクト全体像 | `project/` | — |
+| `Project Overview` | プロジェクト全体像 | `project/` | `_templates/project-overview.md` |
 | `Architecture` | 構造・データフロー・ER 図 | 各層 / `project/` | `_templates/architecture.md` |
 | `Reference` | 一覧・仕様（API / コンポーネント / テーブル） | 各層 | `_templates/reference.md` |
 | `How-To` | 手順書・使用ドキュメント | 各層 `guides/` | `_templates/how-to.md` |
@@ -139,9 +139,11 @@ code_globs:
 
 | できること | コマンド |
 |---|---|
-| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base <比較元SHA>` または `okf affected --paths src/main.js` |
-| コードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
-| コードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
+| コード変更 → 更新すべきドキュメントの特定 | `{{RUNNER}} affected --base <比較元SHA>` または `{{RUNNER}} affected --paths src/main.js` |
+| コードが消えた → 陳腐化の検出 | `{{RUNNER}} stale`（*orphan*） |
+| コードの方が新しい → 内容が古い候補の検出 | `{{RUNNER}} stale`（*outdated*） |
+
+初回コミット前の `{{RUNNER}} affected` は作業ツリーを調べ、`{{RUNNER}} log` は追記をスキップする。`main` がない場合は、実在する比較元のコミット SHA または変更パスを指定する。
 
 ---
 
@@ -218,7 +220,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 > 「Fix」は OKF の慣例に無いため使わない。**不具合修正は `**Update**` に含める。**
 
 5. 粒度は **「1つの意味のある変更 = 1エントリ」**。既定では PR マージ単位（`git log --first-parent`）で生成する
-6. 出典としてコミットハッシュ（と PR 番号）を行末に添える。`okf log` はこれを既出判定に使うため、**削除しない**
+6. 出典としてコミットハッシュ（と PR 番号）を行末に添える。`{{RUNNER}} log` はこれを既出判定に使うため、**削除しない**
 
 ### 例
 
@@ -275,7 +277,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ## 10. lint ルール
 
-`okf lint` が検証する内容。
+`{{RUNNER}} lint` が検証する内容。
 
 | # | ルール | レベル | 根拠 |
 |---|---|---|---|
@@ -304,9 +306,9 @@ L15 が検出した記入例を埋めてから `lint --strict` を実行する�
 ## 11. 閲覧用 HTML
 
 - OKF Bundle の正本は常に `.md`。生成された `.html` を手で編集しない
-- `okf render` は、除外対象を除く全 `.md` を既定の `_site/` 内の `.html` に変換する
+- `{{RUNNER}} render` は、除外対象を除く全 `.md` を既定の `_site/` 内の `.html` に変換する
 - 生成HTML内のBundle内リンクは `.html` に変換するが、元Markdownのリンクは変更しない
 - 共有アセットは出力先の `_assets/` に置く
 - `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` はGit管理外の派生物とする
-- 出力先を変える場合は `okf render --output <出力先>` を使う。既存の出力は自動で移動・削除されない
+- 出力先を変える場合は `{{RUNNER}} render --output <出力先>` を使う。既存の出力は自動で移動・削除されない
 - hookからのHTML生成はローカルコマンドだけで完結させ、モデル継続を指示する終了コード2や `decision: block` を返さない

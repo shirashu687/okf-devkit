@@ -15,41 +15,59 @@ ACTOR_RE = re.compile(r"^(?:human:\S+|process:\S+|[^\s/]+/[^\s/]+)$")
 # 文末記号。`.` `!` `?` は後ろが空白 or 行末のときだけ文末とみなす（`v1.0` 対策）
 SENTENCE_END_RE = re.compile(r"[。！？]|[.!?](?=\s|$)")
 PLACEHOLDER_RE = re.compile(r"<[^<>\r\n]+>")
-FENCE_RE = re.compile(r"^ {0,3}(\x60{3,}|~{3,})(.*)$")
-INLINE_CODE_RE = re.compile(r"(\x60+).*?\1")
 
 
 @lru_cache(maxsize=1)
-def _template_placeholders() -> set[str]:
+def _markdown_parser():
+    try:
+        from markdown_it import MarkdownIt
+    except ImportError:
+        # Source-only runs without site-packages still support the metadata checks.
+        return None
+    return MarkdownIt("commonmark", {"html": False})
+
+
+@lru_cache(maxsize=1)
+def _template_placeholders() -> tuple[set[str], set[str]]:
     templates = Path(__file__).resolve().parents[1] / "scaffold" / "templates"
-    return {
-        token
-        for path in templates.glob("*.md")
-        if path.name != "log.md"
-        for token in PLACEHOLDER_RE.findall(read_text(path))
-    }
+    frontmatter, body = set(), set()
+    for path in templates.glob("*.md"):
+        if path.name != "log.md":
+            head, _, text = read_text(path).partition("\n---\n")
+            frontmatter.update(PLACEHOLDER_RE.findall(head))
+            body.update(PLACEHOLDER_RE.findall(text))
+    return frontmatter, body
 
 
 def _remaining_placeholders(doc: Doc):
-    tokens = _template_placeholders()
+    frontmatter, body_tokens = _template_placeholders()
     body = doc.body.split("\n")
     lines = doc.text.split("\n")
     body_start = len(lines) - len(body)
-    fence = ""
-    for number, line in enumerate(lines, 1):
-        if number > body_start:
-            marker = FENCE_RE.match(line)
-            if fence:
-                if marker and marker[1].startswith(fence) and not marker[2].strip():
-                    fence = ""
-                continue
-            if marker:
-                fence = marker[1]
-                continue
-            line = INLINE_CODE_RE.sub("", line)
-        token = next((value for value in PLACEHOLDER_RE.findall(line) if value in tokens), None)
+    for number, line in enumerate(lines[:body_start], 1):
+        token = next((value for value in PLACEHOLDER_RE.findall(line) if value in frontmatter), None)
         if token:
             yield number, token
+    if not body_tokens.intersection(PLACEHOLDER_RE.findall(doc.body)):
+        return
+    markdown = _markdown_parser()
+    if markdown is None:
+        return
+    found = {}
+    for block in markdown.parse(doc.body):
+        if block.type != "inline" or block.map is None:
+            continue
+        index = block.map[0]
+        for inline in block.children or []:
+            if inline.type in ("softbreak", "hardbreak"):
+                index += 1
+            if inline.type != "text" or index >= len(body):
+                continue
+            token = next((value for value in PLACEHOLDER_RE.findall(inline.content)
+                          if value in body_tokens and value in body[index]), None)
+            if token:
+                found.setdefault(body_start + index + 1, token)
+    yield from found.items()
 
 
 class Finding:

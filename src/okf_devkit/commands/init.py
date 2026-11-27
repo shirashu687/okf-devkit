@@ -140,19 +140,13 @@ def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | No
     def expand(text: str) -> str:
         return re.sub(r"\{\{([A-Z_]+)\}\}", lambda m: tokens.get(m[1], m[0]), text)
 
-    def with_runner(text: str) -> str:
-        return re.sub(
-            r"\bokf (?=(?:init|index|lint|render|affected|stale|log|sync|new|status)\b|<command>)",
-            lambda _m: runner + " ", text,
-        )
-
     emit(CONFIG_FILENAME, (_render_okf_yml(bundle_root, site_name, layers, scaffold_reader=scaffold_reader) if config_renderer is None else config_renderer(bundle_root, site_name, layers)))
-    emit(f"{bundle_root}/AGENTS.md", expand(with_runner(scaffold_reader("AGENTS.md.tmpl"))))
-    emit(f"{bundle_root}/CONVENTIONS.md", expand(with_runner(scaffold_reader("CONVENTIONS.md.tmpl"))))
+    emit(f"{bundle_root}/AGENTS.md", expand(scaffold_reader("AGENTS.md.tmpl")))
+    emit(f"{bundle_root}/CONVENTIONS.md", expand(scaffold_reader("CONVENTIONS.md.tmpl")))
 
     layer_example = " | ".join([name for name, _glob, _dir in layers] + ["shared"])
     for tmpl in sorted((scaffold_dir / "templates").glob("*.md")):
-        text = scaffold_reader(f"templates/{tmpl.name}").replace(
+        text = expand(scaffold_reader(f"templates/{tmpl.name}")).replace(
             "layer: <client | server | batch | shared>", f"layer: <{layer_example}>",
         )
         emit(f"{bundle_root}/_templates/{tmpl.name}", text)
@@ -168,10 +162,10 @@ def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | No
     emit(".gitignore", ignore, preserve="ignore")
 
     def empty_log(layer_name: str) -> str:
-        return with_runner(
+        return (
             f"# 変更履歴 — {layer_name}\n"
             "\n"
-            "<!-- `okf log --write` が git 履歴からここに追記する。"
+            f"<!-- `{runner} log --write` が git 履歴からここに追記する。"
             "書式は /CONVENTIONS.md §7 を参照。 -->\n"
         )
 

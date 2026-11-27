@@ -107,28 +107,37 @@ $releaseManifest
 
 manifest の repository は `shirashu687/okf-devkit`、tag は `v0.1.0`、version は `0.1.0`、commit は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。tgz の名前・実ファイルサイズ・SHA-256 が manifest に一致することを確認する。v0.1.0 の tgz の SHA-256 は `b32e09ddacd885da8bf1e8c84d1fde5dd9411169b92c388f5271db5552ddf080`。tgz と manifest の両方を `SHA256SUMS` に照合する。POSIX では `sha256sum -c SHA256SUMS` が使える。
 
-照合後、導入先のルートで既存のパッケージマネージャーの行を実行する。URL を lockfile に記録すると他の端末でも同じ固定配布物を参照できる。
+照合した tgz を導入先からアクセスできる共有可能な位置に置く。次は導入先ルートの `vendor/okf-devkit-0.1.0.tgz` をそのまま使う例で、既存のパッケージマネージャーの行を実行する。
 
 ```bash
 # npm
-npm install --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+npm install --save-dev --save-exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
 # pnpm
-pnpm add --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+pnpm add --save-dev --save-exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
 # Yarn Classic (1.x)
-yarn add --dev --exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+yarn add --dev --exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
 # Yarn 4
-yarn add --dev --exact --mode=skip-build "okf-devkit@https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+yarn add --dev --exact --mode=skip-build "okf-devkit@file:./vendor/okf-devkit-0.1.0.tgz"
 ```
 
 既存の lockfile からの再導入には npm の `npm ci --ignore-scripts`、pnpm の `pnpm install --frozen-lockfile --ignore-scripts`、Yarn 1 の `yarn install --frozen-lockfile --ignore-scripts`、Yarn 4 の `yarn install --immutable --mode=skip-build` を使う。既存プロジェクトで別途必要な build は導入と分ける。Yarn 4 のオプションは [Yarn の CLI リファレンス](https://yarnpkg.com/cli/install) を参照する。
 
+固定 HTTPS URL を lockfile に記録する運用では同じ Release URL を引数にできる。Yarn 4 では `okf-devkit@https://…` の形にする。公開版の導入と再導入は npm 11.9、pnpm 11.25、Yarn 1.22、Yarn 4.9 で確認した。
+
 ### 開発版の Git SHA と Python 版
 
-Node のソース導入は完全40桁 SHA に固定する。以下の HTTPS 指定は Windows の検証環境で実測した開発コミット。lockfile の resolved は SSH 形式になったため、SSH 認証を使わない環境での再導入も利用先で確認する。
+Node の開発版は確認済みの完全40桁 SHA を HTTPS で取得し、作成した tgz を利用先へ導入できる。次は SSH 認証を使わずに確認した例。`okf-devkit-source` は導入先とは別の新規ディレクトリ。
 
-```powershell
-npm.cmd install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#195252d3354acece9c72c987a9f0ab6559db6aa3"
+```bash
+git init okf-devkit-source
+git -C okf-devkit-source fetch --depth 1 https://github.com/shirashu687/okf-devkit.git 195252d3354acece9c72c987a9f0ab6559db6aa3
+git -C okf-devkit-source switch --detach FETCH_HEAD
+git -C okf-devkit-source rev-parse HEAD
+cd okf-devkit-source
+npm pack --ignore-scripts
 ```
+
+出力された SHA と指定値を照合し、tgz と SHA-256 を記録する。導入先では上記と同じパッケージマネージャーの tgz 手順を使う。
 
 Python 3.11 以上では選んだ仮想環境で `python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"`、または同じ SHA の clone で `python -m pip install -e .` を使う。
 
@@ -164,6 +173,7 @@ globalの場合もbin shim/対象packageを解決してNode版であることを
 ## 5. 初期化とAI設定を別に扱う
 
 インストールだけでは `init` やAI設定変更を実行しない。初期化の依頼がある場合、レイヤー/ソースglob/生成先を調べ、生成するファイルを確認して実行する。
+`--layer NAME=GLOB[:DIR]` の層名は英小文字・数字で始め、以降は英小文字・数字・`-`・`_` を使える。`shared` は予約済みで層名は重複できない。実ディレクトリが camelCase なら `appclient=src/appClient/**:appClient` のように `DIR` を指定できる。
 
 ```powershell
 # app と src/** は対象repoへ合わせる
@@ -188,6 +198,7 @@ AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製�
 ## OKF 文書を扱うとき
 
 - [文書の作業ガイド](docs/AGENTS.md) と [執筆規約](docs/CONVENTIONS.md) を読む。
+- [日常操作ガイド](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) と導入済み CLI の help で手順を確認する。
 - リポジトリルートから `node node_modules/okf-devkit/node/cli.mjs` を実行する。
 - 索引を更新するときは `index --write`、規約を確認するときは `lint` をその起動表記に続ける。
 ```

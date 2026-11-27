@@ -226,6 +226,7 @@ test("both CLIs select hooks, render the chosen runner and compare scaffold read
       "--layer", "app=src/**:appClient", ...selected], {runtime}));
     assert.match(output, /pnpm run okf index --write/);
     assert.match(fs.readFileSync(path.join(root, "knowledge/AGENTS.md"), "utf8"), /pnpm run okf lint/);
+    assert.match(fs.readFileSync(path.join(root, "knowledge/_templates/log.md"), "utf8"), /pnpm run okf log --write/);
     assert.match(fs.readFileSync(path.join(root, "knowledge/_templates/reference.md"), "utf8"), /layer: <app \| shared>/);
     assert.match(fs.readFileSync(path.join(root, ".gitignore"), "utf8"), /^\/node_modules\/$/m);
     const claude = JSON.parse(fs.readFileSync(path.join(root, ".claude/settings.json"), "utf8"));
@@ -246,6 +247,17 @@ test("both CLIs select hooks, render the chosen runner and compare scaffold read
     assert.match(doctor, /knowledge\/log\.html/);
     assert.deepEqual(snapshot(root, "knowledge"), before);
     assert.equal(fs.existsSync(path.join(root, ".codex/hooks.json")), false);
+    const config = path.join(root, "okf.yml");
+    fs.writeFileSync(config, fs.readFileSync(config, "utf8").replace(/^    app:.*\/log\.md$/m, "    app: appClient/history.md"));
+    fs.renameSync(path.join(root, "knowledge/appClient/log.md"), path.join(root, "knowledge/appClient/history.md"));
+    const relocated = ok(run(root, ["upgrade", "--check", ...selected], {runtime}));
+    assert.match(relocated, /一致: knowledge\/appClient\/history\.md/);
+    assert.doesNotMatch(relocated, /追加候補: knowledge\/appClient\/log\.md/);
+    fs.writeFileSync(config, "layers: 123\n");
+    const invalid = run(root, ["doctor"], {runtime});
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stdout, /設定 \/ layer_map: 要確認/);
+    assert.match(invalid.stdout, /hook claude .*登録あり/);
 
     const disabled = temp(t);
     ok(run(disabled, ["init", "--agent", "none"], {runtime}));
@@ -273,6 +285,8 @@ test("both CLIs handle forwarded options and optional index updates", (t) => {
     assert.equal(run(root, ["new", "doc", "--", "--", "--title", "Bad"], {runtime}).status, 2);
     assert.equal(run(root, ["new", "doc", "--title", "--"], {runtime}).status, 2);
     assert.match(ok(run(root, ["affected", "--", "--paths", "src/app.ts"], {runtime})), /docs\/api\/nested\/api\.md/);
+    assert.match(ok(run(root, ["affected", "--", "--root", root, "--config", path.join(root, "okf.yml"), "--paths", "src/app.ts"], {runtime})),
+      /docs\/api\/nested\/api\.md/);
     put(root, "docs/api/index.md", "# Broken\n\n<!-- okf:auto:start -->\n");
     const partial = run(root, ["new", "backlog", "--title", "Recovery", "--index"], {runtime});
     assert.equal(partial.status, 1);
@@ -295,7 +309,9 @@ test("both CLIs prune code glob directories and flag only known placeholders", (
     put(root, "docs/api/explicit.md", document().replace("src/**", "src/app/dist/**"));
     put(root, "docs/api/broad.md", document());
     put(root, "docs/api/known.md", document().replace("description: One sentence.", "description: <一文で何の一覧かを説明する。>"));
-    put(root, "docs/api/examples.md", document("", "# Example\n\n<https://example.com> <div>HTML</div> `<path>`\n\n~~~md\n<一文で何の一覧かを説明する。>\n~~~\n").replace("src/**", "src/app/dist/**"));
+    const examples = "# Example\n\n<https://example.com> <div>HTML</div> `<path>`\n\n" +
+      "> ~~~md\n> <カテゴリ名>\n> ~~~\n\n`multiline\n<カテゴリ名>`\n";
+    put(root, "docs/api/examples.md", document("", examples).replace("src/**", "src/app/dist/**"));
     ok(run(root, ["index", "--write"], {runtime}));
     const result = run(root, ["lint", "--strict"], {runtime});
     assert.equal(result.status, 1);

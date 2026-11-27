@@ -5,6 +5,10 @@
   "worklog": "harness/state/journal/ready-agent-adjustments.md",
   "changes": [
     {
+      "path": "pyproject.toml",
+      "reason": "既存の Markdown パーサを lint から使うことを依存の説明に記載"
+    },
+    {
       "path": "tests/node/compatibility.test.mjs",
       "reason": "両 CLI の初期化・診断・文書作成・索引・検査の共通契約を確認"
     },

@@ -20,6 +20,7 @@ code_globs:
   - src/okf_devkit/commands/render.py
   - src/okf_devkit/commands/sync.py
   - src/okf_devkit/commands/init.py
+  - src/okf_devkit/commands/setup_checks.py
   - tests/test_commands_b.py
   - src/okf_devkit/commands/index.py
   - src/okf_devkit/commands/log.py
@@ -46,7 +47,7 @@ related:
 
 引数解析は `parser.py`、旧CLIの互換adapterは `compat.py` に置く。`cli.py` は project root の解決、旧APIの状態と公開入口、コマンドの dispatch を保持し、各コマンドの処理は `commands/` が持つ。
 
-第4段階時点の記録: Gitを使うlog/stale/affectedとsync gateの実処理は第4段階で `gitutil.py` に分離した。canonical関数はプロジェクトrootを明示して呼び、文書rootとは区別する。既存CLI adapterによるroot指定・エラー文・終了値・NUL特殊パス解析は保持し、残るコマンド本体の移動は後続段階で行う。 第5b段階で全10コマンドを分離済みとなり、統合後のcliは568行だった。第6段階ではparser/compatを分離し、現在のcliは98行である。
+Git を使う log、stale、affected と sync gate の実処理は段階的に `gitutil.py` へ分離した。canonical 関数にはプロジェクト root を明示し、文書 root を別に扱う。
 内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
 
 

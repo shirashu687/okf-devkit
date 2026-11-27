@@ -26,12 +26,17 @@ function reportHook(root, name, file) {
 
 export function cmdDoctor(root, config) {
   console.log("CLI: okf-devkit " + packageVersion() + " (Node.js)");
-  console.log("CLI 実体: " + fileURLToPath(new URL("../../node/cli.mjs", import.meta.url)));
+  const entry = process.argv[1] || fileURLToPath(new URL("./cli.mjs", import.meta.url));
+  console.log("CLI 実体: " + fs.realpathSync(entry));
   console.log("導入元: 不明");
   let bundle;
   let failed = false;
   try {
-    bundle = new Bundle(root, config);
+    const candidate = new Bundle(root, config);
+    if (!Array.isArray(candidate.layers) ||
+        candidate.layers.some((name) => typeof name !== "string" || !name.trim()))
+      throw new OkfError("layers は空でない層名のリストで指定してください");
+    bundle = candidate;
     console.log("設定: 読み込み成功");
     if (!Array.isArray(bundle.cfg.layer_map))
       throw new OkfError("layer_map はリストで指定してください");
@@ -78,13 +83,16 @@ function normalizeScaffold(text) {
 }
 
 export function cmdUpgrade(bundle, args) {
+  const logFiles = new Map([["log.md", bundle.logPath("shared")]]);
   const layers = bundle.layers.filter((name) => name !== "shared").map((name) => ({
     name,
     glob: bundle.cfg.layer_map?.find((entry) => entry.layer === name)?.glob || "**",
     dir: bundle.cfg.layer_dirs?.[name] || name,
   }));
+  for (const layer of layers) logFiles.set(layer.dir + "/log.md", bundle.logPath(layer.name));
+  const bundleRoot = rel(bundle.root, bundle.repo);
   const { plan } = scaffoldPlan(bundle.repo, {
-    bundleRoot: rel(bundle.root, bundle.repo),
+    bundleRoot,
     siteName: bundle.siteName,
     agent: args.agent,
     runner: args.runner,
@@ -92,6 +100,10 @@ export function cmdUpgrade(bundle, args) {
   const counts = { "一致": 0, "追加候補": 0, "差分あり（手動確認）": 0, "比較不能（手動確認）": 0 };
   for (let [file, expected] of plan) {
     if (file === "okf.yml") file = rel(bundle.configPath, bundle.repo);
+    else if (file.startsWith(bundleRoot + "/")) {
+      const logFile = logFiles.get(file.slice(bundleRoot.length + 1));
+      if (logFile) file = rel(logFile, bundle.repo);
+    }
     const target = path.join(bundle.repo, file);
     let status;
     try {

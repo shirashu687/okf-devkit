@@ -68,7 +68,7 @@ const helpPages = {
       ["--layer LAYER", "対象の層を限定する", false],
       ["--dry-run", "書き込まずに内容を表示する", false],
     ],
-    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf log --dry-run",
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf log --dry-run\n初回コミット前は履歴の追記をスキップします。",
     kinds: [],
   },
   "lint": {
@@ -96,7 +96,7 @@ const helpPages = {
       ["--base BASE", "比較対象のコミット SHA またはブランチ（既定: main）", false],
       ["--paths PATHS ...", "変更パスを直接指定する", false],
     ],
-    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf affected --base <比較元のコミットSHA> / okf affected --paths src/main.js",
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf affected --base <比較元のコミットSHA> / okf affected --paths src/main.js\n初回コミット前は作業ツリーだけを調べます。main がなければ実在する基準または変更パスを指定します。",
     kinds: [],
   },
   "new backlog": {

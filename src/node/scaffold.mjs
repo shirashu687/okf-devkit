@@ -167,8 +167,6 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
   };
   const expand = (text) =>
     text.replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => tokens[k] ?? m);
-  const withRunner = (text) =>
-    text.replace(/\bokf (?=(?:init|index|lint|render|affected|stale|log|sync|new|status)\b|<command>)/g, () => runner + " ");
   const plan = [
     [
       "okf.yml",
@@ -177,13 +175,13 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
         (m, k) => config[k] ?? m,
       ),
     ],
-    [`${bundle}/AGENTS.md`, expand(withRunner(scaffold("AGENTS.md.tmpl")))],
-    [`${bundle}/CONVENTIONS.md`, withRunner(expand(scaffold("CONVENTIONS.md.tmpl")))],
+    [`${bundle}/AGENTS.md`, expand(scaffold("AGENTS.md.tmpl"))],
+    [`${bundle}/CONVENTIONS.md`, expand(scaffold("CONVENTIONS.md.tmpl"))],
   ];
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/templates"))
     .sort(compare))
-    plan.push([`${bundle}/_templates/${file}`, scaffold(`templates/${file}`).replace(
+    plan.push([`${bundle}/_templates/${file}`, expand(scaffold(`templates/${file}`)).replace(
       "layer: <client | server | batch | shared>",
       () => "layer: <" + tokens.LAYER_EXAMPLE + ">",
     )]);
@@ -203,7 +201,7 @@ export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
   const ignore = "/_site/\n/.okf/render-backups/\n" + (hasNodeDeps ? "/node_modules/\n" : "");
   plan.push([".gitignore", ignore, "ignore"]);
   const emptyLog = (name) =>
-    withRunner(`# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`);
+    `# 変更履歴 — ${name}\n\n<!-- \`${runner} log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
   for (const l of layers)
     plan.push([`${bundle}/${l.dir}/log.md`, emptyLog(l.name)]);
   plan.push([`${bundle}/log.md`, emptyLog("shared")]);

@@ -48,13 +48,14 @@ test("Node alone initializes, indexes, lints, creates docs, reports and renders"
     noPython = { env: { PATH: "" } };
   ok(run(root, ["init", "--layer", "api=src/**"], noPython));
   put(root, "src/main.js", "export const n = 1;");
-  ok(
+  const backlog = ok(
     run(
       root,
       ["new", "backlog", "--title", "Node support", "--slug", "node-support"],
       noPython,
     ),
-  );
+  ).trim();
+  put(root, backlog, fs.readFileSync(path.join(root, backlog), "utf8").replace(/<[^<>\n]+>/g, "Fixture content"));
   ok(
     run(
       root,

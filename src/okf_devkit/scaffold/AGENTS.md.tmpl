@@ -14,7 +14,7 @@ related:
 
 # {{BUNDLE_ROOT}}/ での作業
 
-利用先リポジトリの指示に従い、このバンドルの執筆規約 [CONVENTIONS.md](/CONVENTIONS.md) を読む。外部の harness は不要。コマンドの詳細は導入済みの `okf <command> --help` を使う。
+利用先リポジトリの指示に従い、このバンドルの執筆規約 [CONVENTIONS.md](/CONVENTIONS.md) を読む。外部の harness は不要。コマンドの詳細は導入済みの `{{RUNNER}} <command> --help` を使う。
 
 案内の起動表記は `{{RUNNER}}`。プロジェクトルートから、実際に導入した CLI を使う。node_modules を使う Node 版は `node node_modules/okf-devkit/node/cli.mjs`、Python 版は導入した環境の `python -m okf_devkit.cli` でも起動できる。
 
@@ -22,21 +22,21 @@ related:
 
 | 目的 | 操作 |
 |---|---|
-| コード変更後 | `okf affected --base <変更前の固定SHA>` で対象を調べ、本文を更新して `okf sync` の各診断を確認 |
-| 文書を新規作成 | `okf new doc --layer shared --type Reference --title "<title>" --code-globs "<実コードのパス>"` で雛形を作り、本文を補完して `okf index --write` → `okf lint` |
-| 書き込まずに点検 | `okf lint`、`okf index --check`、`okf stale`、`okf render --check` |
-| 閲覧 | `okf render` は `_site/` に HTML を生成。必要なら `okf render --open` |
-| backlog を使う場合 | `okf new backlog --title "<title>"` で雛形を作り、本文を補完。`okf status` で集計 |
+| コード変更後 | `{{RUNNER}} affected --base <変更前の固定SHA>` で対象を調べ、本文を更新して `{{RUNNER}} sync` の各診断を確認 |
+| 文書を新規作成 | `{{RUNNER}} new doc --layer shared --type Reference --title "<title>" --code-globs "<実コードのパス>"` で雛形を作り、本文を補完して `{{RUNNER}} index --write` → `{{RUNNER}} lint` |
+| 書き込まずに点検 | `{{RUNNER}} lint`、`{{RUNNER}} index --check`、`{{RUNNER}} stale`、`{{RUNNER}} render --check` |
+| 閲覧 | `{{RUNNER}} render` は `_site/` に HTML を生成。必要なら `{{RUNNER}} render --open` |
+| backlog を使う場合 | `{{RUNNER}} new backlog --title "<title>"` で雛形を作り、本文を補完。`{{RUNNER}} status` で集計 |
 
 `affected` の対象に加えて未カバーのパス、`code_globs` のない文書、バンドル外も確認する。出力ゼロや `generated.at` の更新だけで本文が最新とは判断しない。
 
-初回コミット前の `affected` は作業ツリーの変更を対象にし、`log` は追記をスキップする。`main` がない場合は比較元の実在する SHA を `okf affected --base <比較元SHA>` に渡す。対象パスが分かる場合は `okf affected --paths src/main.js` のように直接指定できる。
+初回コミット前の `affected` は作業ツリーの変更を対象にし、`log` は追記をスキップする。`main` がない場合は比較元の実在する SHA を `{{RUNNER}} affected --base <比較元SHA>` に渡す。対象パスが分かる場合は `{{RUNNER}} affected --paths src/main.js` のように直接指定できる。
 
-`sync` は目次と、設定された層の履歴を書き込む。引数なしで初期化した場合 `log.layers` は空で、履歴の自動追記は行われない。必要ならコミット後に `okf log --layer shared --dry-run` で内容を確認し、`okf log --layer shared --write` で記録する。既存の手書き履歴には `log.baseline` が必要になる場合がある。log はコミット済みの変更だけを対象とし、失敗時も警告して継続することがある。各診断とスキップを確認する。`stale` の指摘や `sync --gate` の再検出は exit 0 でも残り得る。
+`sync` は目次と、設定された層の履歴を書き込む。引数なしで初期化した場合 `log.layers` は空で、履歴の自動追記は行われない。必要ならコミット後に `{{RUNNER}} log --layer shared --dry-run` で内容を確認し、`{{RUNNER}} log --layer shared --write` で記録する。既存の手書き履歴には `log.baseline` が必要になる場合がある。log はコミット済みの変更だけを対象とし、失敗時も警告して継続することがある。各診断とスキップを確認する。`stale` の指摘や `sync --gate` の再検出は exit 0 でも残り得る。
 
 新規文書の本文・根拠コード・必要なrelatedを補完し、CONVENTIONS.mdの型・語彙を守る。課題の受付先は利用先規約を優先する。backlogを採用している場合だけ元Markdownのstateを更新し、受け入れ完了時にdoneとdone_atを記入する。HTMLの状態表示は読み取り専用。
 エラー、logスキップ、未知ファイル、未カバー影響、ユーザー編集との競合は対象と未完了を報告して調整する。initは日常更新に使わず、既存をスキップする。`init --force` は多くの生成物を置換するので更新用に使わない。エージェント設定と `.gitignore` はforceでも保持する。
-詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `okf <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
+詳細は [upstreamのコマンド仕様](https://github.com/shirashu687/okf-devkit/blob/main/docs/cli/commands.md) と [日常操作](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) を必要時に読む。導入済み版とupstream mainの差を確認し、ローカル `{{RUNNER}} <command> --help` を照合する。この参照先は利用先のローカル文書ではなく、開発者向けharnessをコピーする必要もない。
 
 ## 書式と生成物
 
@@ -45,4 +45,4 @@ related:
 - `render --check` は生成可能性を読み取り確認し、既存 HTML との差分比較はしない。`render --hook` は HTML に書き込む。
 - `_site/`、`.okf-render-manifest.json`、`.okf/render-backups/` は Git 管理外にする。旧出力の整理には `render --cleanup-from` の `--check` で計画を確認し、未知・編集済みファイルを保護する。通常の render / hook では整理しない。
 
-コードを持たない文書専用リポジトリは、引数なしの `okf init` で `shared` 層だけを使える。`log.layers: []` では履歴の自動追記は行われない。根拠コードを持たない文書では `Convention` や `Glossary` など、`code_globs` が任意の型を使う。層の追加やツール専用文書の配置は [執筆規約](/CONVENTIONS.md) に従う。
+コードを持たない文書専用リポジトリは、引数なしの `{{RUNNER}} init` で `shared` 層だけを使える。`log.layers: []` では履歴の自動追記は行われない。根拠コードを持たない文書では `Convention` や `Glossary` など、`code_globs` が任意の型を使う。層の追加やツール専用文書の配置は [執筆規約](/CONVENTIONS.md) に従う。

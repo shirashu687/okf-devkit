@@ -8,15 +8,33 @@ from .config import CONFIG_FILENAME
 
 def forwarded_args(argv: list[str]) -> list[str]:
     """pnpm がコマンド引数の先頭に渡す区切りを受け取る。"""
-    index = 0
-    while index < len(argv) and argv[index].split("=", 1)[0] in {"--root", "--config"}:
-        index += 1 if "=" in argv[index] else 2
-    if index >= len(argv) or argv[index].startswith("-"):
+    common_options = {"--root", "--config"}
+    command = 0
+    while command < len(argv) and argv[command].split("=", 1)[0] in common_options:
+        command += 1 if "=" in argv[command] else 2
+    if command >= len(argv) or argv[command].startswith("-"):
         return argv
-    index += 2 if argv[index:index + 2] in (["new", "doc"], ["new", "backlog"]) else 1
-    if index + 1 < len(argv) and argv[index] == "--" and argv[index + 1].startswith("-") and argv[index + 1] != "--":
-        return argv[:index] + argv[index + 1:]
-    return argv
+    boundary = command + (2 if argv[command:command + 2] in (["new", "doc"], ["new", "backlog"]) else 1)
+    if boundary + 1 >= len(argv) or argv[boundary] != "--" or not argv[boundary + 1].startswith("-") or argv[boundary + 1] == "--":
+        return argv
+    common = argv[:command]
+    options = []
+    index = boundary + 1
+    while index < len(argv):
+        option, equals, _ = argv[index].partition("=")
+        if option == "--":
+            options.extend(argv[index:])
+            break
+        if option not in common_options:
+            options.append(argv[index])
+            index += 1
+            continue
+        if not equals and (index + 1 >= len(argv) or argv[index + 1].startswith("--")):
+            return argv
+        width = 1 if equals else 2
+        common.extend(argv[index:index + width])
+        index += width
+    return common + argv[command:boundary] + options
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -123,6 +141,10 @@ def build_parser() -> argparse.ArgumentParser:
     common = ("共通オプション（サブコマンドの前に指定）:\n"
               "  --root DIR     プロジェクトルート\n"
               "  --config FILE  設定ファイルのパス")
+    notes = {
+        "affected": "初回コミット前は作業ツリーだけを調べます。main がなければ実在する基準または変更パスを指定します。",
+        "log": "初回コミット前は履歴の追記をスキップします。",
+    }
 
     def describe(command_parser, command_actions, prefix=""):
         for action in command_actions:
@@ -131,6 +153,8 @@ def build_parser() -> argparse.ArgumentParser:
             child.description = action.help
             child.formatter_class = argparse.RawDescriptionHelpFormatter
             child.epilog = f"{common}\n\n例: {examples[name]}"
+            if name in notes:
+                child.epilog += f"\n{notes[name]}"
             for nested in child._actions:
                 if isinstance(nested, argparse._SubParsersAction):
                     describe(nested, nested._choices_actions, f"{name} ")

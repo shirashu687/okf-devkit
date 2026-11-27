@@ -13,6 +13,7 @@ code_globs:
   - src/okf_devkit/parser.py
   - tests/test_cli_facade.py
   - src/okf_devkit/commands/init.py
+  - src/okf_devkit/commands/setup_checks.py
   - src/okf_devkit/commands/new.py
   - tests/test_commands_b.py
   - src/okf_devkit/gitutil.py
@@ -22,6 +23,7 @@ code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - src/node/scaffold.mjs
+  - src/node/setup-checks.mjs
 related:
   - /cli/commands.md
 ---
