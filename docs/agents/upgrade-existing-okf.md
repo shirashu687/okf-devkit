@@ -68,7 +68,7 @@ OKF 0.3 対応の CLI が動作することを確認し、先に現在の版で�
 
 1. `resource`、`sources[].resource`、`computation`、`executor.resource`、`attester.resource`、`superseded_by` のうちローカルを指す値を確認する。文書からの相対パス、またはバンドルルートからの `/...` 表記に直す。バンドルルートへの旧版の再試行だけで解決している値を優先する。URI、クエリ、フラグメント、出典の範囲を記した説明は意味を保つ。
 2. `generated.at` と `verified[].at` の前後関係を確認し、過去の検証履歴を保存する。信頼表示を上げる目的で履歴や時刻を書き換えない。必要な文書を実際に再確認する。`stale_after` に時刻を書く場合はオフセットを含め、日付だけなら UTC の開始時刻になることを確認する。
-3. ルートの `index.md` の frontmatter に `okf_version: "0.3"` を設定する。任意の `title`、`description`、`license` と拡張キー、手書きの前後文を残す。生成マーカーの中は CLI の索引更新に任せる。導入先が持つ独自の執筆規約と必須チェックも確認する。
+3. ルートの `index.md` の frontmatter に `okf_version: "0.3"` を設定する。任意の `title`、`description`、`license` と拡張キー、手書きの前後文を残す。生成マーカーの中は CLI の索引更新に任せる。導入先が持つ独自の執筆規約と必須チェックも確認する。0.3 でも従来の型・レイヤーなどを検査したい場合は `lint --project` を使い、CI の起動引数も確認する。
 4. 変更前後の diff と検査結果を確認し、固定した CLI の版と仕様変更を記録する。戻す場合は、この更新で触ったパッケージ固定とロックファイル、版宣言、移行対象の個別差分を元に戻す。並行作業の変更を含む一括リセットは避ける。
 
 [上流の OKF 0.3 変更一覧](https://github.com/open-knowledge-format/open-knowledge-format/blob/527e81aff55992be21507e97004286789126f88c/SPEC.md#13-changes-from-v02)
