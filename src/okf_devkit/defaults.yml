@@ -86,6 +86,7 @@ backlog:
 
 # new doc / new backlog が使うテンプレート（バンドルルートからの相対パス）
 templates:
+  Project Overview: _templates/project-overview.md
   Architecture: _templates/architecture.md
   Reference: _templates/reference.md
   How-To: _templates/how-to.md

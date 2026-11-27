@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "d945fc60fd75b8bc71deb5ad79fd1b342799f90b",
+  "worklog": "harness/state/journal/split84-document-creation-and-lint.md",
+  "changes": [
+    {
+      "path": "pyproject.toml",
+      "reason": "既存の Markdown パーサの用途に lint を追加"
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "記入済みの文書と未記入の雛形を対象に検証"
+    },
+    {
+      "path": "tests/test_ai_operations.py",
+      "reason": "既存の読み取り点検を記入済みの文書で検証"
+    },
+    {
+      "path": "tests/test_new.py",
+      "reason": "生成文書の診断と既存の出力形式を検証"
+    }
+  ]
+}

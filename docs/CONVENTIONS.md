@@ -308,6 +308,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | L12 | `Backlog Item` の `state` が語彙内 / `done` なら妥当な `done_at` がある | error | 本規約 |
 | L13 | `index.md` が最新（`index --check` 相当）/ マーカーが破損していない | error | 本規約 |
 | L14 | `sources` は、ある場合のみリスト型・各要素マップ型・非空 `resource` | warn | OKF §5.1 |
+| L15 | 配布雛形の既知の記入例を frontmatter や本文に残さない | warn | 本規約 |
 
 ---
 

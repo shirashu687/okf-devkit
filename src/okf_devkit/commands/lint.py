@@ -1,6 +1,7 @@
 """Document convention findings with bundle-owned resource and index paths."""
 from __future__ import annotations
 import re
+from functools import lru_cache
 from pathlib import Path
 from .. import gitutil
 from ..config import Bundle
@@ -13,6 +14,60 @@ ACTOR_RE = re.compile(r"^(?:human:\S+|process:\S+|[^\s/]+/[^\s/]+)$")
 
 # 文末記号。`.` `!` `?` は後ろが空白 or 行末のときだけ文末とみなす（`v1.0` 対策）
 SENTENCE_END_RE = re.compile(r"[。！？]|[.!?](?=\s|$)")
+PLACEHOLDER_RE = re.compile(r"<[^<>\r\n]+>")
+
+
+@lru_cache(maxsize=1)
+def _markdown_parser():
+    try:
+        from markdown_it import MarkdownIt
+    except ImportError:
+        # Source-only runs without site-packages still support the metadata checks.
+        return None
+    return MarkdownIt("commonmark", {"html": False})
+
+
+@lru_cache(maxsize=1)
+def _template_placeholders() -> tuple[set[str], set[str]]:
+    templates = Path(__file__).resolve().parents[1] / "scaffold" / "templates"
+    frontmatter, body = set(), set()
+    for path in templates.glob("*.md"):
+        if path.name != "log.md":
+            head, _, text = read_text(path).partition("\n---\n")
+            frontmatter.update(PLACEHOLDER_RE.findall(head))
+            body.update(PLACEHOLDER_RE.findall(text))
+    return frontmatter, body
+
+
+def _remaining_placeholders(doc: Doc):
+    frontmatter, body_tokens = _template_placeholders()
+    body = doc.body.split("\n")
+    lines = doc.text.split("\n")
+    body_start = len(lines) - len(body)
+    for number, line in enumerate(lines[:body_start], 1):
+        token = next((value for value in PLACEHOLDER_RE.findall(line) if value in frontmatter), None)
+        if token:
+            yield number, token
+    if not body_tokens.intersection(PLACEHOLDER_RE.findall(doc.body)):
+        return
+    markdown = _markdown_parser()
+    if markdown is None:
+        return
+    found = {}
+    for block in markdown.parse(doc.body):
+        if block.type != "inline" or block.map is None:
+            continue
+        index = block.map[0]
+        for inline in block.children or []:
+            if inline.type in ("softbreak", "hardbreak"):
+                index += 1
+            if inline.type != "text" or index >= len(body):
+                continue
+            token = next((value for value in PLACEHOLDER_RE.findall(inline.content)
+                          if value in body_tokens and value in body[index]), None)
+            if token:
+                found.setdefault(body_start + index + 1, token)
+    yield from found.items()
 
 
 class Finding:
@@ -60,7 +115,7 @@ def trust_level(doc: Doc) -> str:
 
 
 def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver=None, index_renderer=None) -> list[Finding]:
-    """CONVENTIONS.md §10 の L1〜L13 を検証する。"""
+    """CONVENTIONS.md §10 の L1〜L15 を検証する。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
     findings: list[Finding] = []
     add = findings.append
@@ -72,6 +127,9 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             reason = doc.fm_error or "frontmatter がありません"
             add(Finding(path, 1, "error", "L1", f"frontmatter を読めません: {reason}"))
             continue
+
+        for line, token in _remaining_placeholders(doc):
+            add(Finding(path, line, "warn", "L15", f"雛形の記入例が残っています: {token}"))
 
         if not doc.type:
             add(Finding(path, doc.key_line("type"), "error", "L2", "`type` が空です"))

@@ -62,8 +62,8 @@ related:
 | lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |
 | stale | 期日・コード更新・検証状態のレポート | なし。指摘があっても exit 0 |
 | affected | `--base` との差分または `--paths` を文書へ逆引き | なし。対応文書と未カバーのパスを表示 |
-| new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。本文を補完し、`index --write` → `lint` を実行 |
-| new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
+| new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。`--index` を指定した場合は索引も更新 |
+| new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。`--index` を指定した場合は索引も更新 |
 | status | backlog の state を集計 | なし。text/json 出力 |
 | render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 既定は `_site/`。`--output docs` で従来の隣接配置を指定。`--check` / hook 時はブラウザを起動しない |
 | sync | index → log → lint → stale をまとめて実行 | index/log 更新。log失敗は警告で継続し得る。`--gate` は差戻し判定で状態を書き込む |
@@ -79,7 +79,11 @@ related:
 
 ## 新規文書の根拠コードと検査
 
-`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。例えば `okf new doc --layer cli --type Reference --title "コマンド仕様" --code-globs "src/okf_devkit/cli.py" "node/cli.mjs"` と指定する。生成後は本文を補完し、目次を更新してから規約検査を実行する。
+`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。生成後は本文を補完し、目次を更新してから規約検査を実行する。`lint --strict` は残っている記入例も失敗扱いにする。
+
+日本語タイトルでは `--slug` でファイル名を指定できる。`new --index` の索引更新に失敗した場合は、作成済みの Markdown を使い、原因を修正して `index --write` を実行する。既存バンドルに `Project Overview` の雛形がなければ、同梱の `_templates/project-overview.md` を追加する。
+
+パッケージスクリプトが引数列の先頭で渡す区切り `--` は1個まで受け取る。`new doc` / `new backlog` では種類名の直後に置く。オプション列の途中にある区切りや追加の区切りは受け付けない。
 
 ## 出力先と旧生成物の整理
 

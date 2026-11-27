@@ -23,7 +23,7 @@ classifiers = [
   "Topic :: Software Development :: Documentation",
 ]
 
-# markdown-it-py は `render` のみで使うが、既定機能として扱うため必須依存にする。
+# markdown-it-py は HTML 生成と、lint での Markdown コード例の判別に使う。
 # PyYAML は任意（未導入時は内蔵の厳格な簡易パーサへフォールバックする）が、
 # hook / CI で自動書き込みする運用では入れておくことを強く推奨する。
 dependencies = [
