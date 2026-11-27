@@ -1,14 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
+import MarkdownIt from "markdown-it";
 import {
   Doc,
   MarkerError,
+  OkfError,
   codeGlobNoMatch,
   compare,
+  dataDir,
   dateOnly,
   extractDate,
   inside,
   isMap,
+  parseYaml,
   read,
   rel,
   timestamp,
@@ -69,6 +73,68 @@ export function trust(doc) {
       ? "human-reviewed"
       : "machine-confirmed";
 }
+const placeholderPattern = /<[^<>\r\n]+>/g;
+const markdown = new MarkdownIt("commonmark", { html: false });
+let templatePlaceholders;
+function* yamlStrings(value) {
+  if (typeof value === "string") yield value;
+  else if (Array.isArray(value) || isMap(value)) {
+    for (const child of Object.values(value)) yield* yamlStrings(child);
+  }
+}
+function remainingPlaceholders(doc) {
+  if (!templatePlaceholders) {
+    const directory = path.join(dataDir, "scaffold", "templates");
+    templatePlaceholders = { frontmatter: new Set(), body: new Set() };
+    for (const file of fs.readdirSync(directory)) {
+      if (!file.endsWith(".md") || file === "log.md") continue;
+      const text = read(path.join(directory, file));
+      const boundary = text.indexOf("\n---\n");
+      if (boundary < 0) continue;
+      const frontmatter = text.slice(0, boundary);
+      const body = text.slice(boundary + 5);
+      for (const token of frontmatter.match(placeholderPattern) || [])
+        templatePlaceholders.frontmatter.add(token);
+      for (const token of body.match(placeholderPattern) || [])
+        templatePlaceholders.body.add(token);
+    }
+  }
+  const bodyStart = doc.fmLines.length + 2;
+  let prefix = "<okf-placeholder-";
+  while (doc.text.includes(prefix)) prefix = "<x" + prefix.slice(1);
+  const candidates = new Map();
+  // Keep the source location even when a known prompt contains Markdown syntax.
+  const mark = (text, allowed, start) => text.replace(placeholderPattern, (token, offset) => {
+    if (!allowed.has(token)) return token;
+    const marker = prefix + candidates.size + ">";
+    const line = start + text.slice(0, offset).split("\n").length - 1;
+    candidates.set(marker, [line, token]);
+    return marker;
+  });
+  const header = mark(doc.fmLines.join("\n"), templatePlaceholders.frontmatter, 2);
+  const parsedStrings = [];
+  if (candidates.size) {
+    try {
+      parsedStrings.push(...yamlStrings(parseYaml(header)));
+    } catch (error) {
+      if (!(error instanceof OkfError)) throw error;
+      // The original frontmatter was already validated.
+    }
+  }
+  const body = mark(doc.body, templatePlaceholders.body, bodyStart + 1);
+  if (body !== doc.body) {
+    for (const block of markdown.parse(body, {})) {
+      if (block.type !== "inline") continue;
+      for (const inline of block.children)
+        if (inline.type === "text") parsedStrings.push(inline.content);
+    }
+  }
+  const visible = new Set(parsedStrings.flatMap((text) => text.match(placeholderPattern) || []));
+  const remaining = new Map();
+  for (const [marker, [line, token]] of candidates)
+    if (visible.has(marker) && !remaining.has(line)) remaining.set(line, token);
+  return remaining;
+}
 export function runLint(b) {
   const findings = [];
   const add = (doc, key, level, rule, message) =>
@@ -90,6 +156,8 @@ export function runLint(b) {
       );
       continue;
     }
+    for (const [line, token] of remainingPlaceholders(d))
+      add(d, line, "warn", "L15", "雛形の記入例が残っています: " + token);
     if (!d.type) add(d, "type", "error", "L2", "`type` が空です");
     else if (!b.types.includes(d.type))
       add(

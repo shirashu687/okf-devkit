@@ -152,7 +152,8 @@ for (const style of ["relative", "bundle-absolute"])
       "docs/api/old.md",
       document().replace("status: stable", "status: deprecated"),
     );
-    ok(run(root, ["new", "backlog", "--title", "todo item"]));
+    const backlog = ok(run(root, ["new", "backlog", "--title", "todo item"])).trim();
+    put(root, backlog, fs.readFileSync(path.join(root, backlog), "utf8").replace(/<[^<>\n]+>/g, "Fixture content"));
     ok(run(root, ["index", "--write"], { runtime: "python" }));
     const golden = snapshot(root);
     ok(run(root, ["index", "--check"]));
@@ -239,7 +240,39 @@ test("both CLIs select hooks, render the chosen runner", (t) => {
   }
 });
 
-test("both CLIs prune code glob directories", (t) => {
+test("both CLIs handle forwarded options and optional index updates", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    put(root, "src/app.ts", "code\n");
+    put(root, "docs/index.md", "# Root\n\nMaintainer introduction\n");
+    const options = ["--title", "日本語 API", "--layer", "api", "--type", "Project Overview",
+      "--code-globs", "src/app.ts", "--dir", "nested", "--index"];
+    assert.match(run(root, ["new", "doc", "--", ...options], {runtime}).stderr, /--slug/);
+    const newFile = path.join(root, "docs/api/nested/api.md");
+    assert.equal(fs.existsSync(newFile), true);
+    assert.match(fs.readFileSync(path.join(root, "docs/index.md"), "utf8"), /Maintainer introduction/);
+    ok(run(root, ["new", "backlog", "--", "--title", "日本語", "--index"], {runtime}));
+    const halfWidth = run(root, ["new", "backlog", "--", "--title", "ﾃｽﾄ API", "--index"], {runtime});
+    assert.match(ok(halfWidth), /-api\.md/);
+    assert.match(halfWidth.stderr, /--slug/);
+    assert.equal(run(root, ["new", "backlog", "--", "--title", "-h"], {runtime}).status, 2);
+    assert.equal(run(root, ["affected", "--", "--config=", "--paths", "example.py"], {runtime}).status, 2);
+    ok(run(root, ["index", "--check"], {runtime}));
+    assert.equal(run(root, ["new", "doc", "--", "--", "--title", "Bad"], {runtime}).status, 2);
+    assert.equal(run(root, ["new", "doc", "--title", "--"], {runtime}).status, 2);
+    assert.match(ok(run(root, ["affected", "--", "--paths", "src/app.ts"], {runtime})), /docs\/api\/nested\/api\.md/);
+    assert.match(ok(run(root, ["affected", "--", "--root", root, "--config", path.join(root, "okf.yml"), "--paths", "src/app.ts"], {runtime})),
+      /docs\/api\/nested\/api\.md/);
+    put(root, "docs/api/index.md", "# Broken\n\n<!-- okf:auto:start -->\n");
+    const partial = run(root, ["new", "backlog", "--title", "Recovery", "--index"], {runtime});
+    assert.equal(partial.status, 1);
+    assert.match(partial.stderr, /文書は作成済み.*index --write/);
+    assert.equal(fs.existsSync(path.join(root, "docs/backlog/B-0003-recovery.md")), true);
+  }
+});
+
+test("both CLIs prune code glob directories and flag only known placeholders", (t) => {
   for (const runtime of ["python", "node"]) {
     const root = temp(t);
     init(root, runtime);
@@ -255,13 +288,27 @@ test("both CLIs prune code glob directories", (t) => {
     put(root, "docs/api/relative.md", document().replace("src/**", "./src/**"));
     put(root, "docs/api/literal.md", document().replace("src/**", "src/app/local/generated.ts"));
     put(root, "docs/api/invalid-glob.md", document().replace("src/**", "'src/app/[z-a]*'"));
+    put(root, "docs/api/known.md", document().replace("description: One sentence.", "description: <一文で何の一覧かを説明する。>"));
+    const prompt = fs.readFileSync(new URL("../../src/okf_devkit/scaffold/templates/architecture.md", import.meta.url), "utf8")
+      .split("\n").find((line) => line.includes("`Decision Record`"));
+    const prompted = document("", "# Example\n\n`multiline\ncode example`\n" + prompt + "\n")
+      .replace("src/**", "src/app/dist/**");
+    put(root, "docs/api/prompt.md", prompted);
+    put(root, "docs/api/comment.md", document().replace("src/**", "src/app/dist/**")
+      .replace("description: One sentence.", "description: One sentence. # <一文で何の一覧かを説明する。>"));
+    const examples = "# Example\n\n<https://example.com> <div>HTML</div> `<path>`\n\n" +
+      "> ~~~md\n> <カテゴリ名>\n> ~~~\n\n`multiline\n<カテゴリ名>`\n";
+    put(root, "docs/api/examples.md", document("", examples).replace("src/**", "src/app/dist/**"));
     ok(run(root, ["index", "--write"], {runtime}));
     const result = run(root, ["lint", "--strict"], {runtime});
     assert.equal(result.status, 1);
+    assert.match(result.stdout, /docs\/api\/known\.md:\d+ warn L15/);
+    const promptLine = prompted.split("\n").indexOf(prompt) + 1;
+    assert.ok(result.stdout.includes("docs/api/prompt.md:" + promptLine + " warn L15"));
     for (const name of ["broad", "relative", "literal", "invalid-glob"]) {
       assert.match(result.stdout, new RegExp(name + "\\.md:\\d+ warn L10.*走査除外"));
     }
-    assert.doesNotMatch(result.stdout, /docs\/api\/explicit\.md:|docs\/agents\//);
+    assert.doesNotMatch(result.stdout, /docs\/api\/(?:comment|examples|explicit)\.md:|docs\/agents\//);
     assert.equal(fs.existsSync(path.join(root, "docs/agents/index.md")), false);
     fs.writeFileSync(config, fs.readFileSync(config, "utf8")
       .replace("code_glob_exclude: [src/app/local/**]", "code_glob_exclude: ['src/[z-a]*']"));

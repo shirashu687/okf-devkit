@@ -107,7 +107,7 @@ related:
 
 | type | 用途 | 主な置き場所 | テンプレート |
 |---|---|---|---|
-| `Project Overview` | プロジェクト全体像 | `project/` | — |
+| `Project Overview` | プロジェクト全体像 | `project/` | project-overview.md |
 | `Architecture` | 構造・データフロー・ER 図 | 各層 / `project/` | `_templates/architecture.md` |
 | `Reference` | 一覧・仕様（API / コンポーネント / テーブル） | 各層 | `_templates/reference.md` |
 | `How-To` | 手順書・使用ドキュメント | 各層 `guides/` | `_templates/how-to.md` |
@@ -308,6 +308,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | L12 | `Backlog Item` の `state` が語彙内 / `done` なら妥当な `done_at` がある | error | 本規約 |
 | L13 | `index.md` が最新（`index --check` 相当）/ マーカーが破損していない | error | 本規約 |
 | L14 | `sources` は、ある場合のみリスト型・各要素マップ型・非空 `resource` | warn | OKF §5.1 |
+| L15 | 配布雛形の既知の記入例を frontmatter や本文に残さない | warn | 本規約 |
 
 ---
 

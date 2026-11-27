@@ -5,15 +5,52 @@ import argparse
 from .config import CONFIG_FILENAME
 
 
+def forwarded_args(argv: list[str]) -> list[str]:
+    """pnpm がコマンド引数の先頭に渡す区切りを受け取る。"""
+    common_options = {"--root", "--config"}
+    command = 0
+    while command < len(argv) and argv[command].split("=", 1)[0] in common_options:
+        command += 1 if "=" in argv[command] else 2
+    if command >= len(argv) or argv[command].startswith("-"):
+        return argv
+    boundary = command + (2 if argv[command:command + 2] in (["new", "doc"], ["new", "backlog"]) else 1)
+    if boundary + 1 >= len(argv) or argv[boundary] != "--" or not argv[boundary + 1].startswith("-") or argv[boundary + 1] == "--":
+        return argv
+    common = argv[:command]
+    options = []
+    index = boundary + 1
+    while index < len(argv):
+        option, equals, _ = argv[index].partition("=")
+        if option == "--":
+            options.extend(argv[index:])
+            break
+        if option not in common_options:
+            options.append(argv[index])
+            index += 1
+            continue
+        if not equals and (index + 1 >= len(argv) or (argv[index + 1].startswith("--") or argv[index + 1] == "-h")):
+            return argv
+        width = 1 if equals else 2
+        common.extend(argv[index:index + width])
+        index += width
+    return common + argv[command:boundary] + options
+
+
+def _common_option_value(value: str) -> str:
+    if not value:
+        raise argparse.ArgumentTypeError("空の値は指定できません")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="okf", description="OKF v0.2 バンドルを開発リポジトリで運用する CLI"
     )
     parser.add_argument(
-        "--config", help=f"設定ファイルのパス（既定: プロジェクトルートの {CONFIG_FILENAME}）"
+        "--config", type=_common_option_value, help=f"設定ファイルのパス（既定: プロジェクトルートの {CONFIG_FILENAME}）"
     )
     parser.add_argument(
-        "--root", help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
+        "--root", type=_common_option_value, help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -58,6 +95,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_backlog.add_argument("--priority", default="medium", help="設定済みの優先度（既定: medium）")
     p_new_backlog.add_argument("--effort", default="M", help="設定済みの工数（既定: M）")
     p_new_backlog.add_argument("--slug", help="ファイル名の slug（日本語タイトル時に指定する）")
+    p_new_backlog.add_argument("--index", action="store_true", help="作成後に索引も更新する")
 
     p_new_doc = new_sub.add_parser("doc", help="通常ドキュメントを作る")
     p_new_doc.add_argument("--layer", required=True, help="設定済みのレイヤー")
@@ -66,6 +104,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_doc.add_argument("--dir", help="層ディレクトリ配下のサブディレクトリ")
     p_new_doc.add_argument("--code-globs", nargs="+", help="根拠コードのパス/glob（複数可、コード由来の型では必須）")
     p_new_doc.add_argument("--slug", help="ファイル名の slug")
+    p_new_doc.add_argument("--index", action="store_true", help="作成後に索引も更新する")
 
     p_status = sub.add_parser("status", help="backlog の集計")
     p_status.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")

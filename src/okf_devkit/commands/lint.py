@@ -1,11 +1,12 @@
 """Document convention findings with bundle-owned resource and index paths."""
 from __future__ import annotations
 import re
+from functools import lru_cache
 from pathlib import Path
-from .. import gitutil
+from .. import gitutil, yamlio
 from ..config import Bundle
 from ..doc import Doc
-from ..errors import MarkerError
+from ..errors import MarkerError, OkfError
 from ..fsutil import is_iso_date, parse_datetime, read_text, rel_posix
 from . import index as _index
 
@@ -13,6 +14,80 @@ ACTOR_RE = re.compile(r"^(?:human:\S+|process:\S+|[^\s/]+/[^\s/]+)$")
 
 # 文末記号。`.` `!` `?` は後ろが空白 or 行末のときだけ文末とみなす（`v1.0` 対策）
 SENTENCE_END_RE = re.compile(r"[。！？]|[.!?](?=\s|$)")
+PLACEHOLDER_RE = re.compile(r"<[^<>\r\n]+>")
+
+
+@lru_cache(maxsize=1)
+def _markdown_parser():
+    try:
+        from markdown_it import MarkdownIt
+    except ImportError:
+        # Source-only runs without site-packages still support the metadata checks.
+        return None
+    return MarkdownIt("commonmark", {"html": False})
+
+
+@lru_cache(maxsize=1)
+def _template_placeholders() -> tuple[set[str], set[str]]:
+    templates = Path(__file__).resolve().parents[1] / "scaffold" / "templates"
+    frontmatter, body = set(), set()
+    for path in templates.glob("*.md"):
+        if path.name != "log.md":
+            head, _, text = read_text(path).partition("\n---\n")
+            frontmatter.update(PLACEHOLDER_RE.findall(head))
+            body.update(PLACEHOLDER_RE.findall(text))
+    return frontmatter, body
+
+
+def _yaml_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, (dict, list)):
+        for child in value.values() if isinstance(value, dict) else value:
+            yield from _yaml_strings(child)
+
+
+def _remaining_placeholders(doc: Doc):
+    frontmatter, body_tokens = _template_placeholders()
+    body_start = doc.text.count("\n") - doc.body.count("\n")
+    prefix = "<okf-placeholder-"
+    while prefix in doc.text:
+        prefix = "<x" + prefix[1:]
+    candidates = {}
+
+    # Keep the source location even when a known prompt contains Markdown syntax.
+    def mark(text, allowed, start):
+        def replace(match):
+            token = match.group()
+            if token not in allowed:
+                return token
+            marker = f"{prefix}{len(candidates)}>"
+            candidates[marker] = (start + text.count("\n", 0, match.start()), token)
+            return marker
+        return PLACEHOLDER_RE.sub(replace, text)
+
+    header = mark("\n".join(doc.text.split("\n")[1:body_start - 1]), frontmatter, 2)
+    parsed_strings = []
+    if candidates:
+        try:
+            parsed_strings = list(_yaml_strings(yamlio.parse_yaml(header)))
+        except OkfError:
+            # A marker can change unusual explicit YAML syntax. The original was already validated.
+            pass
+    body = mark(doc.body, body_tokens, body_start + 1)
+    if body != doc.body and (markdown := _markdown_parser()) is not None:
+        parsed_strings.extend(
+            inline.content
+            for block in markdown.parse(body) if block.type == "inline"
+            for inline in block.children or [] if inline.type == "text"
+        )
+
+    visible = {token for text in parsed_strings for token in PLACEHOLDER_RE.findall(text)}
+    found = {}
+    for marker, (line, token) in candidates.items():
+        if marker in visible:
+            found.setdefault(line, token)
+    yield from found.items()
 
 
 class Finding:
@@ -60,7 +135,7 @@ def trust_level(doc: Doc) -> str:
 
 
 def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver=None, index_renderer=None) -> list[Finding]:
-    """CONVENTIONS.md §10 の L1〜L13 を検証する。"""
+    """CONVENTIONS.md §10 の L1〜L15 を検証する。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
     findings: list[Finding] = []
     add = findings.append
@@ -72,6 +147,9 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             reason = doc.fm_error or "frontmatter がありません"
             add(Finding(path, 1, "error", "L1", f"frontmatter を読めません: {reason}"))
             continue
+
+        for line, token in _remaining_placeholders(doc):
+            add(Finding(path, line, "warn", "L15", f"雛形の記入例が残っています: {token}"))
 
         if not doc.type:
             add(Finding(path, doc.key_line("type"), "error", "L2", "`type` が空です"))

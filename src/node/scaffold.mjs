@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { cmdIndex } from "./index.mjs";
 import {
   Doc,
   OkfError,
@@ -264,7 +265,10 @@ export function cmdNew(b, args) {
   const template = b.cfg.templates[type];
   if (!template)
     throw new OkfError(`type '${type}' に対応するテンプレートがありません`);
-  let text = read(path.resolve(b.root, template));
+  const templatePath = path.resolve(b.root, template);
+  if (!fs.existsSync(templatePath))
+    throw new OkfError("テンプレートがありません: " + template + "。配布テンプレートをバンドルに追加してください");
+  let text = read(templatePath);
   const slug = args.slug ? validSlug(args.slug) : slugify(args.title);
   let dir, filename;
   if (backlog) {
@@ -321,6 +325,17 @@ export function cmdNew(b, args) {
     throw new OkfError(`既に存在します: ${rel(out, b.repo)}`);
   write(out, text);
   console.log(rel(out, b.repo));
+  if (!args.slug && /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(args.title))
+    console.error("題名の日本語は自動 slug に入りません。ファイル名を指定するには --slug を使ってください。");
+  if (args.index) {
+    try {
+      if (!cmdIndex(b, { write: true, quiet: true })) return 0;
+    } catch (e) {
+      console.error(e.message);
+    }
+    console.error("文書は作成済みです。索引の問題を解消してから okf index --write を実行してください。");
+    return 1;
+  }
   return 0;
 }
 export function cmdStatus(b, args) {

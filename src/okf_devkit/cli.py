@@ -52,7 +52,9 @@ def resolve_root(args) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     global REPO_ROOT, _PATH_TIME_MAP
-    args = build_parser().parse_args(argv)
+    if argv is None:
+        argv = sys.argv[1:]
+    args = build_parser().parse_args(parser.forwarded_args(argv))
     gate = args.command == "sync" and getattr(args, "gate", False)
     try:
         REPO_ROOT = resolve_root(args)

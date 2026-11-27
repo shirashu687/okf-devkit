@@ -24,7 +24,7 @@ const commands = {
   lint: "strict!",
   stale: "format",
   affected: "base paths+",
-  new: "title layer type dir slug priority effort code-globs+",
+  new: "title layer type dir slug priority effort code-globs+ index!",
   status: "format",
   render: "output cleanup-from check! hook! open!",
   sync: "gate! session-id",
@@ -105,6 +105,7 @@ const helpPages = {
       ["--priority PRIORITY", "設定済みの優先度（既定: medium）", false],
       ["--effort EFFORT", "設定済みの工数（既定: M）", false],
       ["--slug SLUG", "ファイル名の slug（日本語タイトル時に指定する）", false],
+      ["--index", "作成後に索引も更新する", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf new backlog --title \"Follow-up\"",
     kinds: [],
@@ -119,6 +120,7 @@ const helpPages = {
       ["--dir DIR", "層ディレクトリ配下のサブディレクトリ", false],
       ["--code-globs CODE_GLOBS ...", "根拠コードのパス/glob（複数可、コード由来の型では必須）", false],
       ["--slug SLUG", "ファイル名の slug", false],
+      ["--index", "作成後に索引も更新する", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf new doc --layer shared --type \"Reference\" --title \"Guide\" --code-globs \"src/**\"",
     kinds: [],
@@ -194,13 +196,24 @@ const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 function parse(argv) {
   const args = {},
     rest = [...argv];
+  // Consume the package-manager delimiter only at the command's option boundary.
+  let commandAt = 0;
+  while (/^--(?:root|config)(?:=|$)/.test(rest[commandAt] ?? ""))
+    commandAt += rest[commandAt].includes("=") ? 1 : 2;
+  const kindAt = commandAt + 1;
+  const boundary = rest[commandAt] === "new" && ["doc", "backlog"].includes(rest[kindAt])
+    ? kindAt + 1
+    : kindAt;
+  if (Object.hasOwn(commands, rest[commandAt]) && rest[boundary] === "--" &&
+      rest[boundary + 1]?.startsWith("-") && rest[boundary + 1] !== "--")
+    rest.splice(boundary, 1);
   // Root/config work before or after the subcommand, including `new doc`.
   for (let i = 0; i < rest.length; i++)
     for (const key of ["root", "config"])
       if (rest[i] === `--${key}` || rest[i]?.startsWith(`--${key}=`)) {
         const eq = rest[i].indexOf("=");
         const value = eq < 0 ? rest[i + 1] : rest[i].slice(eq + 1);
-        if (!value || value.startsWith("--"))
+        if (!value || value.startsWith("--") || (eq < 0 && value === "-h"))
           throw new OkfError(`--${key} に値が必要です`);
         args[key] = value;
         rest.splice(i, eq < 0 ? 2 : 1);
@@ -209,7 +222,7 @@ function parse(argv) {
   args.command = rest.shift();
   if (!args.command || ["--help", "-h"].includes(args.command))
     return { ...args, help: true };
-  if (!(args.command in commands))
+  if (!Object.hasOwn(commands, args.command))
     throw new OkfError(`未知のコマンド: ${args.command}`);
   if (args.command === "new") {
     if (["--help", "-h"].includes(rest[0])) return { ...args, help: true };
@@ -237,7 +250,7 @@ function parse(argv) {
     }
     const values = match[2] !== undefined ? [match[2]] : [];
     if (!values.length) {
-      while (i + 1 < rest.length && !rest[i + 1].startsWith("--")) {
+      while (i + 1 < rest.length && !rest[i + 1].startsWith("--") && rest[i + 1] !== "-h") {
         values.push(rest[++i]);
         if (mode !== "+") break;
       }
