@@ -85,6 +85,7 @@ Python版やglobal版の `okf` がある場合、解決されたパス・起動�
 
 非Node repoにmanifestがなければ、プロジェクトに合わせたprivateなpackage.json案と配置を提示する。例えば承認済みの独立repoルートなら `{"private":true}` が出発点になる。
 既存workspaceのルート/メンバーとlockfileの位置を確認し、勝手な `npm init -y` やネストした別lockfileを作らない。npm以外が管理している場合は利用者の方式に合わせ、下記npmコマンドを機械的に実行しない。
+依存を導入する前に `node_modules/` を使う構成では Git の除外を確認する。新規の単独リポジトリであればルートの `.gitignore` に `/node_modules/` を追加できる。
 
 ## 3. 取得とインストール
 
@@ -172,6 +173,7 @@ globalの場合もbin shim/対象packageを解決してNode版であることを
 ## 5. 初期化とAI設定を別に扱う
 
 インストールだけでは `init` やAI設定変更を実行しない。初期化の依頼がある場合、レイヤー/ソースglob/生成先を調べ、生成するファイルを確認して実行する。
+`--layer NAME=GLOB[:DIR]` の層名は英小文字・数字で始め、以降は英小文字・数字・`-`・`_` を使える。`shared` は予約済みで層名は重複できない。実ディレクトリが camelCase なら `appclient=src/appClient/**:appClient` のように `DIR` を指定できる。
 
 ```powershell
 # app と src/** は対象repoへ合わせる
@@ -182,7 +184,7 @@ node node_modules/okf-devkit/node/cli.mjs index --check
 node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
-新しいソースの `init` は、エージェントのプロジェクト設定が未作成なら終了hookも登録する。既存ファイルはスキップし、`--force` は多くの生成物を置換するが、エージェント設定と `.gitignore` は保持する。上記の固定SHA版はこの自動登録を含まない。どちらも管理部分だけを更新する仕組みではない。
+`init --help` に `--agent` がある版では `--agent codex` のように新規登録するエージェントを選べる。全対応製品を対象にする既定と、登録を省く `--agent none` がある。`--runner "node node_modules/okf-devkit/node/cli.mjs"` は、対応版で生成ガイドを実際の起動表記に揃える。公開済み v0.1.0 のオプションは同版の help で確認する。
 既存 `okf.yml`、文書、hookやAI入口は、保存した変更前内容と差分を取り、所有範囲が分かる部分だけを更新する。利用者の編集があれば調整し、競合時は止める。`init --force` を更新手段にしない。
 AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製品別対応と信頼を確認し、repo内の承認済み箇所だけを扱う。global hookは変更しない。
 インストール版の選択だけでhookの実行版は決まらない。ローカル/主worktree/Python/開発checkoutの探索順と実配置を確認し、選んだNode版へ到達することを検証する。実AIイベント未検証ならその限界を報告する。

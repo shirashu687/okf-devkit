@@ -212,6 +212,33 @@ test("L1-L14 finding rules, severity, locations and exit codes agree", (t) => {
   assert.equal(js.stdout, py.stdout);
 });
 
+test("both CLIs select hooks, render the chosen runner", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    git(root, "init", "-q");
+    put(root, "package.json", '{"private":true}\n');
+    put(root, "node_modules/fixture/index.js", "fixture\n");
+    put(root, "src/app.ts", "fixture\n");
+    const selected = ["--agent", "claude,codex", "--runner", "pnpm run okf"];
+    const output = ok(run(root, ["init", "--bundle-root", "knowledge", "--site-name", "Example",
+      "--layer", "app=src/**:appClient", ...selected], {runtime}));
+    assert.match(output, /pnpm run okf index --write/);
+    assert.match(fs.readFileSync(path.join(root, "knowledge/AGENTS.md"), "utf8"), /pnpm run okf lint/);
+    assert.match(fs.readFileSync(path.join(root, "knowledge/_templates/log.md"), "utf8"), /pnpm run okf log --write/);
+    assert.match(fs.readFileSync(path.join(root, "knowledge/_templates/reference.md"), "utf8"), /layer: <app \| shared>/);
+    assert.match(fs.readFileSync(path.join(root, ".gitignore"), "utf8"), /^\/node_modules\/$/m);
+    const claude = JSON.parse(fs.readFileSync(path.join(root, ".claude/settings.json"), "utf8"));
+    assert.equal(claude.hooks.Stop[0].hooks[0].shell, process.platform === "win32" ? "powershell" : "bash");
+    assert.equal(fs.existsSync(path.join(root, ".github/hooks/okf-render.json")), false);
+
+    const disabled = temp(t);
+    ok(run(disabled, ["init", "--agent", "none"], {runtime}));
+    assert.equal(fs.existsSync(path.join(disabled, ".okf/hooks/render_hook.sh")), true);
+    assert.equal(fs.existsSync(path.join(disabled, ".okf/hooks/agent_stop.sh")), false);
+    assert.equal(fs.existsSync(path.join(disabled, ".claude/settings.json")), false);
+  }
+});
+
 test("both CLIs prune code glob directories", (t) => {
   for (const runtime of ["python", "node"]) {
     const root = temp(t);
@@ -221,7 +248,8 @@ test("both CLIs prune code glob directories", (t) => {
     put(root, "src/app/local/generated.ts", "code\n");
     fs.symlinkSync(path.join(root, "src", "app"), path.join(root, "src", "app", "cycle"), "junction");
     const config = path.join(root, "okf.yml");
-    fs.appendFileSync(config, "\ncode_glob_exclude: [src/app/local/**]\n");
+    fs.appendFileSync(config, "\ncode_glob_exclude: [src/app/local/**]\nexclude: [agents, agents/**]\n");
+    put(root, "docs/agents/tool.md", "# Tool config without frontmatter\n");
     put(root, "docs/api/explicit.md", document().replace("src/**", "src/app/dist/**"));
     put(root, "docs/api/broad.md", document());
     put(root, "docs/api/relative.md", document().replace("src/**", "./src/**"));
@@ -233,7 +261,8 @@ test("both CLIs prune code glob directories", (t) => {
     for (const name of ["broad", "relative", "literal", "invalid-glob"]) {
       assert.match(result.stdout, new RegExp(name + "\\.md:\\d+ warn L10.*走査除外"));
     }
-    assert.doesNotMatch(result.stdout, /docs\/api\/explicit\.md:/);
+    assert.doesNotMatch(result.stdout, /docs\/api\/explicit\.md:|docs\/agents\//);
+    assert.equal(fs.existsSync(path.join(root, "docs/agents/index.md")), false);
     fs.writeFileSync(config, fs.readFileSync(config, "utf8")
       .replace("code_glob_exclude: [src/app/local/**]", "code_glob_exclude: ['src/[z-a]*']"));
     const invalid = run(root, ["lint"], {runtime});
@@ -346,5 +375,20 @@ test("command help has Python/Node option and purpose parity without writes", (t
     assert.ok(js.includes(purpose), command.join(" "));
     if (command.length) assert.match(js, /例:/);
     assert.deepEqual(capture(), before);
+  }
+});
+
+test("both CLIs preserve YAML-sensitive layer names and directories", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    ok(run(root, ["init", "--layer", "on=src/**:appClient", "--layer", "0x1=lib/**:libCode"], {runtime}));
+    const config = YAML.parse(fs.readFileSync(path.join(root, "okf.yml"), "utf8"), { version: "1.1" });
+    assert.deepEqual(config.log.layers, ["on", "0x1"]);
+    for (const [layer, dir] of [["on", "appClient"], ["0x1", "libCode"]]) {
+      assert.equal(config.log.paths[layer], dir + "/log.md");
+      const relative = ok(run(root, ["new", "doc", "--layer", layer, "--type", "Glossary", "--title", "Example"], {runtime})).trim();
+      assert.equal(relative, "docs/" + dir + "/example.md");
+      assert.match(fs.readFileSync(path.join(root, relative), "utf8"), new RegExp('^layer: "' + layer + '"$', "m"));
+    }
   }
 });

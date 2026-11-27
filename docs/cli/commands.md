@@ -56,7 +56,7 @@ related:
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|
-| init | バンドル、設定、テンプレート、エージェントhook を初期配置 | 既存ファイルは通常スキップ。エージェント設定と `.gitignore` は `--force` でも保持 |
+| init | バンドル、設定、テンプレートを初期配置。`--agent` で hook を選び、`--runner` で案内の起動表記を選ぶ | 既存ファイルは通常スキップ。エージェント設定と `.gitignore` は `--force` でも保持 |
 | index | frontmatter から各階層の目次を計画 | `--write`。`--check` は差分があれば exit 1 |
 | log | Git のコミットを層別履歴へ変換 | `--write`。`--range` / `--layer` で範囲を限定 |
 | lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |

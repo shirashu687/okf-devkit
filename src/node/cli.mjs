@@ -18,7 +18,7 @@ import { cmdInit, cmdNew, cmdStatus } from "./scaffold.mjs";
 import { cmdRender } from "./renderer.mjs";
 
 const commands = {
-  init: "bundle-root site-name layer* force!",
+  init: "bundle-root site-name layer* force! agent runner",
   index: "write! check! quiet!",
   log: "write! range layer dry-run!",
   lint: "strict!",
@@ -37,7 +37,9 @@ const helpPages = {
       ["-h, --help", "show this help message and exit", false],
       ["--bundle-root BUNDLE_ROOT", "バンドルのルート（既定: docs）", false],
       ["--site-name SITE_NAME", "ドキュメントの表示名（既定: ルートのディレクトリ名）", false],
-      ["--layer NAME=GLOB[:DIR]", "層とコード配置の対応（例: client=src/client/**）。複数指定可", false],
+      ["--layer NAME=GLOB[:DIR]", "層とコード配置の対応（例: appclient=src/appClient/**:appClient）。層名は英小文字・数字で始まり - _ も使用可。shared は予約名、重複不可", false],
+      ["--agent AGENTS", "hook の対象（claude,codex,copilot / all / none。既定: all）", false],
+      ["--runner COMMAND", "生成する案内で使う CLI の起動表記（既定: okf）", false],
       ["--force", "既存ファイルを上書きする（エージェント設定と .gitignore は保持）", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf init --site-name MyProject",

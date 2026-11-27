@@ -4,7 +4,7 @@ title: <決定の内容（例: セットリストを公演単位の客観デー�
 description: <一文で何を決めたかを書く。>
 tags: [decision, <layer>]
 status: stable
-layer: <client | server | batch | shared>
+layer: <{{LAYER_EXAMPLE}}>
 generated:
   by: claude-code/opus-5
   at: <YYYY-MM-DDTHH:MM:SSZ>

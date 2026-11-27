@@ -22,8 +22,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_init.add_argument("--site-name", help="ドキュメントの表示名（既定: ルートのディレクトリ名）")
     p_init.add_argument(
         "--layer", action="append", metavar="NAME=GLOB[:DIR]",
-        help="層とコード配置の対応（例: client=src/client/**）。複数指定可",
+        help="層とコード配置の対応（例: appclient=src/appClient/**:appClient）。層名は英小文字・数字で始まり - _ も使用可。shared は予約名、重複不可",
     )
+    p_init.add_argument("--agent", metavar="AGENTS", help="hook の対象（claude,codex,copilot / all / none。既定: all）")
+    p_init.add_argument("--runner", metavar="COMMAND", help="生成する案内で使う CLI の起動表記（既定: okf）")
     p_init.add_argument("--force", action="store_true", help="既存ファイルを上書きする（エージェント設定と .gitignore は保持）")
 
     p_index = sub.add_parser("index", help="index.md を再生成する")

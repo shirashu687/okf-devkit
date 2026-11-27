@@ -30,17 +30,17 @@ related:
 
 ## 初回導入と既存設定
 
-initは `.okf/hooks/render_hook.sh` / `.ps1` と、終了イベント用の `.okf/hooks/agent_stop.sh` / `.ps1` を配置する。設定ファイルがまだない場合は以下も生成する。設定の読み込み・信頼やエージェントの再起動は各製品の手順に従う。
+init は `.okf/hooks/render_hook.sh` / `.ps1` を配置する。対応版では `--agent claude,codex` や `--agent none` で対象を選べる。既定は全対応エージェント。選択したエージェント向けに終了イベント用の `.okf/hooks/agent_stop.sh` / `.ps1` と、未作成の設定ファイルを追加する。設定の読み込み・信頼や再起動は各製品の手順に従う。
 
 | エージェント | プロジェクト設定 | イベント |
 | --- | --- | --- |
-| Claude Code | `.claude/settings.json` | `Stop`（bash と Git が必要） |
+| Claude Code | `.claude/settings.json` | `Stop`（初期化時の OS に応じて Bash または PowerShell） |
 | Codex | `.codex/hooks.json` | `Stop`（Windows は PowerShell） |
 | Copilot | `.github/hooks/okf-render.json` | `agentStop` |
 
 上記の設定ファイルが存在する場合は、`init --force` でも上書き・自動マージせず、対象パスを表示する。既存ファイルに別のhookや設定がある場合は、以下の構造を既存の `hooks` オブジェクトに追加する。既存のイベント配列がある場合はその配列へ要素を追加し、同じ `hooks` キーを二重に作らない。実際に使うエージェントだけ設定する。
 
-Claude Code の `Stop` 配列へ追加する要素:
+Claude Code の `Stop` 配列へ追加する要素。macOS / Linux では Bash と Git を使う。
 
 ```json
 {
@@ -49,6 +49,22 @@ Claude Code の `Stop` 配列へ追加する要素:
       "type": "command",
       "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
       "shell": "bash",
+      "timeout": 30,
+      "statusMessage": "OKFドキュメントのHTMLを生成中"
+    }
+  ]
+}
+```
+
+Windows では PowerShell と Git を使う。既存設定の `Stop` 配列には次の要素を追加する。
+
+```json
+{
+  "hooks": [
+    {
+      "type": "command",
+      "command": "try { $ErrorActionPreference = 'Stop'; $root = git rev-parse --show-toplevel 2>$null; if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'git root unavailable' }; & (Join-Path $root '.okf/hooks/agent_stop.ps1'); if ($LASTEXITCODE -ne 0) { throw 'hook failed' } } catch { [Console]::Error.WriteLine('okf-devkit: hook unavailable'); [Console]::Out.WriteLine('{}'); exit 0 }",
+      "shell": "powershell",
       "timeout": 30,
       "statusMessage": "OKFドキュメントのHTMLを生成中"
     }
@@ -85,7 +101,7 @@ Copilot の `agentStop` 配列へ追加する要素（ファイルに `"version"
 
 initは `.github/hooks/` の別ファイルや、他エージェントの設定内容を解釈・削除しない。同じ処理の登録が既にある場合や、エージェントが複数形式の設定を読み込む場合は重複して実行され得る。CopilotはClaude互換設定も読む場合があり、Codex互換設定を含む他の読み込み形式も利用する製品版の対応を確認する。必要に応じて使わない登録を手動で外す。
 
-`.gitignore` がない場合は `/_site/` と `/.okf/render-backups/` の除外を生成する。既存の `.gitignore` は `--force` でも変更しないので、除外がない場合は利用者が追記する。hookはHTMLを自動生成するため、既存設定では初回実行前に `git check-ignore _site/index.html` などで確認する。登録できない場合は下記の手動コマンドを使う。
+`.gitignore` がない場合は `/_site/` と `/.okf/render-backups/` の除外を生成する。ルートに `package.json` と `node_modules/` が揃う場合は `/node_modules/` も指定する。既存の `.gitignore` は `--force` でも保持する。hook の利用前に `git check-ignore _site/index.html` などで確認する。
 
 ## 共通処理と終了イベント用アダプター
 
@@ -111,7 +127,7 @@ powershell -NoProfile -File .okf/hooks/render_hook.ps1
 
 | ツール・環境 | リポジトリ設定 | 利用条件・未検証範囲 |
 | --- | --- | --- |
-| Claude Code CLI | `.claude/settings.json` の `Stop` | 既存のbash設定を維持。GitとPOSIX shellが必要。実Stopイベント未検証。 |
+| Claude Code CLI | `.claude/settings.json` の `Stop` | Windows の新規生成は `shell: powershell`、macOS/Linux は `shell: bash`。既存設定は保持する。異なる OS で同じ設定を共有する場合は利用先のシェルに合わせる。実 Stop イベント未検証。 |
 | GitHub Copilot CLI | `.github/hooks/okf-render.json` のversion 1 `agentStop` | 起動時に設定を読み込む。bash / PowerShellを環境に合わせて使用。実agentStop未検証。ローカルCLI 1.0.25のversion表示のみ確認。 |
 | Copilot cloud agent | 同じ `.github/hooks/okf-render.json` | 対象ブランチにファイルが存在し、Linuxでbash/Git/生成runtimeが利用できること。PowerShell設定は無視される。実クラウドjob未検証。 |
 | VS Code Copilot Local | 同じCopilot互換ファイル | PreviewのLocal実装が互換形式をマッピングする。信頼済みworkspaceと `chat.useHooks` が前提。二重のnative設定は追加しない。実Localイベント未検証。 |
@@ -136,4 +152,5 @@ hookが未対応・無効・未信頼なら、作業終了前に上の手動コ�
 - [Copilot CLIでhookを使う](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks): リポジトリ内の設定と起動時読込み。
 - [VS Code hooks](https://code.visualstudio.com/docs/agent-customization/hooks) と [Local hooks reference](https://code.visualstudio.com/docs/agents/reference/hooks-reference): Preview、互換形式、workspaceの信頼、LocalとAgent Hostの違い。
 - [Codex hooks](https://developers.openai.com/codex/hooks): repo設定、Stop、OS別コマンド、hookの信頼。
+- [Claude Code hooks reference](https://code.claude.com/docs/en/hooks): command hook のシェル指定。
 - [Codex advanced configuration](https://developers.openai.com/codex/config-advanced) と [configuration reference](https://developers.openai.com/codex/config-reference): notifyの形式とproject設定での制限。
