@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "7d5b1d8cd015f3b823ce19526dfb23a82e0ce34b",
+  "worklog": "harness/state/journal/ready-agent-adjustments.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "両 CLI の初期化・診断・文書作成・索引・検査の共通契約を確認"
+    },
+    {
+      "path": "tests/node/native.test.mjs",
+      "reason": "根拠コードの必須検査を保持し、未完成の雛形を strict lint が指摘することを確認"
+    },
+    {
+      "path": "tests/test_ai_operations.py",
+      "reason": "既存の読み取り専用テストで記入済み Backlog 文書を用意"
+    },
+    {
+      "path": "tests/test_new.py",
+      "reason": "文書作成後の記入例を警告し、既存の生成条件と H1 を保つことを確認"
+    }
+  ]
+}

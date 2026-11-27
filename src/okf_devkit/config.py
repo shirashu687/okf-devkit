@@ -60,6 +60,11 @@ class Bundle:
             )
         cfg = load_merged_config(cfg_path, defaults_path=defaults_path)
         self.cfg = cfg
+        self.code_glob_exclude = cfg.get("code_glob_exclude", [])
+        if not isinstance(self.code_glob_exclude, list) or any(
+            not isinstance(rule, str) or not rule.strip() for rule in self.code_glob_exclude
+        ):
+            raise OkfError("code_glob_exclude は空でない glob 文字列のリストで指定してください")
         self.config_path = cfg_path
         self.root = (self.repo_root / str(cfg.get("bundle_root", "docs"))).resolve()
         self.exclude = list(cfg.get("exclude") or [])

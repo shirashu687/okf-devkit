@@ -57,7 +57,7 @@ related:
 
 ## 配布状況と導入経路
 
-この文書のRelease経路は別途承認された公開後に使う。v0.1.0はタグ用workflow全10jobと3assetの検証済みDraftがあるが、現在未公開。公開済みPreReleaseの取得・実利用者への導入は未実施。機能・移行事項は [公開予定ノート](/project/releases/v0.1.0.md)、配布担当の工程は [公開手順](/agents/release-node.md) を参照する。公開前は確認済み完全Git SHAのソース経路を選ぶ。
+[v0.1.0](https://github.com/shirashu687/okf-devkit/releases/tag/v0.1.0) は公開済みプレリリース。通常は固定 HTTPS URL の tgz を使い、導入する機能と制約は [リリースノート](/project/releases/v0.1.0.md) で確認する。開発版を試す場合は完全 Git SHA に固定する。配布担当の工程は [公開手順](/agents/release-node.md) を参照する。
 既存v0.1.0の検証済みtgzはタグ対象12cdb44の固定バイトで、同梱READMEには修正前のPyPI例と古い公開状態の説明が残る。今回のリポジトリ文書修正はそのassetへ反映されないため、現在のこの導入ガイドを参照する。タグの移動、再pack、既存assetの差替えで案内を更新しない。
 配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
 
@@ -85,26 +85,16 @@ Python版やglobal版の `okf` がある場合、解決されたパス・起動�
 
 非Node repoにmanifestがなければ、プロジェクトに合わせたprivateなpackage.json案と配置を提示する。例えば承認済みの独立repoルートなら `{"private":true}` が出発点になる。
 既存workspaceのルート/メンバーとlockfileの位置を確認し、勝手な `npm init -y` やネストした別lockfileを作らない。npm以外が管理している場合は利用者の方式に合わせ、下記npmコマンドを機械的に実行しない。
+依存を導入する前に `node_modules/` を使う構成では Git の除外を確認する。新規の単独リポジトリであればルートの `.gitignore` に `/node_modules/` を追加できる。
 
 ## 3. 取得とインストール
 
-Git経路は利用者が選び、現物のコミットが存在する完全40桁SHAへ固定する。ブランチ名や `latest` を固定版と呼ばない。
-現在のv0.1.0タグ対象は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。ソース導入でこの版を選ぶ場合はnpmのGit URLへこのSHAを指定する。下の195252dは以前の導入実測の履歴であり、現在のタグ対象と混同しない。今回、最新SHAのconsumer導入成功は主張しない。
-以下は導入を実測した現行baseline（版0.1.0）の完全SHA。新しい版を依頼された場合は、その版の確認済みSHAへ置き換える。
+### 公開済み tgz
+
+GitHub Release の版・asset 名・URL と SHA-256 を確認する。v0.1.0 では以下の3ファイルを取得できる。
 
 ```powershell
-npm.cmd install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#195252d3354acece9c72c987a9f0ab6559db6aa3"
-```
-
-このSHAはWindowsの検証環境で初回導入後にnode_modulesを除去し、別の空cacheから `npm ci --ignore-scripts` で再導入できた。Git global設定を空にし、system設定・URL書換え・SSH agent/鍵/パスワード・対話認証を無効にした条件でlockfileのバイト保持とCLIのstrict lint/renderを確認した。
-lockfileのresolvedはSSH形式へ正規化されたが、内部transportの詳細は観測していない。全OS・全npm版の再現やHTTPSへの内部fallbackは保証せず、導入先でresolvedと実際の再導入を確認する。globalなGit URL書換えや認証変更で回避しない。Release公開後は確認済みの固定HTTPS asset URLを標準とする。
-
-公開済みRelease経路ではGitHubの実在するReleaseから版・asset名・取得URLとSHA-256を読み、ダウンロードしたtgzを照合する。privateの場合は既存の認可された取得経路を使い、URLや記録へtokenを埋め込まない。失敗時は認証/接続を依頼し、repoを公開しない。
-
-このrepoは現在publicであるが、Draft assetは公開前のため通常の匿名取得経路には出ない。公開Releaseとrepoの可視性は別条件で、private repoのReleaseを公開してもrepoの認可は必要である。以下は**公開後に使う予定URLと未実行例**。現在は404となるため、実在する公開Releaseの確認前にダウンロード成功とは扱わない。
-
-```powershell
-# 公開後のみ、新しい空の取得ディレクトリで実行
+# 新しい空の取得ディレクトリで実行
 $assetBase = "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0"
 foreach ($assetName in @("okf-devkit-0.1.0.tgz", "release-manifest.json", "SHA256SUMS")) {
     Invoke-WebRequest "$assetBase/$assetName" -OutFile $assetName
@@ -115,9 +105,32 @@ Get-Content SHA256SUMS
 $releaseManifest
 ```
 
-manifestのrepositoryが`shirashu687/okf-devkit`、tag=`v0.1.0`、version=`0.1.0`、commit=`12cdb44c2876b50bd7337a5ea20f7744a27d7802`と一致するか照合する。filesが期待するtgz1件のみで、名前・実ファイルサイズ・SHA-256が一致することを確認する。計算したtgzとmanifestのhashをSHA256SUMSの対応する両行へ照合し、欠落・余分なasset・不一致なら停止する。公開後の実取得/hash確認はまだ実行していない。
+manifest の repository は `shirashu687/okf-devkit`、tag は `v0.1.0`、version は `0.1.0`、commit は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。tgz の名前・実ファイルサイズ・SHA-256 が manifest に一致することを確認する。v0.1.0 の tgz の SHA-256 は `b32e09ddacd885da8bf1e8c84d1fde5dd9411169b92c388f5271db5552ddf080`。tgz と manifest の両方を `SHA256SUMS` に照合する。POSIX では `sha256sum -c SHA256SUMS` が使える。
 
-Python版は選んだ仮想環境で`python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"`、または同じSHAのcloneで`python -m pip install -e .`を使う。Python3.11以上、Gitと依存取得が必要。本体のPyPI公開とPython wheel/sdist assetはないため、`pip install okf-devkit`を取得手順としない。
+照合後、導入先のルートで既存のパッケージマネージャーの行を実行する。URL を lockfile に記録すると他の端末でも同じ固定配布物を参照できる。
+
+```bash
+# npm
+npm install --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+# pnpm
+pnpm add --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+# Yarn Classic (1.x)
+yarn add --dev --exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+# Yarn 4
+yarn add --dev --exact --mode=skip-build "okf-devkit@https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+```
+
+既存の lockfile からの再導入には npm の `npm ci --ignore-scripts`、pnpm の `pnpm install --frozen-lockfile --ignore-scripts`、Yarn 1 の `yarn install --frozen-lockfile --ignore-scripts`、Yarn 4 の `yarn install --immutable --mode=skip-build` を使う。既存プロジェクトで別途必要な build は導入と分ける。Yarn 4 のオプションは [Yarn の CLI リファレンス](https://yarnpkg.com/cli/install) を参照する。
+
+### 開発版の Git SHA と Python 版
+
+Node のソース導入は完全40桁 SHA に固定する。以下の HTTPS 指定は Windows の検証環境で実測した開発コミット。lockfile の resolved は SSH 形式になったため、SSH 認証を使わない環境での再導入も利用先で確認する。
+
+```powershell
+npm.cmd install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#195252d3354acece9c72c987a9f0ab6559db6aa3"
+```
+
+Python 3.11 以上では選んだ仮想環境で `python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"`、または同じ SHA の clone で `python -m pip install -e .` を使う。
 
 ```powershell
 # 取得済みファイルの確認。EXPECTED_SHA256との一致を確認してからインストール
@@ -134,7 +147,7 @@ globalを明示選択した場合は、同じ確認済みtgzに `npm.cmd install
 
 ## 4. CLIの実体と動作を検証する
 
-ローカル版はrepoルートから実ファイルを明示する。現行CLIの `--version` に依存せず、インストール済みmanifestで版を確認する。
+`node_modules` を使うローカル版はリポジトリルートから実ファイルを明示する。`--version` に対応する版は実行中の版を確認できる。v0.1.0 プレリリースは同梱 manifest の版を読む。
 
 ```powershell
 node -p "JSON.parse(require('node:fs').readFileSync('node_modules/okf-devkit/package.json','utf8')).version"
@@ -143,6 +156,8 @@ node node_modules/okf-devkit/node/cli.mjs --help
 
 選んだSHA/tgzの由来をlockfileと照合する。package.jsonの版文字列だけでGitコミットを証明しない。
 workspace等で配置が異なる場合は実際のインストール先を解決して同じCLIファイルを呼ぶ。
+Yarn 4 の Plug'n'Play では `yarn run -B okf --help` で導入済みバイナリを起動し、同じ接頭辞で `init` や `lint` を実行する。hook が利用する `node_modules` ベースの探索とは別経路なので、実際の hook の起動先を確認する。
+起動スクリプトを使う場合は、npm は `npm run okf -- index --check`、pnpm は `pnpm run okf index --check` のように引数を渡す。
 `npx okf` / `npm exec -- okf` は未導入時に別パッケージを取得し得るため、導入確認前の検証には使わない。
 globalの場合もbin shim/対象packageを解決してNode版であることを確認する。
 
@@ -159,16 +174,30 @@ node node_modules/okf-devkit/node/cli.mjs index --check
 node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
-新しいソースの `init` は、エージェントのプロジェクト設定が未作成なら終了hookも登録する。既存ファイルはスキップし、`--force` は多くの生成物を置換するが、エージェント設定と `.gitignore` は保持する。上記の固定SHA版はこの自動登録を含まない。どちらも管理部分だけを更新する仕組みではない。
+`init --help` に `--agent` がある版では `--agent codex` のように新規登録するエージェントを選べる。全対応製品を対象にする既定と、登録を省く `--agent none` がある。`--runner "node node_modules/okf-devkit/node/cli.mjs"` は、対応版で生成ガイドを実際の起動表記に揃える。公開済み v0.1.0 のオプションは同版の help で確認する。
 既存 `okf.yml`、文書、hookやAI入口は、保存した変更前内容と差分を取り、所有範囲が分かる部分だけを更新する。利用者の編集があれば調整し、競合時は止める。`init --force` を更新手段にしない。
 AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製品別対応と信頼を確認し、repo内の承認済み箇所だけを扱う。global hookは変更しない。
 インストール版の選択だけでhookの実行版は決まらない。ローカル/主worktree/Python/開発checkoutの探索順と実配置を確認し、選んだNode版へ到達することを検証する。実AIイベント未検証ならその限界を報告する。
 生成物のignoreも差分で確認する。HTMLの保存・旧出力整理は [cleanup手順](/render/output-cleanup.md) の別操作とする。
 
+### リポジトリ側の AI 入口に貼る文案
+
+既存の `AGENTS.md` または `CLAUDE.md` に、配置と起動方法を合わせて追記できる。下の例は `docs/` と `node_modules/` を使う Node 版を想定している。
+
+```markdown
+## OKF 文書を扱うとき
+
+- [文書の作業ガイド](docs/AGENTS.md) と [執筆規約](docs/CONVENTIONS.md) を読む。
+- リポジトリルートから `node node_modules/okf-devkit/node/cli.mjs` を実行する。
+- 索引を更新するときは `index --write`、規約を確認するときは `lint` をその起動表記に続ける。
+```
+
+バンドルの位置が異なる場合はリンクも合わせる。Yarn 4 Plug'n'Play では起動表記を `yarn run -B okf`、Python 版では `python -m okf_devkit.cli` に替える。
+
 ## 6. 明示依頼による更新と復旧
 
 更新前に現行版・取得元・lockfile・Node/npm版とmanifestを保存する。設定/文書/hook/生成物のバックアップはパッケージ復旧用と区別する。
-指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。設定更新は手順5の既知範囲の差分のみ。
+指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。対応する版では `doctor` で導入状態を確認し、`upgrade --check` で取り込む scaffold の差分を確認する。設定更新は手順5の既知範囲の差分のみ。
 失敗時は今回変更したmanifestとlockfileを保存内容へ戻し、npm管理repoなら `npm.cmd ci --ignore-scripts` で保存した依存状態を再作成する。ciはnode_modulesを入れ替えるため、その影響も事前に確認する。必要な既存buildは承認済みの別工程とする。globalの復旧は保存した旧tgz/取得元を `--ignore-scripts` 付きで再導入する。
 設定/文書/HTMLはそれぞれのバックアップから競合を確認して戻す。後から加わった利用者編集を上書きせず、`git reset --hard` や無関係な変更の一括取消を使わない。
 

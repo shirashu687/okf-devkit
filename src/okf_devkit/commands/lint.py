@@ -1,6 +1,7 @@
 """Document convention findings with bundle-owned resource and index paths."""
 from __future__ import annotations
 import re
+from functools import lru_cache
 from pathlib import Path
 from .. import gitutil
 from ..config import Bundle
@@ -13,6 +14,42 @@ ACTOR_RE = re.compile(r"^(?:human:\S+|process:\S+|[^\s/]+/[^\s/]+)$")
 
 # 文末記号。`.` `!` `?` は後ろが空白 or 行末のときだけ文末とみなす（`v1.0` 対策）
 SENTENCE_END_RE = re.compile(r"[。！？]|[.!?](?=\s|$)")
+PLACEHOLDER_RE = re.compile(r"<[^<>\r\n]+>")
+FENCE_RE = re.compile(r"^ {0,3}(\x60{3,}|~{3,})(.*)$")
+INLINE_CODE_RE = re.compile(r"(\x60+).*?\1")
+
+
+@lru_cache(maxsize=1)
+def _template_placeholders() -> set[str]:
+    templates = Path(__file__).resolve().parents[1] / "scaffold" / "templates"
+    return {
+        token
+        for path in templates.glob("*.md")
+        if path.name != "log.md"
+        for token in PLACEHOLDER_RE.findall(read_text(path))
+    }
+
+
+def _remaining_placeholders(doc: Doc):
+    tokens = _template_placeholders()
+    body = doc.body.split("\n")
+    lines = doc.text.split("\n")
+    body_start = len(lines) - len(body)
+    fence = ""
+    for number, line in enumerate(lines, 1):
+        if number > body_start:
+            marker = FENCE_RE.match(line)
+            if fence:
+                if marker and marker[1].startswith(fence) and not marker[2].strip():
+                    fence = ""
+                continue
+            if marker:
+                fence = marker[1]
+                continue
+            line = INLINE_CODE_RE.sub("", line)
+        token = next((value for value in PLACEHOLDER_RE.findall(line) if value in tokens), None)
+        if token:
+            yield number, token
 
 
 class Finding:
@@ -60,7 +97,7 @@ def trust_level(doc: Doc) -> str:
 
 
 def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver=None, index_renderer=None) -> list[Finding]:
-    """CONVENTIONS.md §10 の L1〜L13 を検証する。"""
+    """CONVENTIONS.md §10 の L1〜L15 を検証する。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
     findings: list[Finding] = []
     add = findings.append
@@ -72,6 +109,9 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             reason = doc.fm_error or "frontmatter がありません"
             add(Finding(path, 1, "error", "L1", f"frontmatter を読めません: {reason}"))
             continue
+
+        for line, token in _remaining_placeholders(doc):
+            add(Finding(path, line, "warn", "L15", f"雛形の記入例が残っています: {token}"))
 
         if not doc.type:
             add(Finding(path, doc.key_line("type"), "error", "L2", "`type` が空です"))
@@ -127,9 +167,9 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
                         f"`code_globs` がありません（type: {doc.type} はコード由来なので更新検知の起点が必要です）"))
 
         for pattern in globs:
-            if not (gitutil.resolve_resource(repo_root, pattern) if resource_resolver is None else resource_resolver(pattern)):
+            if not (gitutil.resolve_resource(repo_root, pattern, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(pattern)):
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
-                            f"`code_globs: {pattern}` にマッチするファイルがありません"))
+                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern)}"))
 
         for problem in doc.source_problems():
             add(Finding(path, doc.key_line("sources"), "warn", "L14", problem))

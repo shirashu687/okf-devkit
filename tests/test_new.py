@@ -31,7 +31,7 @@ class NewDocTest(OkfTestCase):
                 okf.cmd_new(self.bundle(), self.doc_args(type=type_, code_globs=None, slug="missing"))
         self.assertFalse((self.docs / "server/missing.md").exists())
 
-    def test_generated_doc_passes_strict_lint_and_preserves_h1_spacing(self):
+    def test_generated_doc_reports_unfinished_fields_and_preserves_h1_spacing(self):
         self.write("code/a.ts", "x")
         template = okf._scaffold_text("templates/reference.md")
         self.write("docs/_templates/reference.md", template)
@@ -43,7 +43,10 @@ class NewDocTest(OkfTestCase):
         self.assertIn("# API \\1\n\n", doc.body)
         quiet(okf.cmd_index, self.bundle(), ns(write=True, check=False, quiet=True))
         self.reset_caches()
-        self.assertEqual([], [str(f) for f in okf.run_lint(self.bundle())])
+        findings = okf.run_lint(self.bundle())
+        self.assertTrue(findings)
+        self.assertEqual({("L15", "warn")}, {(f.rule, f.level) for f in findings})
+        self.assertTrue(any("何の一覧か" in f.message and f.line == 4 for f in findings))
 
     def test_optional_code_globs_default_to_empty_list(self):
         quiet(okf.cmd_new, self.bundle(), self.doc_args(type="Glossary", slug="terms", code_globs=None))

@@ -64,7 +64,9 @@ class AiOperationsTests(unittest.TestCase):
         self.write("knowledge/project/app.md", doc_text(
             title="App", layer="shared", status="draft", code_globs="  - src/app.py",
             body="# App\n\nFixture documentation.\n"))
-        self.successful("new", "backlog", "--title", "Review app", runtime=runtime)
+        backlog = self.successful("new", "backlog", "--title", "Review app", runtime=runtime).stdout.strip()
+        path = self.root / backlog
+        self.write(backlog, re.sub(r"<[^<>\n]+>", "Fixture content", path.read_text(encoding="utf-8")))
         self.successful("index", "--write", runtime=runtime)
 
     def check_generated_guidance(self, runtime: str) -> None:

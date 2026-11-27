@@ -2,7 +2,21 @@
 from __future__ import annotations
 
 import argparse
+from . import __version__
 from .config import CONFIG_FILENAME
+
+
+def forwarded_args(argv: list[str]) -> list[str]:
+    """pnpm がコマンド引数の先頭に渡す区切りを受け取る。"""
+    index = 0
+    while index < len(argv) and argv[index].split("=", 1)[0] in {"--root", "--config"}:
+        index += 1 if "=" in argv[index] else 2
+    if index >= len(argv) or argv[index].startswith("-"):
+        return argv
+    index += 2 if argv[index:index + 2] in (["new", "doc"], ["new", "backlog"]) else 1
+    if index + 1 < len(argv) and argv[index] == "--" and argv[index + 1].startswith("-") and argv[index + 1] != "--":
+        return argv[:index] + argv[index + 1:]
+    return argv
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--root", help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
     )
+    parser.add_argument("--version", action="version", version=f"okf-devkit {__version__}", help="実行中の版を表示する")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init", help="OKF バンドルと設定一式を生成する")
@@ -22,8 +37,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_init.add_argument("--site-name", help="ドキュメントの表示名（既定: ルートのディレクトリ名）")
     p_init.add_argument(
         "--layer", action="append", metavar="NAME=GLOB[:DIR]",
-        help="層とコード配置の対応（例: client=src/client/**）。複数指定可",
+        help="層とコード配置の対応（例: appclient=src/appClient/**:appClient）。層名は英小文字・数字で始まり - _ も使用可。shared は予約名、重複不可",
     )
+    p_init.add_argument("--agent", metavar="AGENTS", help="hook の対象（claude,codex,copilot / all / none。既定: all）")
+    p_init.add_argument("--runner", metavar="COMMAND", help="生成する案内で使う CLI の起動表記（既定: okf）")
     p_init.add_argument("--force", action="store_true", help="既存ファイルを上書きする（エージェント設定と .gitignore は保持）")
 
     p_index = sub.add_parser("index", help="index.md を再生成する")
@@ -44,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_stale.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
     p_affected = sub.add_parser("affected", help="更新すべきドキュメントを列挙する")
-    p_affected.add_argument("--base", default="main", help="比較対象のブランチ（既定: main）")
+    p_affected.add_argument("--base", default="main", help="比較対象のコミット SHA またはブランチ（既定: main）")
     p_affected.add_argument("--paths", nargs="+", help="変更パスを直接指定する")
 
     p_new = sub.add_parser("new", help="雛形を生成する")
@@ -56,6 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_backlog.add_argument("--priority", default="medium", help="設定済みの優先度（既定: medium）")
     p_new_backlog.add_argument("--effort", default="M", help="設定済みの工数（既定: M）")
     p_new_backlog.add_argument("--slug", help="ファイル名の slug（日本語タイトル時に指定する）")
+    p_new_backlog.add_argument("--index", action="store_true", help="作成後に索引も更新する")
 
     p_new_doc = new_sub.add_parser("doc", help="通常ドキュメントを作る")
     p_new_doc.add_argument("--layer", required=True, help="設定済みのレイヤー")
@@ -64,6 +82,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_doc.add_argument("--dir", help="層ディレクトリ配下のサブディレクトリ")
     p_new_doc.add_argument("--code-globs", nargs="+", help="根拠コードのパス/glob（複数可、コード由来の型では必須）")
     p_new_doc.add_argument("--slug", help="ファイル名の slug")
+    p_new_doc.add_argument("--index", action="store_true", help="作成後に索引も更新する")
+
+    sub.add_parser("doctor", help="導入状態を読み取り専用で診断する")
+    p_upgrade = sub.add_parser("upgrade", help="インストール済み版の scaffold と比較する")
+    p_upgrade.add_argument("--check", action="store_true", required=True, help="差分を表示する（書き込みなし）")
+    p_upgrade.add_argument("--agent", metavar="AGENTS", help="hook の対象（claude,codex,copilot / all / none。既定: all）")
+    p_upgrade.add_argument("--runner", metavar="COMMAND", help="生成する案内で使う CLI の起動表記（既定: okf）")
 
     p_status = sub.add_parser("status", help="backlog の集計")
     p_status.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
@@ -85,11 +110,13 @@ def build_parser() -> argparse.ArgumentParser:
         "log": "okf log --dry-run",
         "lint": "okf lint --strict",
         "stale": "okf stale --format json",
-        "affected": "okf affected --base main",
+        "affected": "okf affected --base <比較元のコミットSHA> / okf affected --paths src/main.js",
         "new": "okf new doc --help / okf new backlog --help",
         "new doc": 'okf new doc --layer shared --type "Reference" --title "Guide" --code-globs "src/**"',
         "new backlog": 'okf new backlog --title "Follow-up"',
         "status": "okf status --format json",
+        "doctor": "okf doctor",
+        "upgrade": "okf upgrade --check",
         "render": "okf render --check",
         "sync": "okf sync",
     }

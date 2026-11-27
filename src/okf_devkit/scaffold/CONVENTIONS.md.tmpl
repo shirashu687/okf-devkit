@@ -121,6 +121,8 @@ related:
 
 ## 3. `code_globs` — 更新検知の起点
 
+ワイルドカード走査では `node_modules`、`dist`、`.git` に自動で降りない。意図的に収録する生成物は `src/dist/**` のようにディレクトリ名まで明示する。さらに除外したいパスは、リポジトリルート起点で `code_glob_exclude: ["src/vendor/**"]` のように指定する。文書を除外するには `exclude` を使う。
+
 **このドキュメントを導出したコードの場所**を書く独自拡張キー。仕組み全体の起点になるので、コード由来のドキュメントには**必ず書く**。
 
 ```yaml
@@ -137,7 +139,7 @@ code_globs:
 
 | できること | コマンド |
 |---|---|
-| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base main` |
+| コード変更 → 更新すべきドキュメントの特定 | `okf affected --base <比較元SHA>` または `okf affected --paths src/main.js` |
 | コードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
 | コードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
 
@@ -261,6 +263,16 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ---
 
+### 外部ツールが決める文書の置き場
+
+| 用途 | 配置例 |
+|---|---|
+| AI やスキルが使う frontmatter のない設定文書 | リポジトリの `.agents/` などバンドル外。バンドル内では `_agents/` などの除外ディレクトリ |
+| 外部ツールがバンドル内の `agents/` を要求 | `okf.yml` の `exclude` にバンドル相対の `agents` と `agents/**` を追加 |
+| OKF の設計判断と用語集 | `project/decisions/` の `Decision Record` と `project/glossary.md` の `Glossary`。外部ツールの `docs/adr/` や `GLOSSARY.md` から必要に応じて参照 |
+
+`exclude` で名前を指定したディレクトリ配下は目次・検査・HTML 生成の対象から外れる。`_` または `.` で始まるディレクトリも同様。Git での除外は別に管理する。
+
 ## 10. lint ルール
 
 `okf lint` が検証する内容。
@@ -283,6 +295,9 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | L12 | `Backlog Item` の `state` が語彙内 / `done` なら妥当な `done_at` がある | error | 本規約 |
 | L13 | `index.md` が最新（`index --check` 相当）/ マーカーが破損していない | error | 本規約 |
 | L14 | `sources` は、ある場合のみリスト型・各要素マップ型・非空 `resource` | warn | OKF §5.1 |
+| L15 | 配布雛形の既知の記入例を frontmatter や本文に残さない | warn | 本規約 |
+
+L15 が検出した記入例を埋めてから `lint --strict` を実行する。コード例や一般的な山括弧表記は使える。
 
 ---
 

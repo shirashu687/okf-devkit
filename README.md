@@ -23,22 +23,22 @@ AIが構成と既存環境を調べ、固定版のローカル導入、`okf.yml`
 
 ## はじめる
 
-Node.js 22 以上、npm、Git を用意し、導入先リポジトリのルートで実行します。以下は既存の npm プロジェクトにローカル導入する例です。`package.json` と lockfile を変更し、依存パッケージを取得します。
+Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。取得済み tgz と SHA-256 の照合手順は [導入ガイド](docs/agents/install-okf.md) にあります。
 
 ```bash
-npm install --save-dev --save-exact --ignore-scripts "git+https://github.com/shirashu687/okf-devkit.git#main"
+npm install --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
 ```
 
 次に、導入先の `package.json` に `okf` スクリプトを登録します。すでに `scripts.okf` がある場合は上書きされるため、内容を確認して別の名前を選んでください。
 
 ```bash
-npm pkg set "scripts.okf=okf"
+npm pkg set "scripts.okf=node node_modules/okf-devkit/node/cli.mjs"
 npm run okf -- --help
 ```
 
-これは導入先への一度だけの設定です。npm はローカルにインストールした `okf` を使えます。以降のコマンドでは `npm run okf --` に続けて引数を渡します。ローカル版が見つからない場合は、PATH 上の別の `okf` が使われることもあるので、先にインストールを確認してください。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
+以降のコマンドでは `npm run okf --` に続けて引数を渡します。スクリプトは導入済みのローカル CLI を直接起動します。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
 
-`main` は更新されます。チームで再現するには作成された lockfile を管理し、固定版が必要な場合は確認済みコミット SHA を指定してください。npm レジストリと PyPI に本体は公開されておらず、v0.1.0 の GitHub Release は未公開の Draft です。v0.1.0 の固定版には最新の変更は含まれず、同梱 README も古いため、このリポジトリの[導入ガイド](docs/agents/install-okf.md)を参照してください。
+チームで同じ構成を使うには lockfile を管理してください。開発版を試す場合は導入ガイドに従って完全な Git SHA に固定します。v0.1.0 に含まれる機能は [リリースノート](docs/project/releases/v0.1.0.md) を参照してください。
 
 npm 以外の管理方式、manifest のないリポジトリ、更新・復旧の場合は、[導入ガイド](docs/agents/install-okf.md)で手順を確認してください。global インストールや未導入時の `npx` は上の手順では使いません。
 
@@ -80,7 +80,7 @@ okf lint
 
 ## エージェントと設定
 
-初期化で生成される hook ラッパーは、作業終了時の HTML 更新に利用できます。導入した版の出力と既存のエージェント設定を確認し、必要に応じて設定を追加してください。製品側の信頼設定や実行環境、重複実行の注意は [終了 hook の手順](docs/agents/completion-hooks.md) を参照してください。
+初期化で生成される hook ラッパーは、作業終了時の HTML 更新に利用できます。導入版の `init --help` に `--agent` がある場合、生成するエージェント設定を選べます。製品側の信頼設定や実行環境は [終了 hook の手順](docs/agents/completion-hooks.md) を参照してください。
 
 まず既定の `shared` 層で始められます。コードと層の対応など、プロジェクト固有の設定は `okf.yml` に置き、共通の語彙はパッケージから読み込みます。複数層や設定の詳細は [初期化と同梱雛形](docs/scaffold/reference.md) と [コマンド仕様](docs/cli/commands.md) を参照してください。
 

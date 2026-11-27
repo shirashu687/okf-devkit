@@ -1,12 +1,15 @@
 """Safe document/backlog scaffolding under the bundle project root."""
 from __future__ import annotations
 import re
+import sys
+from argparse import Namespace
 from pathlib import Path
 from ..config import Bundle
 from ..doc import CODE_GLOBS_REQUIRED_TYPES
 from ..errors import OkfError
 from ..fsutil import now_iso, today, read_text, rel_posix, write_if_changed
 from ..yamlio import yaml_scalar, yaml_flow_list
+from .index import cmd_index
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:[-.][a-z0-9]+)*$")
 
@@ -130,13 +133,13 @@ def cmd_new(bundle: Bundle, args, *, repo_root: Path | None = None, writer=None,
         raise OkfError("`--title` に改行は使えません")
     _validate_vocab(args.layer, bundle.layers, "--layer")
 
+    slug = validate_slug(args.slug) if args.slug else slugify(args.title)
     if args.kind == "backlog":
         _validate_vocab(args.priority, list(bundle.backlog_cfg.get("priorities") or []), "--priority")
         _validate_vocab(args.effort, list(bundle.backlog_cfg.get("efforts") or []), "--effort")
         text = (load_template(bundle, "Backlog Item", repo_root=repo_root) if template_loader is None else template_loader(bundle, "Backlog Item"))
         number = next_backlog_id(bundle)
         prefix = str(bundle.backlog_cfg.get("prefix", "B"))
-        slug = validate_slug(args.slug) if args.slug else slugify(args.title)
         name = f"{prefix}-{number:04d}-{slug}.md" if slug else f"{prefix}-{number:04d}.md"
         out_path = bundle.backlog_dir() / name
 
@@ -155,7 +158,6 @@ def cmd_new(bundle: Bundle, args, *, repo_root: Path | None = None, writer=None,
         if args.type in CODE_GLOBS_REQUIRED_TYPES and not code_globs:
             raise OkfError("この型では `--code-globs` を指定してください")
         text = (load_template(bundle, args.type, repo_root=repo_root) if template_loader is None else template_loader(bundle, args.type))
-        slug = validate_slug(args.slug) if args.slug else slugify(args.title)
         if not slug:
             raise OkfError("タイトルから slug を生成できませんでした。`--slug <kebab-case>` を指定してください。")
         layer_dirs = bundle.cfg.get("layer_dirs") or {}
@@ -183,4 +185,14 @@ def cmd_new(bundle: Bundle, args, *, repo_root: Path | None = None, writer=None,
         raise OkfError(f"既に存在します: {rel_posix(out_path, repo_root)}")
     (write_if_changed if writer is None else writer)(out_path, text)
     print(rel_posix(out_path, repo_root))
+    if not args.slug and re.search(r"[\u3040-\u30ff\u3400-\u9fff\U00020000-\U000323af]", args.title):
+        print("題名の日本語は自動 slug に入りません。ファイル名を指定するには --slug を使ってください。", file=sys.stderr)
+    if getattr(args, "index", False):
+        try:
+            if not cmd_index(bundle, Namespace(write=True, check=False, quiet=True), repo_root=repo_root, writer=writer):
+                return 0
+        except (OkfError, OSError) as exc:
+            print(exc, file=sys.stderr)
+        print("文書は作成済みです。索引の問題を解消してから okf index --write を実行してください。", file=sys.stderr)
+        return 1
     return 0

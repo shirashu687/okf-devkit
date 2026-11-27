@@ -44,7 +44,7 @@ related:
 
 # コマンド仕様
 
-第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。全10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
+引数解析は `parser.py`、旧CLIの互換adapterは `compat.py` に置く。`cli.py` は project root の解決、旧APIの状態と公開入口、コマンドの dispatch を保持し、各コマンドの処理は `commands/` が持つ。
 
 第4段階時点の記録: Gitを使うlog/stale/affectedとsync gateの実処理は第4段階で `gitutil.py` に分離した。canonical関数はプロジェクトrootを明示して呼び、文書rootとは区別する。既存CLI adapterによるroot指定・エラー文・終了値・NUL特殊パス解析は保持し、残るコマンド本体の移動は後続段階で行う。 第5b段階で全10コマンドを分離済みとなり、統合後のcliは568行だった。第6段階ではparser/compatを分離し、現在のcliは98行である。
 内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
@@ -56,14 +56,17 @@ related:
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|
-| init | バンドル、設定、テンプレート、エージェントhook を初期配置 | 既存ファイルは通常スキップ。エージェント設定と `.gitignore` は `--force` でも保持 |
+| init | バンドル、設定、テンプレートを初期配置。`--agent` で hook を選び、`--runner` で案内の起動表記を選ぶ | 既存ファイルは通常スキップ。エージェント設定と `.gitignore` は `--force` でも保持 |
+| --version | 実行中のパッケージの版を表示 | なし。プロジェクト設定は不要 |
+| doctor | CLI の実体と版、設定、層の glob、hook 登録、Git 除外、旧 HTML 候補を表示 | なし。設定や層の定義を読めなければ exit 1 |
+| upgrade --check | 現行の層・サイト名・配置を使って、配布 scaffold に対する一致・追加候補・差分を表示 | なし。差分があっても exit 0、比較できない対象があれば exit 1 |
 | index | frontmatter から各階層の目次を計画 | `--write`。`--check` は差分があれば exit 1 |
 | log | Git のコミットを層別履歴へ変換 | `--write`。`--range` / `--layer` で範囲を限定 |
 | lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |
 | stale | 期日・コード更新・検証状態のレポート | なし。指摘があっても exit 0 |
 | affected | `--base` との差分または `--paths` を文書へ逆引き | なし。対応文書と未カバーのパスを表示 |
-| new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。本文を補完し、`index --write` → `lint` を実行 |
-| new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。このリポジトリの課題管理は GitHub Issues |
+| new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。`--index` を指定した場合は索引も更新 |
+| new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。`--index` を指定した場合は索引も更新 |
 | status | backlog の state を集計 | なし。text/json 出力 |
 | render | Markdown とアセットから HTML を作る。`--open` は生成先のトップページを開く | 既定は `_site/`。`--output docs` で従来の隣接配置を指定。`--check` / hook 時はブラウザを起動しない |
 | sync | index → log → lint → stale をまとめて実行 | index/log 更新。log失敗は警告で継続し得る。`--gate` は差戻し判定で状態を書き込む |
@@ -71,14 +74,21 @@ related:
 ## 結果と書き込みの境界
 
 `affected` は対応文書に加えて未カバーパスも読む。`code_globs` がない文書とバンドル外のREADME等は自動逆引きの保証外なので、変更内容から別途確認する。
+初回コミット前は作業ツリーを調べ、`log` は追記をスキップする。`main` がない場合は実在する基準の SHA を `affected --base` へ指定するか、`affected --paths src/main.js` のように変更を渡す。
 `sync` のlogはGitのコミット済み履歴だけを扱う。未コミット変更はlogに記録せず、logの警告・スキップを確認する。index更新や最終exit0からlog追記成功を推定しない。
 `stale` の指摘と `sync --gate` の同じlint error再検出はexit0になり得る。gateは初回errorでexit2、同一error集合の再検出ではexit0としてループを抑える。指摘が解消したことやCI成功を意味しない。
 `render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
 `init --force` は既存の OKF 設定、文書やhookスクリプトを置換する。エージェント設定と `.gitignore` は例外で、常に保持する。設定の部分更新や新しい案内の移行に使わず、既存ファイルとの必要な差分だけを確認して更新する。初回導入時の登録と既存設定への追加は [終了hookの手順](/agents/completion-hooks.md) を参照する。
 
+`upgrade --check` は生成時刻の違いを無視し、来歴が分からない差分を手動確認として表示する。既存の初期化で `--runner` や `--agent` を指定した場合は、比較時にも同じ値を渡せる。`doctor` の hook 診断は設定の読み取り結果で、実行環境の確認には製品側のイベント検証を使う。
+
 ## 新規文書の根拠コードと検査
 
-`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。例えば `okf new doc --layer cli --type Reference --title "コマンド仕様" --code-globs "src/okf_devkit/cli.py" "node/cli.mjs"` と指定する。生成後は本文を補完し、目次を更新してから規約検査を実行する。
+`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。生成後は本文を補完し、目次を更新してから規約検査を実行する。`lint --strict` は残っている記入例も失敗扱いにする。
+
+日本語タイトルでは `--slug` でファイル名を指定できる。`new --index` の索引更新に失敗した場合は、作成済みの Markdown を使い、原因を修正して `index --write` を実行する。既存バンドルに `Project Overview` の雛形がなければ、同梱の `_templates/project-overview.md` を追加する。
+
+パッケージスクリプトが引数列の先頭で渡す区切り `--` は1個まで受け取る。`new doc` / `new backlog` では種類名の直後に置く。オプション列の途中にある区切りや追加の区切りは受け付けない。
 
 ## 出力先と旧生成物の整理
 

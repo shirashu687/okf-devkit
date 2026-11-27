@@ -3,7 +3,9 @@ import path from "node:path";
 import {
   Doc,
   MarkerError,
+  codeGlobNoMatch,
   compare,
+  dataDir,
   dateOnly,
   extractDate,
   inside,
@@ -68,6 +70,38 @@ export function trust(doc) {
       ? "human-reviewed"
       : "machine-confirmed";
 }
+const placeholderPattern = /<[^<>\r\n]+>/g;
+let templatePlaceholders;
+function remainingPlaceholders(doc) {
+  if (!templatePlaceholders) {
+    const directory = path.join(dataDir, "scaffold", "templates");
+    templatePlaceholders = new Set(fs.readdirSync(directory)
+      .filter((file) => file.endsWith(".md") && file !== "log.md")
+      .flatMap((file) => read(path.join(directory, file)).match(placeholderPattern) || []));
+  }
+  const lines = doc.text.split("\n");
+  const bodyStart = lines.length - doc.body.split("\n").length;
+  const remaining = [];
+  let fence = "";
+  for (let index = 0; index < lines.length; index++) {
+    let line = lines[index];
+    if (index >= bodyStart) {
+      const marker = line.match(/^ {0,3}(\x60{3,}|~{3,})(.*)$/);
+      if (fence) {
+        if (marker?.[1].startsWith(fence) && !marker[2].trim()) fence = "";
+        continue;
+      }
+      if (marker) {
+        fence = marker[1];
+        continue;
+      }
+      line = line.replace(/(\x60+).*?\1/g, "");
+    }
+    const token = line.match(placeholderPattern)?.find((value) => templatePlaceholders.has(value));
+    if (token) remaining.push([index + 1, token]);
+  }
+  return remaining;
+}
 export function runLint(b) {
   const findings = [];
   const add = (doc, key, level, rule, message) =>
@@ -89,6 +123,8 @@ export function runLint(b) {
       );
       continue;
     }
+    for (const [line, token] of remainingPlaceholders(d))
+      add(d, line, "warn", "L15", "雛形の記入例が残っています: " + token);
     if (!d.type) add(d, "type", "error", "L2", "`type` が空です");
     else if (!b.types.includes(d.type))
       add(
@@ -199,7 +235,7 @@ export function runLint(b) {
           "code_globs",
           "warn",
           "L10",
-          `\`code_globs: ${g}\` にマッチするファイルがありません`,
+          `\`code_globs: ${g}\` ${codeGlobNoMatch(g)}`,
         );
     const sources = d.fm.sources;
     if (sources != null) {
@@ -434,7 +470,7 @@ export function runStale(b) {
         add(
           "orphan",
           "warn",
-          `code_globs: ${g} にマッチするファイルがありません`,
+          `code_globs: ${g} ${codeGlobNoMatch(g)}`,
         );
         continue;
       }

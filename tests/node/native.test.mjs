@@ -528,7 +528,7 @@ test("render default site is dry-run safe and supports explicit legacy output", 
   assert.equal(fs.existsSync(path.join(root, "docs/index.html")), true);
 });
 
-test("new doc requires code evidence and creates lint-clean frontmatter", (t) => {
+test("new doc requires code evidence and reports unfinished scaffold fields", (t) => {
   const root = temp(t);
   init(root);
   put(root, "src/main.js", "export const n = 1;");
@@ -543,7 +543,10 @@ test("new doc requires code evidence and creates lint-clean frontmatter", (t) =>
   assert.match(text, /# API \\1\n\n/);
   ok(run(root, ["new", "doc", "--title", "Terms", "--layer", "shared", "--type", "Glossary"]));
   ok(run(root, ["index", "--write"]));
-  ok(run(root, ["lint", "--strict"]));
+  const lint = run(root, ["lint", "--strict"]);
+  assert.equal(lint.status, 1);
+  assert.match(lint.stdout, /warn L15 雛形の記入例/);
+  assert.match(lint.stdout, /lint: error 0 件/);
 });
 
 test("init shared log matches config and log write reuses it", (t) => {

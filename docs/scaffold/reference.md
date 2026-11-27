@@ -46,12 +46,14 @@ Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジ�
 | AGENTS.md.tmpl / CONVENTIONS.md.tmpl | バンドル内の作業入口と執筆規約 |
 | templates/*.md | バンドルの `_templates/` |
 | hooks/*、agent-hooks/* | `.okf/hooks/` のラッパーとエージェント設定 |
-| 初期ignore設定 | `.gitignore` がない場合に生成HTMLと退避領域を除外 |
+| 初期ignore設定 | `.gitignore` がない場合に生成HTMLと退避領域を除外。ルートに `package.json` と `node_modules/` が揃う場合は依存も除外 |
 | 層定義と empty_log | 各層の log と shared 用 log |
 
-`--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。既存ファイルは通常スキップする。`--force` は多くの生成物を置き換えるが、既存のエージェント設定と `.gitignore` は保持する。
+`--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。例えば `appclient=src/appClient/**:appClient` のように小文字の層名と実際のディレクトリ名を指定できる。既存ファイルは通常スキップする。`--force` は多くの生成物を置き換えるが、既存のエージェント設定と `.gitignore` は保持する。
 
-init は本文ドキュメントや目次を完成させない。配置後に語彙と layer_map を確認し、`okf new doc` で本文を作り、`okf index --write` と lint を実行する。リポジトリ内の Claude Code、Codex、Copilot 設定が存在しない場合は終了 hook を配置する。既存設定は自動統合しないため、スキップされた場合は [終了 hook の手順](/agents/completion-hooks.md) に従い確認する。グローバル設定は変更しない。
+配置後に語彙と layer_map を確認し、`okf new doc` の雛形を仕上げてから `okf index --write` と lint を実行する。`--agent codex,copilot` や `--agent none` で追加する終了 hook を選べる。既定は全対応エージェント。既存設定に追加する場合は [終了 hook の手順](/agents/completion-hooks.md) を参照する。
+
+`--runner "npm run okf --"` のように生成ガイドと初期化後の案内で使う起動方法を指定できる。先に実際の起動方法を導入先で確認する。`upgrade --check` は生成設定・文書・hook などを現行 scaffold と読み取り専用で比較する。
 
 ## 配布する日常操作案内
 
@@ -62,6 +64,8 @@ init は本文ドキュメントや目次を完成させない。配置後に語
 `defaults.yml` は type/status、backlog の語彙、目次マーカー、commit kind 等の共通規則を持つ。引数なしのinitは `docs` と `shared` を使い、そのまま利用できる。生成する `log.layers` は空なのでsyncは履歴を自動追記しない。`log.baseline` の既定値は空文字。ハッシュのない手書き履歴がある場合、重複防止のため対応する移行済みコミットの SHA を設定してから書き込む。プロジェクトの okf.yml は辞書を再帰的に上書きし、リスト・スカラーを丸ごと置換する。語彙変更時は CONVENTIONS.md と一致させる。
 
 shared のログ出力先は設定の `log.paths.shared` で決まる。生成雛形の配置を変更する場合は、この設定と実際の配置が一致するかを確認する。
+
+隣接するツール専用文書を索引から除きたい場合はバンドル外、バンドル内の `_agents/` など、またはバンドル相対の `exclude` を使う。`docs/agents/` を除外する例は `agents` と `agents/**`。設計判断と用語集を OKF で管理する場合は `Decision Record` と `Glossary` を使い、外部ツールが必要とするファイルから参照する。
 
 ## YAML serializerの所有者
 

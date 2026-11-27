@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { cmdIndex } from "./index.mjs";
 import {
   Doc,
   OkfError,
@@ -17,6 +18,21 @@ import {
 } from "./core.mjs";
 
 const scaffold = (name) => read(path.join(dataDir, "scaffold", name));
+export const agentSettings = new Map([
+  ["claude", ".claude/settings.json"],
+  ["codex", ".codex/hooks.json"],
+  ["copilot", ".github/hooks/okf-render.json"],
+]);
+
+function selectedAgents(value) {
+  if (value === undefined || value === "all") return [...agentSettings.keys()];
+  if (value === "none") return [];
+  const names = value.split(",").map((name) => name.trim());
+  if (names.some((name) => !agentSettings.has(name)) ||
+      new Set(names).size !== names.length)
+    throw new OkfError("--agent は claude,codex,copilot から選ぶか、all / none を指定してください");
+  return names;
+}
 const slugify = (title) =>
   title
     .replace(/[^a-zA-Z0-9]+/g, "-")
@@ -81,30 +97,37 @@ export function setField(text, key, value, parent = null) {
   if (!parent) lines.splice(end, 0, `${key}: ${value}`);
   return lines.join("\n");
 }
-export function cmdInit(repo, args) {
+function parseLayers(specs) {
   const layers = [],
     seen = new Set();
-  for (const spec of args.layer || []) {
+  for (const spec of specs || []) {
     const eq = spec.indexOf("="),
       name = spec.slice(0, eq).trim(),
       rest = spec.slice(eq + 1),
       colon = rest.indexOf(":");
-    if (
-      eq < 1 ||
-      !rest.trim() ||
-      !/^[a-z0-9][a-z0-9_-]*$/.test(name) ||
-      name === "shared" ||
-      seen.has(name)
-    )
-      throw new OkfError(`--layer の書式または層名が不正です: ${spec}`);
+    if (eq < 1 || !name)
+      throw new OkfError(`--layer の書式が不正です（name=glob[:dir]）: ${spec}`);
+    if (!/^[a-z0-9][a-z0-9_-]*$/.test(name))
+      throw new OkfError(`層名は英小文字・数字で始め、英小文字・数字・- _ を使用してください: ${name}`);
+    if (name === "shared")
+      throw new OkfError("shared は層をまたぐ知識用に予約されています");
+    if (seen.has(name)) throw new OkfError(`層名が重複しています: ${name}`);
     const glob = (colon < 0 ? rest : rest.slice(0, colon)).trim(),
       dir = validDir((colon < 0 ? "" : rest.slice(colon + 1)).trim() || name);
     if (!glob) throw new OkfError("層の glob が空です");
     seen.add(name);
     layers.push({ name, glob, dir });
   }
-  const bundle = validDir(slash(args.bundleRoot || "docs").replace(/\/+$/, ""));
+  return layers;
+}
+
+export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
+  const bundle = validDir(slash(args.bundleRoot || "docs").trim().replace(/\/+$/, ""));
   const site = (args.siteName || path.basename(repo)).trim() || "Project";
+  const agents = selectedAgents(args.agent);
+  const runner = args.runner?.trim() ?? "okf";
+  if (!runner || /[|\x00-\x1f\x60\x7f]/.test(runner))
+    throw new OkfError("--runner には1行の実行表記を指定してください（バッククォートと | は使用不可）");
   const config = {
     bundle_root: scalar(bundle),
     site_name: scalar(site),
@@ -131,6 +154,8 @@ export function cmdInit(repo, args) {
   };
   const tokens = {
     GENERATED_AT: now(),
+    RUNNER: runner,
+    LAYER_EXAMPLE: [...layers.map((l) => l.name), "shared"].join(" | "),
     BUNDLE_ROOT: bundle,
     SITE_NAME: site,
     LAYER_LIST: layers.map((l) => l.name).join("、") || "（層なし）",
@@ -142,6 +167,8 @@ export function cmdInit(repo, args) {
   };
   const expand = (text) =>
     text.replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => tokens[k] ?? m);
+  const withRunner = (text) =>
+    text.replace(/\bokf (?=(?:init|index|lint|render|affected|stale|log|sync|new|status)\b|<command>)/g, () => runner + " ");
   const plan = [
     [
       "okf.yml",
@@ -150,30 +177,41 @@ export function cmdInit(repo, args) {
         (m, k) => config[k] ?? m,
       ),
     ],
-    [`${bundle}/AGENTS.md`, expand(scaffold("AGENTS.md.tmpl"))],
-    [`${bundle}/CONVENTIONS.md`, expand(scaffold("CONVENTIONS.md.tmpl"))],
+    [`${bundle}/AGENTS.md`, expand(withRunner(scaffold("AGENTS.md.tmpl")))],
+    [`${bundle}/CONVENTIONS.md`, withRunner(expand(scaffold("CONVENTIONS.md.tmpl")))],
   ];
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/templates"))
     .sort(compare))
-    plan.push([`${bundle}/_templates/${file}`, scaffold(`templates/${file}`)]);
+    plan.push([`${bundle}/_templates/${file}`, scaffold(`templates/${file}`).replace(
+      "layer: <client | server | batch | shared>",
+      () => "layer: <" + tokens.LAYER_EXAMPLE + ">",
+    )]);
   for (const file of fs
     .readdirSync(path.join(dataDir, "scaffold/hooks"))
     .sort(compare))
     plan.push([`.okf/hooks/${file}`, scaffold(`hooks/${file}`)]);
-  for (const file of ["agent_stop.sh", "agent_stop.ps1"])
-    plan.push([`.okf/hooks/${file}`, scaffold(`agent-hooks/${file}`)]);
-  for (const [file, source] of [
-    [".claude/settings.json", "claude.json"],
-    [".codex/hooks.json", "codex.json"],
-    [".github/hooks/okf-render.json", "copilot.json"],
-  ]) plan.push([file, scaffold(`agent-hooks/${source}`), "settings"]);
-  plan.push([".gitignore", "/_site/\n/.okf/render-backups/\n", "ignore"]);
+  if (agents.length)
+    for (const file of ["agent_stop.sh", "agent_stop.ps1"])
+      plan.push([`.okf/hooks/${file}`, scaffold(`agent-hooks/${file}`)]);
+  for (const name of agents) {
+    const template = name === "claude" && process.platform === "win32" ? "claude-windows" : name;
+    plan.push([agentSettings.get(name), scaffold(`agent-hooks/${template}.json`), "settings"]);
+  }
+  const hasNodeDeps = fs.statSync(path.join(repo, "package.json"), { throwIfNoEntry: false })?.isFile() &&
+    fs.statSync(path.join(repo, "node_modules"), { throwIfNoEntry: false })?.isDirectory();
+  const ignore = "/_site/\n/.okf/render-backups/\n" + (hasNodeDeps ? "/node_modules/\n" : "");
+  plan.push([".gitignore", ignore, "ignore"]);
   const emptyLog = (name) =>
-    `# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`;
+    withRunner(`# 変更履歴 — ${name}\n\n<!-- \`okf log --write\` が git 履歴からここに追記する。書式は /CONVENTIONS.md §7 を参照。 -->\n`);
   for (const l of layers)
     plan.push([`${bundle}/${l.dir}/log.md`, emptyLog(l.name)]);
   plan.push([`${bundle}/log.md`, emptyLog("shared")]);
+  return { plan, bundle, runner, agents, hasNodeDeps };
+}
+
+export function cmdInit(repo, args) {
+  const { plan, bundle, runner, agents, hasNodeDeps } = scaffoldPlan(repo, args);
   // Validate the entire plan (including symlinks) before the first write.
   for (const [file] of plan) inside(repo, path.resolve(repo, file));
   const skipped = [];
@@ -204,9 +242,14 @@ export function cmdInit(repo, args) {
     console.log("必要なら既存設定に .okf/hooks/agent_stop を手動で登録してください。");
   }
   if (skippedIgnore.length)
-    console.log("既存の .gitignore は保持しました。/_site/ と /.okf/render-backups/ の除外を確認してください。");
+    console.log("既存の .gitignore は保持しました。/_site/、/.okf/render-backups/" +
+      (hasNodeDeps ? "、/node_modules/" : "") + " の除外を確認してください。");
+  console.log("エージェント設定の対象: " + (agents.join(", ") || "なし"));
+  console.log("共通の HTML 生成スクリプト: .okf/hooks/render_hook.sh / .ps1");
+  if (agents.length)
+    console.log("利用するエージェントで hook の信頼設定と実行権限を確認してください。");
   console.log(
-    `\n次の手順:\n  1. okf index --write で目次を生成する\n  2. okf lint で規約を確認する\n  3. okf render で HTML を生成する\n  必要な場合だけ okf.yml と ${bundle}/CONVENTIONS.md を調整する\n  エージェント設定と .gitignore の出力を確認する`,
+    `\n次の手順:\n  1. ${runner} index --write で目次を生成する\n  2. ${runner} lint で規約を確認する\n  3. ${runner} render で HTML を生成する\n  必要な場合だけ okf.yml と ${bundle}/CONVENTIONS.md を調整する\n  エージェント設定と .gitignore の出力を確認する`,
   );
   return 0;
 }
@@ -227,7 +270,10 @@ export function cmdNew(b, args) {
   const template = b.cfg.templates[type];
   if (!template)
     throw new OkfError(`type '${type}' に対応するテンプレートがありません`);
-  let text = read(path.resolve(b.root, template));
+  const templatePath = path.resolve(b.root, template);
+  if (!fs.existsSync(templatePath))
+    throw new OkfError("テンプレートがありません: " + template + "。配布テンプレートをバンドルに追加してください");
+  let text = read(templatePath);
   const slug = args.slug ? validSlug(args.slug) : slugify(args.title);
   let dir, filename;
   if (backlog) {
@@ -284,6 +330,17 @@ export function cmdNew(b, args) {
     throw new OkfError(`既に存在します: ${rel(out, b.repo)}`);
   write(out, text);
   console.log(rel(out, b.repo));
+  if (!args.slug && /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(args.title))
+    console.error("題名の日本語は自動 slug に入りません。ファイル名を指定するには --slug を使ってください。");
+  if (args.index) {
+    try {
+      if (!cmdIndex(b, { write: true, quiet: true })) return 0;
+    } catch (e) {
+      console.error(e.message);
+    }
+    console.error("文書は作成済みです。索引の問題を解消してから okf index --write を実行してください。");
+    return 1;
+  }
   return 0;
 }
 export function cmdStatus(b, args) {
