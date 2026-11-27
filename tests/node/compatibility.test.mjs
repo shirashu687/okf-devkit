@@ -280,6 +280,9 @@ test("both CLIs prune code glob directories and flag only known placeholders", (
     put(root, "docs/agents/tool.md", "# Tool config without frontmatter\n");
     put(root, "docs/api/explicit.md", document().replace("src/**", "src/app/dist/**"));
     put(root, "docs/api/broad.md", document());
+    put(root, "docs/api/relative.md", document().replace("src/**", "./src/**"));
+    put(root, "docs/api/literal.md", document().replace("src/**", "src/app/local/generated.ts"));
+    put(root, "docs/api/invalid-glob.md", document().replace("src/**", "'src/app/[z-a]*'"));
     put(root, "docs/api/known.md", document().replace("description: One sentence.", "description: <一文で何の一覧かを説明する。>"));
     const examples = "# Example\n\n<https://example.com> <div>HTML</div> `<path>`\n\n" +
       "> ~~~md\n> <カテゴリ名>\n> ~~~\n\n`multiline\n<カテゴリ名>`\n";
@@ -288,9 +291,16 @@ test("both CLIs prune code glob directories and flag only known placeholders", (
     const result = run(root, ["lint", "--strict"], {runtime});
     assert.equal(result.status, 1);
     assert.match(result.stdout, /docs\/api\/known\.md:\d+ warn L15/);
-    assert.match(result.stdout, /docs\/api\/broad\.md:\d+ warn L10.*走査除外/);
+    for (const name of ["broad", "relative", "literal", "invalid-glob"]) {
+      assert.match(result.stdout, new RegExp(name + "\\.md:\\d+ warn L10.*走査除外"));
+    }
     assert.doesNotMatch(result.stdout, /docs\/api\/(?:examples|explicit)\.md:|docs\/agents\//);
     assert.equal(fs.existsSync(path.join(root, "docs/agents/index.md")), false);
+    fs.writeFileSync(config, fs.readFileSync(config, "utf8")
+      .replace("code_glob_exclude: [src/app/local/**]", "code_glob_exclude: ['src/[z-a]*']"));
+    const invalid = run(root, ["lint"], {runtime});
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /code_glob_exclude に不正な glob/);
   }
 });
 test("HTML golden parity and idempotence on shared Markdown and assets", (t) => {
@@ -398,5 +408,20 @@ test("command help has Python/Node option and purpose parity without writes", (t
     assert.ok(js.includes(purpose), command.join(" "));
     if (command.length) assert.match(js, /例:/);
     assert.deepEqual(capture(), before);
+  }
+});
+
+test("both CLIs preserve YAML-sensitive layer names and directories", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    ok(run(root, ["init", "--layer", "on=src/**:appClient", "--layer", "0x1=lib/**:libCode"], {runtime}));
+    const config = YAML.parse(fs.readFileSync(path.join(root, "okf.yml"), "utf8"), { version: "1.1" });
+    assert.deepEqual(config.log.layers, ["on", "0x1"]);
+    for (const [layer, dir] of [["on", "appClient"], ["0x1", "libCode"]]) {
+      assert.equal(config.log.paths[layer], dir + "/log.md");
+      const relative = ok(run(root, ["new", "doc", "--layer", layer, "--type", "Glossary", "--title", "Example"], {runtime})).trim();
+      assert.equal(relative, "docs/" + dir + "/example.md");
+      assert.match(fs.readFileSync(path.join(root, relative), "utf8"), new RegExp('^layer: "' + layer + '"$', "m"));
+    }
   }
 });

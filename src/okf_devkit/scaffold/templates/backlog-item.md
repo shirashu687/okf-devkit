@@ -4,7 +4,7 @@ title: <やりたいことの名前>
 description: <一文で何をするかを書く。>
 tags: [<layer>]
 status: stable
-layer: <client | server | batch | shared>
+layer: <{{LAYER_EXAMPLE}}>
 generated:
   by: process:okf-cli
   at: <YYYY-MM-DDTHH:MM:SSZ>

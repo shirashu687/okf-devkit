@@ -354,6 +354,7 @@ def _flow_scalar(text: str, i: int, stops: str, source: str, line_no: int):
 # YAML シリアライズ（new コマンド用）
 # =============================================================================
 
+_YAML_RADIX_OR_SEPARATED_INT_RE = re.compile(r"^[-+]?(?:0b[01_]+|0x[0-9a-fA-F_]+|[0-9][0-9_]*_[0-9_]*)$")
 _YAML_PLAIN_SAFE_RE = re.compile(r"^[^\s\"'#&*!|>%@`\[\]{},:][^:#]*$")
 
 
@@ -380,6 +381,7 @@ def yaml_scalar(value) -> str:
         or text in _MINI_BOOL_TRUE
         or text in _MINI_BOOL_FALSE
         or bool(_MINI_INT_RE.match(text))
+        or bool(_YAML_RADIX_OR_SEPARATED_INT_RE.fullmatch(text))
         or bool(_MINI_FLOAT_RE.match(text))
         or bool(_MINI_TS_RE.match(text))
     )

@@ -40,7 +40,7 @@ init は `.okf/hooks/render_hook.sh` / `.ps1` を配置する。対応版では 
 
 上記の設定ファイルが存在する場合は、`init --force` でも上書き・自動マージせず、対象パスを表示する。既存ファイルに別のhookや設定がある場合は、以下の構造を既存の `hooks` オブジェクトに追加する。既存のイベント配列がある場合はその配列へ要素を追加し、同じ `hooks` キーを二重に作らない。実際に使うエージェントだけ設定する。
 
-Claude Code の `Stop` 配列へ追加する要素:
+Claude Code の `Stop` 配列へ追加する要素。macOS / Linux では Bash と Git を使う。
 
 ```json
 {
@@ -49,6 +49,22 @@ Claude Code の `Stop` 配列へ追加する要素:
       "type": "command",
       "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$repo\" ] && sh \"$repo/.okf/hooks/agent_stop.sh\" >/dev/null; then :; else echo 'okf-devkit: hook unavailable' >&2; fi; printf '{}\\n'",
       "shell": "bash",
+      "timeout": 30,
+      "statusMessage": "OKFドキュメントのHTMLを生成中"
+    }
+  ]
+}
+```
+
+Windows では PowerShell と Git を使う。既存設定の `Stop` 配列には次の要素を追加する。
+
+```json
+{
+  "hooks": [
+    {
+      "type": "command",
+      "command": "try { $ErrorActionPreference = 'Stop'; $root = git rev-parse --show-toplevel 2>$null; if ($LASTEXITCODE -ne 0 -or -not $root) { throw 'git root unavailable' }; & (Join-Path $root '.okf/hooks/agent_stop.ps1'); if ($LASTEXITCODE -ne 0) { throw 'hook failed' } } catch { [Console]::Error.WriteLine('okf-devkit: hook unavailable'); [Console]::Out.WriteLine('{}'); exit 0 }",
+      "shell": "powershell",
       "timeout": 30,
       "statusMessage": "OKFドキュメントのHTMLを生成中"
     }

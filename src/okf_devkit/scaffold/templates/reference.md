@@ -4,7 +4,7 @@ title: <一覧の名前（例: サーバー API リファレンス）>
 description: <一文で何の一覧かを説明する。>
 tags: [<layer>, reference]
 status: draft
-layer: <client | server | batch | shared>
+layer: <{{LAYER_EXAMPLE}}>
 generated:
   by: claude-code/opus-5
   at: <YYYY-MM-DDTHH:MM:SSZ>

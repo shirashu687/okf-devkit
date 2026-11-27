@@ -250,7 +250,7 @@ export function runLint(b) {
           "code_globs",
           "warn",
           "L10",
-          `\`code_globs: ${g}\` ${codeGlobNoMatch(g)}`,
+          `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
     const sources = d.fm.sources;
     if (sources != null) {
@@ -485,7 +485,7 @@ export function runStale(b) {
         add(
           "orphan",
           "warn",
-          `code_globs: ${g} ${codeGlobNoMatch(g)}`,
+          `code_globs: ${g} ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
         continue;
       }
