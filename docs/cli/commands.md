@@ -81,7 +81,7 @@ Git を使う log、stale、affected と sync gate の実処理は段階的に `
 `render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
 `init --force` は既存の OKF 設定、文書やhookスクリプトを置換する。エージェント設定と `.gitignore` は例外で、常に保持する。設定の部分更新や新しい案内の移行に使わず、既存ファイルとの必要な差分だけを確認して更新する。初回導入時の登録と既存設定への追加は [終了hookの手順](/agents/completion-hooks.md) を参照する。
 
-`upgrade --check` は生成時刻の違いを無視し、来歴が分からない差分を手動確認として表示する。既存の初期化で `--runner` や `--agent` を指定した場合は、比較時にも同じ値を渡せる。`doctor` の hook 診断は設定の読み取り結果で、実行環境の確認には製品側のイベント検証を使う。
+`upgrade --check` は生成ガイドの frontmatter の生成時刻を比較から除き、来歴が分からない差分をファイル単位で手動確認として表示する。必要な変更は配布 scaffold と照合する。hook と Git 除外の追記箇所は [終了hookの手順](/agents/completion-hooks.md) を参照する。既存の初期化で `--runner` や `--agent` を指定した場合は、比較時にも同じ値を渡せる。`doctor` の hook 診断は設定の読み取り結果で、実行環境の確認には製品側のイベント検証を使う。
 
 ## 新規文書の根拠コードと検査
 

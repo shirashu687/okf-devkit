@@ -7,6 +7,10 @@
     {
       "path": "tests/node/compatibility.test.mjs",
       "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
+    },
+    {
+      "path": "tests/node/helpers.mjs",
+      "reason": "読み取り専用チェックが文書バンドル外も含めて元のバイトを保つことを比較する"
     }
   ]
 }

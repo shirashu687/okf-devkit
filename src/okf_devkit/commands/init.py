@@ -95,7 +95,7 @@ def _render_okf_yml(
     )
 
 
-def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | None = None, scaffold_reader=None, config_renderer=None):
+def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | None = None, scaffold_reader=None, config_renderer=None, allow_repo_root=False):
     """新規初期化と差分確認で共用する、書き込みを伴わない生成計画。"""
     repo_root = Path(repo_root)
     scaffold_dir = SCAFFOLD_DIR if scaffold_dir is None else scaffold_dir
@@ -107,7 +107,7 @@ def scaffold_plan(repo_root: Path, args, *, layers=None, scaffold_dir: Path | No
     raw = args.bundle_root if args.bundle_root is not None else "docs"
     bundle_root = raw.strip().replace("\\", "/")
     # 末尾スラッシュを落とす前に判定する（"/abs" が "abs" に化けるのを防ぐ）。
-    if bundle_root.startswith(("/", ".")) or ":" in bundle_root:
+    if (bundle_root.startswith(("/", ".")) or ":" in bundle_root) and not (allow_repo_root and bundle_root == "."):
         raise OkfError(f"bundle_root はプロジェクト内の相対パスで指定してください: {raw!r}")
     bundle_root = bundle_root.rstrip("/")
     if not bundle_root or ".." in bundle_root.split("/"):
