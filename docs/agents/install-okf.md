@@ -85,6 +85,7 @@ Python版やglobal版の `okf` がある場合、解決されたパス・起動�
 
 非Node repoにmanifestがなければ、プロジェクトに合わせたprivateなpackage.json案と配置を提示する。例えば承認済みの独立repoルートなら `{"private":true}` が出発点になる。
 既存workspaceのルート/メンバーとlockfileの位置を確認し、勝手な `npm init -y` やネストした別lockfileを作らない。npm以外が管理している場合は利用者の方式に合わせ、下記npmコマンドを機械的に実行しない。
+
 依存を導入する前に `node_modules/` を使う構成では Git の除外を確認する。新規の単独リポジトリであればルートの `.gitignore` に `/node_modules/` を追加できる。
 
 ## 3. 取得とインストール
@@ -156,7 +157,7 @@ globalを明示選択した場合は、同じ確認済みtgzに `npm.cmd install
 
 ## 4. CLIの実体と動作を検証する
 
-`node_modules` を使う場合はrepoルートから実ファイルを明示する。現行CLIの `--version` に依存せず、インストール済みmanifestで版を確認する。
+`node_modules` を使うローカル版はリポジトリルートから実ファイルを明示する。`--version` に対応する版は実行中の版を確認できる。v0.1.0 プレリリースは同梱 manifest の版を読む。
 
 ```powershell
 node -p "JSON.parse(require('node:fs').readFileSync('node_modules/okf-devkit/package.json','utf8')).version"
@@ -185,6 +186,7 @@ node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
 `init --help` に `--agent` がある版では `--agent codex` のように新規登録するエージェントを選べる。全対応製品を対象にする既定と、登録を省く `--agent none` がある。`--runner "node node_modules/okf-devkit/node/cli.mjs"` は、対応版で生成ガイドを実際の起動表記に揃える。公開済み v0.1.0 のオプションは同版の help で確認する。
+新しいソースの `init` は、エージェントのプロジェクト設定が未作成なら終了hookも登録する。既存ファイルはスキップし、`--force` は多くの生成物を置換するが、エージェント設定と `.gitignore` は保持する。上記の固定SHA版はこの自動登録を含まない。どちらも管理部分だけを更新する仕組みではない。
 既存 `okf.yml`、文書、hookやAI入口は、保存した変更前内容と差分を取り、所有範囲が分かる部分だけを更新する。利用者の編集があれば調整し、競合時は止める。`init --force` を更新手段にしない。
 AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製品別対応と信頼を確認し、repo内の承認済み箇所だけを扱う。global hookは変更しない。
 インストール版の選択だけでhookの実行版は決まらない。ローカル/主worktree/Python/開発checkoutの探索順と実配置を確認し、選んだNode版へ到達することを検証する。実AIイベント未検証ならその限界を報告する。
@@ -212,7 +214,7 @@ AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製�
 導入済みリポジトリの棚卸し、個別の設定差分と OKF 仕様の切り替えは [既存リポジトリの更新ガイド](/agents/upgrade-existing-okf.md) を使う。
 
 更新前に現行版・取得元・lockfile・Node/npm版とmanifestを保存する。設定/文書/hook/生成物のバックアップはパッケージ復旧用と区別する。
-指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。設定更新は手順5の既知範囲の差分のみ。
+指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。対応する版では `doctor` で導入状態を確認し、`upgrade --check` で取り込む scaffold の差分を確認する。設定更新は手順5の既知範囲の差分のみ。
 失敗時は今回変更したmanifestとlockfileを保存内容へ戻し、npm管理repoなら `npm.cmd ci --ignore-scripts` で保存した依存状態を再作成する。ciはnode_modulesを入れ替えるため、その影響も事前に確認する。必要な既存buildは承認済みの別工程とする。globalの復旧は保存した旧tgz/取得元を `--ignore-scripts` 付きで再導入する。
 設定/文書/HTMLはそれぞれのバックアップから競合を確認して戻す。後から加わった利用者編集を上書きせず、`git reset --hard` や無関係な変更の一括取消を使わない。
 

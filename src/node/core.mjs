@@ -322,6 +322,7 @@ export class Doc {
 export class Bundle {
   constructor(repo, config = path.join(repo, "okf.yml")) {
     this.repo = repo;
+    this.configPath = config;
     if (!fs.existsSync(config))
       throw new OkfError(
         `設定ファイルが見つかりません: ${config}（okf init で生成してください）`,

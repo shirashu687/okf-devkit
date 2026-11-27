@@ -107,7 +107,7 @@ export function init(root, runtime = "node") {
     }),
   );
 }
-export function snapshot(root, prefix = "docs") {
+export function snapshot(root, prefix = "docs", encoding = "utf8") {
   const out = {};
   const walk = (dir) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -116,7 +116,7 @@ export function snapshot(root, prefix = "docs") {
       else
         out[path.relative(root, p).replaceAll("\\", "/")] = fs.readFileSync(
           p,
-          "utf8",
+          encoding,
         );
     }
   };

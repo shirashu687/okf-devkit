@@ -13,6 +13,7 @@ code_globs:
   - src/okf_devkit/parser.py
   - tests/test_cli_facade.py
   - src/okf_devkit/commands/init.py
+  - src/okf_devkit/commands/setup_checks.py
   - src/okf_devkit/commands/new.py
   - tests/test_commands_b.py
   - src/okf_devkit/gitutil.py
@@ -22,6 +23,7 @@ code_globs:
   - src/okf_devkit/cli.py
   - src/okf_devkit/yamlio.py
   - src/node/scaffold.mjs
+  - src/node/setup-checks.mjs
 related:
   - /cli/commands.md
 ---
@@ -53,7 +55,7 @@ Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジ�
 
 配置後に語彙と layer_map を確認し、`okf new doc` の雛形を仕上げてから `okf index --write` と lint を実行する。`--agent codex,copilot` や `--agent none` で追加する終了 hook を選べる。既定は全対応エージェント。既存設定に追加する場合は [終了 hook の手順](/agents/completion-hooks.md) を参照する。
 
-`--runner "npm run okf --"` のように生成ガイドと初期化後の案内で使う起動方法を指定できる。先に実際の起動方法を導入先で確認する。
+`--runner "npm run okf --"` のように生成ガイドと初期化後の案内で使う起動方法を指定できる。先に実際の起動方法を導入先で確認する。`upgrade --check` は生成設定・文書・hook などを現行 scaffold と読み取り専用で比較する。
 
 ## 配布する日常操作案内
 

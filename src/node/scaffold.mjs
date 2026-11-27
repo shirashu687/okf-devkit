@@ -121,8 +121,9 @@ function parseLayers(specs) {
   return layers;
 }
 
-export function scaffoldPlan(repo, args, layers = parseLayers(args.layer)) {
-  const bundle = validDir(slash(args.bundleRoot ?? "docs").trim().replace(/\/+$/, ""));
+export function scaffoldPlan(repo, args, layers = parseLayers(args.layer), { allowRepoRoot = false } = {}) {
+  const rawBundle = slash(args.bundleRoot ?? "docs").trim().replace(/\/+$/, "");
+  const bundle = allowRepoRoot && rawBundle === "." ? "." : validDir(rawBundle);
   const site = (args.siteName || path.basename(repo)).trim() || "Project";
   const agents = selectedAgents(args.agent);
   const runner = args.runner?.trim() ?? "okf";

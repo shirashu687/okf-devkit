@@ -4,6 +4,11 @@
 git 履歴からの `log` 生成）と、閲覧用 HTML の生成に重心を置いている。
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("okf-devkit")
+except PackageNotFoundError:
+    __version__ = "0.1.0"
 
 __all__ = ["__version__"]

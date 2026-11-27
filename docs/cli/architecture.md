@@ -44,7 +44,7 @@ related:
 
 # CLI の処理構造
 
-第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。全10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
+第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。第6段階の10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
 
 更新済み親のAI案内・helpとモデル/YAMLを統合後も、第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
 第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
@@ -52,7 +52,7 @@ related:
 
 Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootはcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
 
-Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`init` は Bundle を作る前に処理し、それ以外は Bundle の存在を確認して `cmd_*` に振り分ける。
+Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`--version` はルート探索前に終了する。`init` は Bundle を作る前に処理し、`doctor` は設定や Bundle の不備も診断する。他のコマンドは Bundle を確認して `cmd_*` に振り分ける。
 
 `--help` と各サブコマンドのhelpは引数・用途・実行例を表示し、設定読取やBundle構築より前に終了する。`new --help` はkind一覧、`new doc --help` / `new backlog --help` は各操作の引数を示す。Python/Nodeのhelpと非書込みを共通入力で検証する。
 
