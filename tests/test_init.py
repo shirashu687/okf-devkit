@@ -88,12 +88,14 @@ class InitTests(OkfTestCase):
     def test_generated_agent_settings_launch_advisory_hook_and_ignore_output(self) -> None:
         self.git_init()
         run_init()
-        claude = json.loads(self.read(".claude/settings.json"))
+        claude = json.loads(self.read(".claude/settings.json"))["hooks"]["Stop"][0]["hooks"][0]
         codex = json.loads(self.read(".codex/hooks.json"))
         copilot = json.loads(self.read(".github/hooks/okf-render.json"))
-        commands = [claude["hooks"]["Stop"][0]["hooks"][0]["command"],
-                    codex["hooks"]["Stop"][0]["hooks"][0]["command"],
+        commands = [codex["hooks"]["Stop"][0]["hooks"][0]["command"],
                     copilot["hooks"]["agentStop"][0]["bash"]]
+        self.assertEqual("powershell" if os.name == "nt" else "bash", claude["shell"])
+        if claude["shell"] == "bash":
+            commands.insert(0, claude["command"])
         self.assertIn("agent_stop.ps1", copilot["hooks"]["agentStop"][0]["powershell"])
         self.assertIn("agent_stop.ps1", codex["hooks"]["Stop"][0]["hooks"][0]["commandWindows"])
         self.assertEqual(0, subprocess.run(["git", "check-ignore", "-q", "_site/index.html"], cwd=self.repo).returncode)
@@ -156,19 +158,36 @@ class InitTests(OkfTestCase):
             check(dict(os.environ, PATH=str(path)))
 
     @unittest.skipUnless(os.name == "nt" and shutil.which("powershell"), "Windows PowerShell unavailable")
-    def test_generated_windows_launchers_fail_open_when_adapter_is_missing(self) -> None:
+    def test_generated_windows_launchers_launch_advisory_hook_and_report_unavailable_adapter(self) -> None:
         self.git_init()
         run_init()
-        (self.repo / ".okf/hooks/agent_stop.ps1").unlink()
+        claude = json.loads(self.read(".claude/settings.json"))["hooks"]["Stop"][0]["hooks"][0]
         copilot = json.loads(self.read(".github/hooks/okf-render.json"))["hooks"]["agentStop"][0]["powershell"]
         codex = json.loads(self.read(".codex/hooks.json"))["hooks"]["Stop"][0]["hooks"][0]["commandWindows"]
-        commands = [["powershell", "-NoProfile", "-Command", copilot], codex]
-        for command in commands:
-            result = subprocess.run(command, shell=isinstance(command, str), cwd=self.repo,
-                                    text=True, capture_output=True, timeout=20)
-            self.assertEqual(0, result.returncode, result.stderr)
-            self.assertEqual("{}", result.stdout.strip())
-            self.assertIn("hook unavailable", result.stderr)
+        self.assertEqual("powershell", claude["shell"])
+        prefix = ["powershell", "-NoProfile", "-Command"]
+        commands = [prefix + [claude["command"]], prefix + [copilot], codex]
+        nested = self.repo / "nested folder"
+        nested.mkdir()
+        env = dict(os.environ, PSExecutionPolicyPreference="Bypass")
+
+        def check(diagnostic: str, expected: bool) -> None:
+            for command in commands:
+                result = subprocess.run(
+                    command, shell=isinstance(command, str), cwd=nested, env=env,
+                    input='{"secret":"payload"}', text=True, capture_output=True, timeout=20,
+                )
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual("{}", result.stdout.strip())
+                self.assertNotIn("private output", result.stdout)
+                self.assertNotIn("payload", result.stdout + result.stderr)
+                self.assertEqual(expected, diagnostic in result.stderr)
+
+        for status in (0, 2):
+            self.write(".okf/hooks/render_hook.ps1", f"Write-Output 'private output'\nexit {status}\n")
+            check("generation failed", status != 0)
+        (self.repo / ".okf/hooks/agent_stop.ps1").unlink()
+        check("hook unavailable", True)
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
     def test_agent_settings_cannot_follow_parent_symlink_outside_project(self) -> None:

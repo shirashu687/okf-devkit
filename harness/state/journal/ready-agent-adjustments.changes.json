@@ -21,6 +21,10 @@
       "reason": "既存の読み取り専用テストで記入済み Backlog 文書を用意"
     },
     {
+      "path": "tests/test_init.py",
+      "reason": "生成された Claude 設定の shell に従い、Windows では3製品の PowerShell launcher を検証"
+    },
+    {
       "path": "tests/test_new.py",
       "reason": "文書作成後の記入例を警告し、既存の生成条件と H1 を保つことを確認"
     }
