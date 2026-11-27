@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import os
+import posixpath
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from urllib.parse import unquote
 from .doc import Doc
 from .errors import OkfError
 from .fsutil import read_text, rel_posix, path_matches
@@ -13,6 +15,56 @@ DEFAULTS_PATH = Path(__file__).resolve().parent / "defaults.yml"
 CONFIG_FILENAME = "okf.yml"
 RESERVED_DEFAULT = ("index.md", "log.md")
 INDEX_LINK_STYLES = ("bundle-absolute", "relative")
+
+
+def legacy_path_fields(version: str | None) -> bool:
+    """OKF 0.2 and earlier accept a bundle-root retry for path fields."""
+    if version is None:
+        return True
+    match = re.fullmatch(r"(\d+)\.(\d+)", version)
+    return match is not None and tuple(map(int, match.groups())) <= (0, 2)
+
+
+def local_reference(bundle, source: str, value: str, *, path_field: bool = False):
+    """Resolve an in-bundle URI reference without reading its target."""
+    if not value or re.match(r"^(?:#|//|[a-zA-Z][a-zA-Z0-9+.-]*:)", value):
+        return None, "", None
+    raw, suffix = re.fullmatch(r"([^?#]*)(.*)", value, re.DOTALL).groups()
+    if not raw or re.search(r"%(?![\da-fA-F]{2})|%2f|%5c", raw, re.IGNORECASE):
+        return None, suffix, None
+    try:
+        decoded = unquote(raw, errors="strict")
+    except UnicodeError:
+        return None, suffix, None
+    if "\\" in decoded or "\0" in decoded:
+        return None, suffix, None
+
+    absolute = raw.startswith("/")
+    relative = decoded.lstrip("/")
+    primary = posixpath.normpath(relative if absolute else posixpath.join(posixpath.dirname(source), relative))
+    if primary == ".." or primary.startswith("../"):
+        return None, suffix, "outside"
+    candidates = [primary]
+    if path_field and not absolute and legacy_path_fields(bundle.declared_version):
+        candidates.append(posixpath.normpath(relative))
+
+    for candidate in dict.fromkeys(candidates):
+        parts = PurePosixPath(candidate).parts
+        if any(part.startswith(".") for part in parts):
+            continue
+        current = bundle.root
+        for part in parts:
+            if not current.is_dir():
+                break
+            child = next((child for child in current.iterdir() if child.name == part), None)
+            if child is None:
+                break
+            if child.is_symlink():
+                return None, suffix, "outside"
+            current = child
+        else:
+            return candidate, suffix, None
+    return None, suffix, "missing"
 
 
 def merge_config(base: dict, override: dict) -> dict:

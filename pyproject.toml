@@ -28,6 +28,7 @@ classifiers = [
 # hook / CI で自動書き込みする運用では入れておくことを強く推奨する。
 dependencies = [
   "markdown-it-py>=3.0,<4",
+  "mdit-py-plugins>=0.4,<1",
   "pyyaml>=6.0",
 ]
 

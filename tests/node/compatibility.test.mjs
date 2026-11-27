@@ -536,3 +536,61 @@ test("OKF 0.3 reads core YAML concepts and preserves the root index metadata", (
     assert.match(run(root, ["lint"], {runtime}).stdout, /duplicate\.md:1 error L1/);
   }
 });
+
+test("OKF resolves path fields, preserves broken links and limits the legacy retry", (t) => {
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    const declared = (version) => put(root, "docs/index.md", '---\nokf_version: "' + version + '"\n---\n# Bundle\n');
+    const concept = (file, title, metadata = "", text = "") =>
+      put(root, file, "---\ntype: Reference\ntitle: " + title + "\n" + metadata + "---\n\n" + text);
+    concept("docs/root-only.md", "Legacy root target");
+    concept("docs/target one.md", "Encoded target");
+    concept("docs/duplicate.md", "Root duplicate");
+    concept("docs/api/duplicate.md", "Local duplicate");
+    concept("docs/api/computation.md", "Computation target");
+    concept("docs/api/executor.md", "Executor target");
+    concept("docs/api/attester.md", "Attester target");
+    concept("docs/api/replacement.md", "Replacement",
+      "status: deprecated\nsuperseded_by: ./origin.md\n");
+    put(root, "docs/logo.img", "content");
+    put(root, "outside.md", "Must never render.");
+    concept("docs/api/origin.md", "Origin concept",
+      'status: deprecated\ntags: "one,tag"\nresource: duplicate.md\nsources: {resource: root-only.md}\n' +
+      'computation: ./computation.md\nexecutor: {resource: ./executor.md}\nattester: {resource: ./attester.md}\n' +
+      'superseded_by: ./replacement.md#new\n',
+      "# Origin\n\n[encoded](/target%20one%2Emd?x=1#heading) [broken](root-only.md) " +
+      "[outside](../../outside.md)\n\n![asset](/logo.img#image)\n\n" +
+      "| A | B |\n|---|---|\n| 1 | 2 |\n\nSource.[^origin]\n\n[^origin]: Source note.\n");
+    const html = (file) => fs.readFileSync(path.join(root, "_site", file), "utf8");
+    const backlinks = (file) => html(file).match(/<aside class="backlinks">.*?<\/aside>/s)?.[0] ?? "";
+    for (const version of ["0.2", "0.3", "0.10", null]) {
+      if (version === null) fs.rmSync(path.join(root, "docs/index.md"));
+      else declared(version);
+      ok(run(root, ["render"], {runtime}));
+      const legacy = version === "0.2" || version === null;
+      assert.equal(backlinks("root-only.html").includes('href="api/origin.html">Origin concept'), legacy);
+      assert.match(html("api/origin.html"), /href="root-only\.md"/);
+      assert.doesNotMatch(backlinks("duplicate.html"), /href="api\/origin\.html">Origin concept/);
+      for (const target of ["duplicate", "computation", "executor", "attester"]) {
+        assert.match(backlinks("api/" + target + ".html"), /href="origin\.html">Origin concept/);
+      }
+      if (!legacy) {
+        const page = html("api/origin.html");
+        assert.match(page, /href="\.\.\/target%20one\.html\?x=1#heading"/);
+        assert.match(page, /src="\.\.\/\.\.\/docs\/logo\.img#image"/);
+        assert.match(page, /href="\.\.\/\.\.\/outside\.md"/);
+        assert.match(page, /後継文書 — <a href="replacement\.html#new"/);
+        assert.match(page, /data-search="[^"]*one,tag"/);
+        assert.match(page, /footnote-ref/);
+        assert.match(page, /<table>/);
+        assert.match(html("api/replacement.html"), /後継文書 — <a href="origin\.html"/);
+        assert.equal(fs.existsSync(path.join(root, "_site/outside.html")), false);
+      }
+    }
+    declared("0.3");
+    concept("docs/api/broken-replacement.md", "Broken replacement", "status: deprecated\nsuperseded_by: ./missing.md\n");
+    ok(run(root, ["render"], {runtime}));
+    assert.match(html("api/broken-replacement.html"), /後継文書 — \.\/missing\.md/);
+  }
+});
