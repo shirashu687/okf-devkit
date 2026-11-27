@@ -120,6 +120,8 @@ def _check_actor_entry(entry, label: str) -> str | None:
 
 def trust_level(doc: Doc) -> str:
     """`verified` の内容から信頼度を返す（CONVENTIONS.md §1-3）。"""
+    if doc.okf03:
+        return doc.current_trust()
     verified = doc.fm.get("verified")
     if not isinstance(verified, list) or not verified:
         return "unverified"
@@ -152,8 +154,12 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             add(Finding(path, 1, "error", "L1", f"frontmatter を読めません: {reason}"))
             continue
 
-        if bundle.okf03 and not doc.type:
-            continue
+        if bundle.okf03:
+            if not doc.type:
+                continue
+            for key, problem in doc.okf_metadata_problems():
+                rule = "L6" if key in ("generated", "verified") else "L14"
+                add(Finding(path, doc.key_line(key), "warn", rule, problem))
         if not project:
             continue
 
@@ -178,12 +184,12 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             add(Finding(path, doc.key_line("layer"), "error", "L5",
                         f"`layer` は {'/'.join(bundle.layers)} のいずれかが必要です（現在: {layer!r}）"))
 
-        if "generated" in doc.fm and doc.fm.get("generated") is not None:
+        if not bundle.okf03 and doc.fm.get("generated") is not None:
             problem = _check_actor_entry(doc.fm.get("generated"), "generated")
             if problem:
                 add(Finding(path, doc.key_line("generated"), "warn", "L6", problem))
 
-        if "verified" in doc.fm and doc.fm.get("verified") is not None:
+        if not bundle.okf03 and doc.fm.get("verified") is not None:
             verified = doc.fm.get("verified")
             if not isinstance(verified, list):
                 add(Finding(path, doc.key_line("verified"), "warn", "L6",
@@ -218,7 +224,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
                             f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}"))
 
-        for problem in doc.source_problems():
+        for problem in () if bundle.okf03 else doc.source_problems():
             add(Finding(path, doc.key_line("sources"), "warn", "L14", problem))
 
         related = doc.fm.get("related")

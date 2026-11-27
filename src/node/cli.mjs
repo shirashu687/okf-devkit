@@ -395,7 +395,7 @@ async function cmdSync(b, args) {
       "[okf log] 未コミットの変更があります。今回の作業分はコミット後に `okf log --write` を実行してください。",
     );
   console.log("\n== lint ==");
-  const findings = runLint(b),
+  const findings = runLint(b, { project: true }),
     errors = findings.filter((f) => f.level === "error");
   findings.forEach((f) => console.log(findingText(f)));
   console.log(

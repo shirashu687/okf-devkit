@@ -594,3 +594,51 @@ test("OKF resolves path fields, preserves broken links and limits the legacy ret
     assert.match(html("api/broken-replacement.html"), /後継文書 — \.\/missing\.md/);
   }
 });
+
+test("OKF 0.3 evaluates current trust and RFC 3339 freshness in both CLIs and HTML", (t) => {
+  const now = Date.now();
+  const future = new Date(now + 10 * 60 * 1000).toISOString();
+  const past = new Date(now - 10 * 60 * 1000).toISOString();
+  const observed = [];
+  for (const runtime of ["python", "node"]) {
+    const root = temp(t);
+    init(root, runtime);
+    put(root, "docs/index.md", '---\nokf_version: "0.3"\n---\n# OKF\n');
+    const concept = (name, meta) => put(root, "docs/api/" + name + ".md",
+      "---\ntype: Example\n" + meta + "\n---\n\n# " + name + "\n");
+    const gen = 'generated: {by: process:write, at: "2026-06-20T12:00:00.000000002Z"}\n';
+    concept("team", gen + 'verified:\n  - {by: human:prior, at: "2026-06-20T12:00:00.000000001Z"}\n' +
+      '  - {by: team:science, at: "2026-06-20T21:00:00.000000002+09:00"}\n' +
+      'sources: {resource: all study records, author: group:science, last_modified: "2026-01-01"}\n' +
+      'stale_after: "' + future + '"');
+    concept("equal", gen + 'verified: {by: human:equal, at: "2026-06-20T12:00:00.000000002Z"}\n' +
+      'stale_after: "' + past + '"');
+    concept("no-generated", 'generated: []\nverified: {by: human:other, at: !!timestamp 2026-06-20T12:00:00Z}\n' +
+      'stale_after: 2000-06-01');
+    concept("only-old", gen + 'verified: {by: human:prior, at: "2026-06-20T12:00:00.000000001Z"}\n' +
+      'stale_after: []\nsources: ""');
+    concept("bad", 'verified: {by: human:missing}\nstale_after: "2026-12-01T10:00:00"');
+    concept("bad-date", 'stale_after: "2026-02-30"');
+    const lint = run(root, ["lint"], {runtime});
+    assert.equal(lint.status, 0, lint.stderr);
+    assert.match(lint.stdout, /bad\.md:3 warn L6/);
+    assert.match(lint.stdout, /bad-date\.md:3 warn L14/);
+    assert.doesNotMatch(lint.stdout, /(?:team|equal|only-old|no-generated)\.md:/);
+    const stale = JSON.parse(ok(run(root, ["stale", "--format", "json"], {runtime})));
+    const kinds = (name) => stale.filter((item) => item.path === "docs/api/" + name + ".md").map((item) => item.kind);
+    assert.deepEqual(kinds("team"), []);
+    assert.deepEqual(kinds("equal"), ["expired"]);
+    assert.deepEqual(kinds("no-generated"), ["expired"]);
+    assert.deepEqual(kinds("only-old"), ["unverified"]);
+    assert.deepEqual(kinds("bad"), ["malformed-stale-after", "unverified"]);
+    observed.push([lint.stdout, stale]);
+    ok(run(root, ["render"], {runtime}));
+    const html = (name) => fs.readFileSync(path.join(root, "_site/api/" + name + ".html"), "utf8");
+    assert.match(html("team"), /badge machine-confirmed/);
+    assert.match(html("equal"), /badge human-reviewed.*badge stale/);
+    assert.match(html("no-generated"), /badge human-reviewed.*badge stale/);
+    assert.match(html("only-old"), /badge unverified/);
+    assert.match(html("bad"), /badge unverified.*badge malformed/);
+  }
+  assert.deepEqual(observed[0], observed[1]);
+});

@@ -61,6 +61,7 @@ function actorProblem(value, label) {
   return null;
 }
 export function trust(doc) {
+  if (doc.okf03) return doc.currentTrust();
   const actors = Array.isArray(doc.fm.verified)
     ? doc.fm.verified
         .filter(isMap)
@@ -160,7 +161,14 @@ export function runLint(b, { project = false } = {}) {
       );
       continue;
     }
-    if ((b.okf03 && !d.type) || !project) continue;
+    if (b.okf03) {
+      if (!d.type) continue;
+      for (const [key, message] of d.okfMetadataProblems()) {
+        const rule = ["generated", "verified"].includes(key) ? "L6" : "L14";
+        add(d, key, "warn", rule, message);
+      }
+    }
+    if (!project) continue;
     for (const [line, token] of remainingPlaceholders(d))
       add(d, line, "warn", "L15", "雛形の記入例が残っています: " + token);
     if (!d.type) add(d, "type", "error", "L2", "`type` が空です");
@@ -192,12 +200,12 @@ export function runLint(b, { project = false } = {}) {
         "L5",
         `\`layer\` は ${b.layers.join("/")} のいずれかが必要です（現在: ${repr(d.fm.layer)}）`,
       );
-    if (d.fm.generated != null) {
+    if (!b.okf03 && d.fm.generated != null) {
       const p = actorProblem(d.fm.generated, "generated");
       if (p) add(d, "generated", "warn", "L6", p);
     }
     const verified = d.fm.verified;
-    if (verified != null) {
+    if (!b.okf03 && verified != null) {
       if (!Array.isArray(verified))
         add(
           d,
@@ -276,7 +284,7 @@ export function runLint(b, { project = false } = {}) {
           `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
     const sources = d.fm.sources;
-    if (sources != null) {
+    if (!b.okf03 && sources != null) {
       if (!Array.isArray(sources))
         add(
           d,
@@ -500,7 +508,7 @@ export function cmdLint(b, args = {}) {
 export function runStale(b) {
   const results = [],
     times = pathTimes(b.repo),
-    date = today();
+    date = today(), now = new Date();
   for (const d of b.docs()) {
     if (!d.hasFm) continue;
     const add = (kind, level, message) =>
@@ -509,8 +517,13 @@ export function runStale(b) {
       gen = timestamp(raw),
       genDate = extractDate(raw),
       expiry = extractDate(d.fm.stale_after);
-    if (expiry && expiry <= date)
+    if (b.okf03) {
+      const freshness = d.okfFreshness(now);
+      if (freshness === "stale") add("expired", "warn", `stale_after: ${d.get("stale_after")} を過ぎています`);
+      if (freshness === "malformed") add("malformed-stale-after", "warn", "stale_after は RFC 3339 ではありません");
+    } else if (expiry && expiry <= date) {
       add("expired", "warn", `stale_after: ${expiry} を過ぎています`);
+    }
     for (const g of d.globs) {
       const files = b.resources(g);
       if (!files.length) {
@@ -543,7 +556,7 @@ export function runStale(b) {
       add(
         "unverified",
         "info",
-        "verified がありません（人によるレビュー未実施）",
+        d.okf03 ? "現在の内容に有効な verified がありません" : "verified がありません（人によるレビュー未実施）",
       );
     const age = genDate
       ? Math.floor((Date.parse(date) - Date.parse(genDate)) / 86400000)

@@ -14,6 +14,7 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
     results: list[dict] = []
     draft_days = int((bundle.cfg.get("stale") or {}).get("draft_days", 30))
     todays = today()
+    now = _dt.datetime.now(_dt.timezone.utc)
 
     for doc in bundle.docs():
         if not doc.has_fm:
@@ -25,7 +26,15 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
         gen_at = extract_date(gen_raw)
 
         stale_after = extract_date(doc.fm.get("stale_after"))
-        if stale_after and stale_after <= todays.isoformat():
+        if bundle.okf03:
+            freshness = doc.okf_freshness(now)
+            if freshness == "stale":
+                results.append({"path": path, "kind": "expired", "level": "warn",
+                                "message": f"stale_after: {doc.get('stale_after')} を過ぎています"})
+            elif freshness == "malformed":
+                results.append({"path": path, "kind": "malformed-stale-after", "level": "warn",
+                                "message": "stale_after は RFC 3339 ではありません"})
+        elif stale_after and stale_after <= todays.isoformat():
             results.append({"path": path, "kind": "expired", "level": "warn",
                             "message": f"stale_after: {stale_after} を過ぎています"})
 
@@ -56,7 +65,8 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
 
         if trust_level(doc) == "unverified":
             results.append({"path": path, "kind": "unverified", "level": "info",
-                            "message": "verified がありません（人によるレビュー未実施）"})
+                            "message": ("現在の内容に有効な verified がありません" if doc.okf03
+                                        else "verified がありません（人によるレビュー未実施）")})
 
         if doc.status == "draft" and gen_at:
             try:

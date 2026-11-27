@@ -1,7 +1,7 @@
 ---
 type: Convention
 title: docs ディレクトリの歩き方
-description: このディレクトリが OKF v0.2 バンドルであることと、LLM が作業する際の手順を示す入口ドキュメント。
+description: この OKF バンドルの版と、文書を扱う際の手順を確認する入口。
 tags: [docs, okf, guide]
 status: stable
 layer: shared
@@ -17,6 +17,8 @@ related:
 利用先リポジトリの指示に従い、このバンドルの執筆規約 [CONVENTIONS.md](/CONVENTIONS.md) を読む。外部の harness は不要。コマンドの詳細は導入済みの `{{RUNNER}} <command> --help` を使う。
 
 案内の起動表記は `{{RUNNER}}`。プロジェクトルートから、実際に導入した CLI を使う。node_modules を使う Node 版は `node node_modules/okf-devkit/node/cli.mjs`、Python 版は導入した環境の `python -m okf_devkit.cli` でも起動できる。
+
+OKF 仕様の版はルートの `index.md` で確認する。新規バンドルの既定は 0.2。0.3 で利用先の型やレイヤー規約を検査するときは `{{RUNNER}} lint --project` を使う。
 
 ## 日常操作
 

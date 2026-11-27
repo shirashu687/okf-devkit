@@ -133,6 +133,29 @@ def parse_datetime(value) -> tuple[_dt.datetime | None, bool]:
     return parsed, True
 
 
+_OKF_DATETIME = re.compile(
+    r"([0-9]{4}-[0-9]{2}-[0-9]{2})[Tt]"
+    r"([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])"
+    r"(?:\.([0-9]+))?([Zz]|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])"
+)
+
+
+def okf_instant(value) -> tuple[int, str] | None:
+    """OKF 0.3 instant, retaining fractional precision for comparisons."""
+    if not isinstance(value, str):
+        return None
+    if is_iso_date(value):
+        value += "T00:00:00Z"
+    parts = _OKF_DATETIME.fullmatch(value)
+    if parts is None:
+        return None
+    date, hour, minute, second, fraction, offset = parts.groups()
+    parsed, _ = parse_datetime(f"{date}T{hour}:{minute}:{second}{offset}")
+    if parsed is None:
+        return None
+    return int(parsed.timestamp()), (fraction or "").rstrip("0")
+
+
 def glob_to_regex(pattern: str) -> re.Pattern:
     """glob 文字列をパス照合用の正規表現に変換する（`**` は `/` を跨ぐ）。
 

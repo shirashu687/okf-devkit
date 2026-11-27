@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "aed71d42f21e2c6948bd314e56804b26aba65912",
+  "worklog": "harness/state/journal/okf-v03-trust.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "公開 CLI と HTML が同じ信頼と鮮度を示すことを両実装で検証する"
+    },
+    {
+      "path": "package.json",
+      "reason": "公開パッケージの説明に対応するバンドル仕様を記載する"
+    },
+    {
+      "path": "pyproject.toml",
+      "reason": "公開パッケージの説明に対応するバンドル仕様を記載する"
+    }
+  ],
+  "pull_request_base": "8d665bdd85fdb67d83c831ce87039e9485b52888"
+}

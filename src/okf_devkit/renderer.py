@@ -7,6 +7,7 @@ Markdown を正本のまま保持し、Bundle 対象の全ページを HTML に�
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import html
 import os
@@ -99,7 +100,13 @@ def _type_class(type_name: str) -> str:
     return value or "document"
 
 
+_TRUST_LABELS = {"unverified": "未検証", "machine-confirmed": "機械確認済み", "human-reviewed": "人間レビュー済み"}
+
+
 def _trust_level(doc: Any) -> tuple[str, str]:
+    if doc.okf03:
+        tier = doc.current_trust()
+        return tier, _TRUST_LABELS[tier]
     verified = doc.get("verified", [])
     if not isinstance(verified, list) or not verified:
         return "unverified", "未検証"
@@ -393,7 +400,7 @@ def _render_breadcrumbs(page: Page, page_sources: set[str]) -> str:
     return '<nav class="breadcrumbs" aria-label="パンくず">' + '<span aria-hidden="true">/</span>'.join(crumbs) + "</nav>"
 
 
-def _render_badges(doc: Any) -> str:
+def _render_badges(doc: Any, now: dt.datetime) -> str:
     type_name = doc.type or ("Index" if doc.name == "index.md" else "Log" if doc.name == "log.md" else "Document")
     status = doc.status
     trust_class, trust_label = _trust_level(doc)
@@ -402,6 +409,10 @@ def _render_badges(doc: Any) -> str:
         (f"status-{status}", status),
         (trust_class, trust_label),
     ]
+    if doc.okf03:
+        freshness = doc.okf_freshness(now)
+        if freshness:
+            values.append((freshness, "要再確認" if freshness == "stale" else "stale_after の形式不正"))
     if doc.type == "Backlog Item":
         for key in ("state", "priority", "effort", "ai"):
             value = doc.get(key)
@@ -536,6 +547,7 @@ def render_bundle(
         page.body_html = md.renderer.render(page.tokens, md.options, {})
 
     template = _asset_text("page.html")
+    now = dt.datetime.now(dt.timezone.utc)
     pages_by_source = {page.source_rel: page for page in pages}
     planned: list[tuple[Path, str]] = []
     for page in pages:
@@ -563,7 +575,7 @@ def render_bundle(
             "TYPE_CLASS": html.escape(_type_class(type_name), quote=True),
             "LONG_CLASS": " long-document" if long_page else "",
             "BREADCRUMBS": _render_breadcrumbs(page, page_sources),
-            "BADGES": _render_badges(page.doc),
+            "BADGES": _render_badges(page.doc, now),
             "NAVIGATION": _render_navigation(pages, page, bundle),
             "TOC": _render_toc(page.headings),
             "CONTENT": page.body_html,

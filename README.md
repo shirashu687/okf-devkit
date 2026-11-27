@@ -1,6 +1,6 @@
 # okf-devkit
 
-`okf-devkit` は、[OKF v0.2](https://github.com/GoogleCloudPlatform/open-knowledge-format) のドキュメントをコードと一緒に保守する CLI です。変更に影響される文書の確認、目次と履歴の更新、規約の検査、HTML での閲覧を支援します。
+`okf-devkit` は、[OKF](https://github.com/open-knowledge-format/open-knowledge-format) 0.2 / 0.3 のドキュメントをコードと一緒に保守する CLI です。変更に影響される文書の確認、目次と履歴の更新、規約の検査、HTML での閲覧を支援します。
 
 ドキュメントは Markdown と Git で管理します。利用先に別リポジトリの harness を導入する必要はありません。
 

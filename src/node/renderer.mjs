@@ -260,7 +260,7 @@ function breadcrumbs(page, sources) {
     "</nav>"
   );
 }
-function badges(doc) {
+function badges(doc, now) {
   const type =
       doc.type ||
       (doc.name === "index.md"
@@ -269,13 +269,17 @@ function badges(doc) {
           ? "Log"
           : "Document"),
     verified = doc.get("verified", []);
-  const trust =
+  const tier = doc.okf03 ? doc.currentTrust() : null;
+  const labels = { unverified: "未検証", "machine-confirmed": "機械確認済み", "human-reviewed": "人間レビュー済み" };
+  const trust = tier ? [tier, labels[tier]] :
     !Array.isArray(verified) || !verified.length
       ? ["unverified", "未検証"]
       : verified.some((v) => String(v?.by || "").startsWith("human:"))
         ? ["human-reviewed", "人間レビュー済み"]
         : ["machine-confirmed", "機械確認済み"];
   const values = [["type", type], [`status-${doc.status}`, doc.status], trust];
+  const freshness = doc.okf03 ? doc.okfFreshness(now) : null;
+  if (freshness) values.push([freshness, freshness === "stale" ? "要再確認" : "stale_after の形式不正"]);
   if (doc.type === "Backlog Item")
     for (const k of ["state", "priority", "effort", "ai"])
       if (doc.get(k) !== null) values.push([k, `${k}: ${doc.get(k)}`]);
@@ -382,7 +386,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
       }
     page.body = md.renderer.render(page.items, md.options, {});
   }
-  const template = asset("page.html"),
+  const template = asset("page.html"), now = new Date(),
     plan = [];
   for (const p of pages) {
     const target = inside(output, path.join(output, p.output)),
@@ -418,7 +422,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
           ? " long-document"
           : "",
       BREADCRUMBS: breadcrumbs(p, sources),
-      BADGES: badges(p.doc),
+      BADGES: badges(p.doc, now),
       NAVIGATION: navigation(pages, p, b),
       TOC: toc(p.headings),
       CONTENT: p.body,

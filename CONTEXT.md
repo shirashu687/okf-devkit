@@ -2,7 +2,7 @@
 
 ## プロジェクト
 
-okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を保つ CLI である。Python実装は src/okf_devkit/、Python不要のNode.js実装は src/node/、node/cli.mjs は互換入口、scripts/ は配布・CI処理、標準テストは tests/、利用者向け説明は README.md にある。
+okf-devkit は、ソースコードと OKF 0.2 / 0.3 ドキュメントの対応を保つ CLI である。Python実装は src/okf_devkit/、Python不要のNode.js実装は src/node/、node/cli.mjs は互換入口、scripts/ は配布・CI処理、標準テストは tests/、利用者向け説明は README.md にある。
 
 ## 正本と用語
 
@@ -10,7 +10,7 @@ okf-devkit は、ソースコードと OKF v0.2 ドキュメントの対応を�
 - docs/ は OKF バンドルで、docs/CONVENTIONS.md が frontmatter、リンク、文書書式（Backlog Item 型を含む）を定める。
 - このリポジトリの課題は GitHub Issues で管理する。triage ラベルは Issue のラベルであり、進捗は open / closed で表す。
 - Obsidian はリポジトリルートの同じ Markdown を読むUIであり、別の正本や専用コピーを作らない。個人状態の `.obsidian/` はGit管理外とする。
-- 生成 index.md のリンク形式は対象の `okf.yml` の `index.link_style` が決める。frontmatter、`related`、`Doc.bundle_rel` のバンドル起点の意味は変わらない。
+- 生成 index.md のリンク形式は対象の `okf.yml` の `index.link_style` が決める。`Doc.bundle_rel` はバンドルルート起点の識別子。ルート索引の `okf_version` が 0.3 なら OKF の相対パスと信頼の規則を使う。
 - 上流スキルは .agents/skills/ と .claude/skills/ にインストーラーがコピーした直接依存で、自前実装とは別に更新する。
 - okf-devkitの「固定版」は、導入対象として指定した完全Git SHAまたはReleaseの特定tgzを指す。「配布物」は利用者へ渡すtgzであり、OKF文書から生成する閲覧用HTMLとは区別する。
 
