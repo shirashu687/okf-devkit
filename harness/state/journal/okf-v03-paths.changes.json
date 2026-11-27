@@ -20,5 +20,6 @@
       "path": "tests/node/compatibility.test.mjs",
       "reason": "両実装でリンク、パスフィールド、脚注を公開 CLI から比較"
     }
-  ]
+  ],
+  "pull_request_base": "e526fd9c2df1f0f303e1b2235854eebd92fd3a60"
 }
