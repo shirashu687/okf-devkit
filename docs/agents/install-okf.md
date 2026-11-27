@@ -65,7 +65,7 @@ related:
 
 対象repoの入口・規約とGit状態、package.json、lockfile、workspace、既存の `okf.yml`、docs、hookとAI設定を読む。
 未コミット変更は利用者の作業として保つ。npm/yarn/pnpmの管理方式を勝手に切り替えない。
-Node.js 22以上・npm・Gitの版と実体を確認する。WindowsはPowerShell実行ポリシーの影響を避けるため `npm.cmd` を使える。POSIXは `npm` に読み替える。
+Node.js 22以上、Git、利用するパッケージマネージャーの版と実体を確認する。利用するマネージャーの `--version` と Node.js の動作要件も確認する。WindowsはPowerShell実行ポリシーの影響を避けるため `npm.cmd` を使える。POSIXは `npm` に読み替える。
 
 ```powershell
 node --version
@@ -104,7 +104,7 @@ Get-Content SHA256SUMS
 $releaseManifest
 ```
 
-manifest の repository は `shirashu687/okf-devkit`、tag は `v0.1.0`、version は `0.1.0`、commit は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。tgz の名前・実ファイルサイズ・SHA-256 が manifest に一致することを確認する。v0.1.0 の tgz の SHA-256 は `b32e09ddacd885da8bf1e8c84d1fde5dd9411169b92c388f5271db5552ddf080`。tgz と manifest の両方を `SHA256SUMS` に照合する。POSIX では `sha256sum -c SHA256SUMS` が使える。
+manifest の repository は `shirashu687/okf-devkit`、tag は `v0.1.0`、version は `0.1.0`、commit は `12cdb44c2876b50bd7337a5ea20f7744a27d7802`。tgz の名前・実ファイルサイズ・SHA-256 が manifest に一致することを確認する。v0.1.0 の tgz の SHA-256 は `b32e09ddacd885da8bf1e8c84d1fde5dd9411169b92c388f5271db5552ddf080`。tgz と manifest の両方を `SHA256SUMS` に照合する。POSIX では `sha256sum -c SHA256SUMS` が使える。3ファイルがそろい、チェックサムの2項目と manifest の内容がすべて一致した場合に先へ進む。
 
 照合した tgz を導入先からアクセスできる共有可能な位置に置く。次は導入先ルートの `vendor/okf-devkit-0.1.0.tgz` をそのまま使う例で、既存のパッケージマネージャーの行を実行する。
 
@@ -121,7 +121,7 @@ yarn add --dev --exact --mode=skip-build "okf-devkit@file:./vendor/okf-devkit-0.
 
 既存の lockfile からの再導入には npm の `npm ci --ignore-scripts`、pnpm の `pnpm install --frozen-lockfile --ignore-scripts`、Yarn 1 の `yarn install --frozen-lockfile --ignore-scripts`、Yarn 4 の `yarn install --immutable --mode=skip-build` を使う。既存プロジェクトで別途必要な build は導入と分ける。Yarn 4 のオプションは [Yarn の CLI リファレンス](https://yarnpkg.com/cli/install) を参照する。
 
-固定 HTTPS URL を lockfile に記録する運用では同じ Release URL を引数にできる。Yarn 4 では `okf-devkit@https://…` の形にする。公開版の導入と再導入は npm 11.9、pnpm 11.25、Yarn 1.22、Yarn 4.9 で確認した。
+固定 HTTPS URL を lockfile に記録する運用では同じ Release URL を引数にできる。Yarn 4 では `okf-devkit@https://…` の形にする。公開版の導入と再導入は Node.js 24 で npm 11.9、pnpm 11.25、Yarn 1.22、Yarn 4.9 を使って確認した。Node.js 22 系では npm 11.9 は 22.9 以上、pnpm 11.25 は 22.13 以上が必要。
 
 ### 開発版の Git SHA と Python 版
 
@@ -155,7 +155,7 @@ globalを明示選択した場合は、同じ確認済みtgzに `npm.cmd install
 
 ## 4. CLIの実体と動作を検証する
 
-ローカル版はrepoルートから実ファイルを明示する。現行CLIの `--version` に依存せず、インストール済みmanifestで版を確認する。
+`node_modules` を使う場合はrepoルートから実ファイルを明示する。現行CLIの `--version` に依存せず、インストール済みmanifestで版を確認する。
 
 ```powershell
 node -p "JSON.parse(require('node:fs').readFileSync('node_modules/okf-devkit/package.json','utf8')).version"
@@ -164,7 +164,7 @@ node node_modules/okf-devkit/node/cli.mjs --help
 
 選んだSHA/tgzの由来をlockfileと照合する。package.jsonの版文字列だけでGitコミットを証明しない。
 workspace等で配置が異なる場合は実際のインストール先を解決して同じCLIファイルを呼ぶ。
-Yarn 4 の Plug'n'Play では `yarn run -B okf --help` で導入済みバイナリを起動し、同じ接頭辞で `init` や `lint` を実行する。hook が利用する `node_modules` ベースの探索とは別経路なので、実際の hook の起動先を確認する。
+Yarn 4 の Plug'n'Play では `yarn run -B okf --help` で導入済みバイナリを起動し、同じ接頭辞で `init` や `lint` を実行する。hook が利用する `node_modules` ベースの探索とは別経路なので、実際の hook の起動先を確認する。版は `yarn node -p "require('okf-devkit/package.json').version"` で確認する。手順5の各コマンドでも CLI の起動部分を `yarn run -B okf` に置き換える。
 起動スクリプトを使う場合は、npm は `npm run okf -- index --check`、pnpm は `pnpm run okf index --check` のように引数を渡す。
 `npx okf` / `npm exec -- okf` は未導入時に別パッケージを取得し得るため、導入確認前の検証には使わない。
 globalの場合もbin shim/対象packageを解決してNode版であることを確認する。
@@ -198,7 +198,9 @@ AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製�
 - [文書の作業ガイド](docs/AGENTS.md) と [執筆規約](docs/CONVENTIONS.md) を読む。
 - [日常操作ガイド](https://github.com/shirashu687/okf-devkit/blob/main/docs/agents/operate-okf.md) と導入済み CLI の help で手順を確認する。
 - リポジトリルートから `node node_modules/okf-devkit/node/cli.mjs` を実行する。
-- 索引を更新するときは `index --write`、規約を確認するときは `lint` をその起動表記に続ける。
+- 文書や初期化の出力にある `okf ...` はこの起動表記に置き換える。CLI の自動取得を避けるため `npx okf` は使わない。
+- 変更の影響は `affected --paths <変更パス>`、HTML は `render --check` を起動表記の後に指定する。
+- 索引は `node node_modules/okf-devkit/node/cli.mjs index --write`、検査は `node node_modules/okf-devkit/node/cli.mjs lint` を実行する。
 ```
 
 バンドルの位置が異なる場合はリンクも合わせる。Yarn 4 Plug'n'Play では起動表記を `yarn run -B okf`、Python 版では `python -m okf_devkit.cli` に替える。

@@ -23,10 +23,10 @@ AIが構成と既存環境を調べ、固定版のローカル導入、`okf.yml`
 
 ## はじめる
 
-Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。取得済み tgz と SHA-256 の照合手順は [導入ガイド](docs/agents/install-okf.md) にあります。
+Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。[導入ガイド](docs/agents/install-okf.md#公開済み-tgz) に従って tgz と SHA-256 を照合し、`vendor/` に置いてから実行します。
 
 ```bash
-npm install --save-dev --save-exact --ignore-scripts "https://github.com/shirashu687/okf-devkit/releases/download/v0.1.0/okf-devkit-0.1.0.tgz"
+npm install --save-dev --save-exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
 ```
 
 次に、導入先の `package.json` に `okf` スクリプトを登録します。すでに `scripts.okf` がある場合は上書きされるため、内容を確認して別の名前を選んでください。
