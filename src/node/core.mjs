@@ -333,6 +333,52 @@ export class Doc {
       : [];
   }
 }
+export function legacyPathFields(version) {
+  if (version === null) return true;
+  const match = /^(\d+)\.(\d+)$/.exec(version);
+  return match !== null && Number(match[1]) === 0 && Number(match[2]) <= 2;
+}
+export function localReference(bundle, source, value, pathField = false) {
+  if (!value || /^(?:#|\/\/|[a-zA-Z][a-zA-Z0-9+.-]*:)/.test(value)) return [null, "", null];
+  const [, raw, suffix] = /^([^?#]*)(.*)$/s.exec(value);
+  if (!raw || /%2f|%5c/i.test(raw)) return [null, suffix, null];
+  let decoded;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    return [null, suffix, null];
+  }
+  if (/[\\\x00]/.test(decoded)) return [null, suffix, null];
+  const absolute = raw.startsWith("/");
+  const relative = decoded.replace(/^\/+/, "");
+  const primary = path.posix.normalize(absolute ? relative : path.posix.join(path.posix.dirname(source), relative)).replace(/\/$/, "");
+  if (primary === ".." || primary.startsWith("../")) return [null, suffix, "outside"];
+  const candidates = new Set([primary]);
+  if (pathField && !absolute && legacyPathFields(bundle.declaredVersion))
+    candidates.add(path.posix.normalize(relative).replace(/\/$/, ""));
+  for (const candidate of candidates) {
+    const parts = candidate === "." ? [] : candidate.split("/");
+    if (parts.some((part) => part.startsWith("."))) continue;
+    let current = bundle.root;
+    let present = true;
+    for (const part of parts) {
+      if (!fs.lstatSync(current, { throwIfNoEntry: false })?.isDirectory()) {
+        present = false;
+        break;
+      }
+      const entry = fs.readdirSync(current, { withFileTypes: true }).find((item) => item.name === part);
+      if (!entry) {
+        present = false;
+        break;
+      }
+      if (entry.isSymbolicLink()) return [null, suffix, "outside"];
+      current = path.join(current, part);
+    }
+    if (present) return [candidate, suffix, null];
+  }
+  return [null, suffix, "missing"];
+}
+
 export class Bundle {
   constructor(repo, config = path.join(repo, "okf.yml")) {
     this.repo = repo;

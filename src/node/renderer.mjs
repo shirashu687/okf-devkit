@@ -5,12 +5,14 @@ import { planCleanup, printPlan, executeCleanup, writeManifest } from "./render-
 import { openBrowser } from "./browser.mjs";
 import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
+import footnote from "markdown-it-footnote";
 import {
   Doc,
   OkfError,
   compare,
   dataDir,
   inside,
+  localReference,
   read,
   rel,
   write,
@@ -69,12 +71,43 @@ export function rewriteHref(source, output, href, sources) {
     encoded = encodeURI(relative).replaceAll("#", "%23").replaceAll("?", "%3F");
   return [encoded + (match[2] || "") + (match[3] || ""), target, null];
 }
-function markdown() {
+const encodePath = (s) => encodeURI(s).replaceAll("#", "%23").replaceAll("?", "%3F");
+
+function renderHref(bundle, page, value, sources, output) {
+  if (!bundle.okf03) return rewriteHref(page.source, page.output, value, sources);
+  let [target, suffix, problem] = localReference(bundle, page.source, value);
+  if (target === null) {
+    if (problem === "outside")
+      return [value, null, `${page.source}: Bundle 外を指すリンクを保持しました: ${value}`];
+    if (problem === "missing" && /(?:\.md|\/)$/i.test(value.split(/[?#]/, 1)[0]))
+      return [value, null, `${page.source}: HTML 化できないリンク先を保持しました: ${value}`];
+    return [value, null, null];
+  }
+  if (fs.statSync(path.join(bundle.root, target)).isDirectory()) {
+    const index = path.posix.join(target, "index.md");
+    if (sources.has(index)) target = index;
+  }
+  if (sources.has(target)) return [encodePath(relativeHtml(page.output, target)) + suffix, target, null];
+  return [encodePath(rel(path.join(bundle.root, target), path.dirname(path.join(output, page.output)))) + suffix, null, null];
+}
+
+function* pathFields(doc) {
+  for (const key of ["resource", "computation", "superseded_by"])
+    if (key !== "superseded_by" || doc.status === "deprecated") yield [key, doc.get(key)];
+  const sources = doc.get("sources");
+  for (const source of Array.isArray(sources) ? sources : [sources])
+    yield ["sources", source?.resource];
+  for (const key of ["executor", "attester"])
+    yield [key, doc.get(key)?.resource];
+}
+
+function markdown(okf03) {
   const md = new MarkdownIt("commonmark", {
     html: false,
     linkify: false,
     typographer: false,
   }).enable("table");
+  if (okf03) md.use(footnote);
   const fence = md.renderer.rules.fence;
   md.renderer.rules.fence = (items, i, options, env, self) => {
     const t = items[i],
@@ -189,7 +222,9 @@ function navigation(pages, current, b) {
       const active = p.source === current.source ? ' aria-current="page" class="active"' : "";
       const href = encodeURI(relativeHtml(current.output,p.source)).replaceAll("#", "%23").replaceAll("?", "%3F");
       const tags = p.doc.get("tags", []), state = p.doc.type === "Backlog Item" ? backlogState(p) : "";
-      const search = [p.doc.title,p.doc.description,p.doc.type,p.source,state,Array.isArray(tags) ? tags.join(" ") : ""].join(" ").toLowerCase();
+      const tagText = Array.isArray(tags) ? tags.filter((tag) => typeof tag === "string").join(" ")
+        : b.okf03 && typeof tags === "string" ? tags : "";
+      const search = [p.doc.title, p.doc.description, p.doc.type, p.source, state, tagText].join(" ").toLowerCase();
       const progress = state ? ` · ${escape(state)}` : "";
       chunks.push(`<li data-search="${escape(search)}"><a href="${escape(href)}"${active}>${escape(p.doc.title)}<small><code>${escape(p.doc.name)}</code>${progress}</small></a></li>`);
     }
@@ -269,17 +304,21 @@ function toc(headings) {
     "</ol></nav>"
   );
 }
-function related(page, sources) {
+function related(bundle, page, sources, output) {
   const raw = page.doc.get("related", []);
-  if (!Array.isArray(raw)) return "";
-  const items = raw
+  const items = (Array.isArray(raw) ? raw : [])
     .filter((v) => typeof v === "string")
     .flatMap((v) => {
-      const [href, target] = rewriteHref(page.source, page.output, v, sources);
+      const [href, target] = renderHref(bundle, page, v, sources, output);
       return target
         ? [`<li><a href="${escape(href)}">${escape(v)}</a></li>`]
         : [];
     });
+  if (page.replacement) {
+    const [href, value] = page.replacement;
+    const display = href ? `<a href="${escape(href)}">${escape(value)}</a>` : escape(value);
+    items.unshift(`<li>後継文書 — ${display}</li>`);
+  }
   return items.length
     ? '<aside class="related"><h2>関連ドキュメント</h2><ul>' +
         items.join("") +
@@ -303,37 +342,41 @@ function backlinks(page, pages) {
 }
 export function renderBundle(b, output = b.root, doWrite = true, removeStale = true) {
   output = inside(b.repo, output);
-  const md = markdown(),
+  const md = markdown(b.okf03),
     pages = b.files(true).map((p) => new Doc(p, b))
       .filter((doc) => !b.okf03 || b.isReserved(doc.name) || doc.type)
       .map((doc) => prepare(doc, b, md)),
     sources = new Set(pages.map((p) => p.source)),
+    concepts = new Set(pages.filter((p) => p.doc.type && !b.isReserved(p.doc.name)).map((p) => p.source)),
     warnings = [];
   for (const page of pages) {
-    for (const token of tokens(page.items))
-      if (token.type === "link_open") {
-        const [href, target, warning] = rewriteHref(
-          page.source,
-          page.output,
-          token.attrGet("href"),
-          sources,
-        );
-        token.attrSet("href", href);
+    for (const token of tokens(page.items)) {
+      const attr = token.type === "link_open" ? "href"
+        : b.okf03 && token.type === "image" ? "src" : null;
+      if (attr) {
+        const [href, target, warning] = renderHref(b, page, token.attrGet(attr), sources, output);
+        token.attrSet(attr, href);
         if (target) page.outbound.add(target);
         if (warning) {
           token.attrJoin("class", "is-broken");
           warnings.push(warning);
         }
       }
+    }
+    if (concepts.has(page.source)) {
+      for (const [key, value] of pathFields(page.doc)) {
+        if (typeof value !== "string" || !value) continue;
+        const [target, suffix] = localReference(b, page.source, value, true);
+        const linked = concepts.has(target);
+        if (linked) page.outbound.add(target);
+        if (b.okf03 && key === "superseded_by")
+          page.replacement = [linked ? encodePath(relativeHtml(page.output, target)) + suffix : null, value];
+      }
+    }
     const refs = page.doc.get("related", []);
     if (Array.isArray(refs))
       for (const ref of refs.filter((r) => typeof r === "string")) {
-        const [, target, warning] = rewriteHref(
-          page.source,
-          page.output,
-          ref,
-          sources,
-        );
+        const [, target, warning] = renderHref(b, page, ref, sources, output);
         if (target) page.outbound.add(target);
         if (warning) warnings.push(warning);
       }
@@ -380,7 +423,7 @@ export function renderBundle(b, output = b.root, doWrite = true, removeStale = t
       TOC: toc(p.headings),
       CONTENT: p.body,
       BACKLOG: backlogProgress(pages, p, b),
-      RELATED: related(p, sources),
+      RELATED: related(b, p, sources, output),
       BACKLINKS: backlinks(p, pages),
     };
     plan.push([

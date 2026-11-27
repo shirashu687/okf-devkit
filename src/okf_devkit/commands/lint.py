@@ -4,7 +4,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from .. import gitutil, yamlio
-from ..config import Bundle
+from ..config import Bundle, local_reference
 from ..doc import Doc
 from ..errors import MarkerError, OkfError
 from ..fsutil import is_iso_date, parse_datetime, read_text, rel_posix
@@ -230,6 +230,15 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
                 if not isinstance(link, str) or not link.strip():
                     add(Finding(path, doc.key_line("related"), "warn", "L11",
                                 f"`related` の要素が文字列ではありません: {link!r}"))
+                    continue
+                if bundle.okf03:
+                    _, _, problem = local_reference(bundle, doc.bundle_rel.lstrip("/"), link)
+                    if problem == "outside":
+                        add(Finding(path, doc.key_line("related"), "warn", "L11",
+                                    f"`related` はバンドル（{rel_posix(bundle.root, repo_root)}/）内を指す必要があります: {link}"))
+                    elif problem == "missing":
+                        add(Finding(path, doc.key_line("related"), "warn", "L11",
+                                    f"`related` のリンク先が存在しません: {link}"))
                     continue
                 target = link.split("#", 1)[0].strip()
                 if not target or target.startswith(("http://", "https://")):

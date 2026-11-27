@@ -12,6 +12,7 @@ import {
   extractDate,
   inside,
   isMap,
+  localReference,
   parseYaml,
   read,
   rel,
@@ -323,6 +324,14 @@ export function runLint(b, { project = false } = {}) {
             "L11",
             `\`related\` の要素が文字列ではありません: ${repr(href)}`,
           );
+          continue;
+        }
+        if (b.okf03) {
+          const [, , problem] = localReference(b, d.bundleRel.slice(1), href);
+          if (problem === "outside")
+            add(d, "related", "warn", "L11", `\`related\` はバンドル（${rel(b.root, b.repo)}/）内を指す必要があります: ${href}`);
+          else if (problem === "missing")
+            add(d, "related", "warn", "L11", `\`related\` のリンク先が存在しません: ${href}`);
           continue;
         }
         const target = href.split("#")[0].trim();

@@ -20,6 +20,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Callable
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
+from .config import local_reference
+
 try:
     from markdown_it import MarkdownIt
 except ImportError:  # pragma: no cover - cmd_render が利用者向けメッセージに変換する
@@ -54,6 +56,7 @@ class Page:
     body_html: str = ""
     char_count: int = 0
     outbound: set[str] = field(default_factory=set)
+    replacement: tuple[str | None, str] | None = None
 
 
 @dataclass
@@ -152,7 +155,42 @@ def rewrite_href(
     return rewritten, target, None
 
 
-def _markdown() -> Any:
+def _rewrite_render_href(bundle, page, value, page_sources, output_root):
+    if not bundle.okf03:
+        return rewrite_href(page.source_rel, page.output_rel, value, page_sources)
+    target, suffix, problem = local_reference(bundle, page.source_rel, value)
+    if target is None:
+        if problem == "outside":
+            return value, None, f"{page.source_rel}: Bundle 外を指すリンクを保持しました: {value}"
+        if problem == "missing" and re.split(r"[?#]", value, maxsplit=1)[0].lower().endswith((".md", "/")):
+            return value, None, f"{page.source_rel}: HTML 化できないリンク先を保持しました: {value}"
+        return value, None, None
+    if (bundle.root / target).is_dir():
+        index = posixpath.join(target, "index.md").removeprefix("./")
+        if index in page_sources:
+            target = index
+    if target in page_sources:
+        relative = _relative_html(page.output_rel, target)
+        return quote(relative, safe="/:@-._~!$&'()*+,;=") + suffix, target, None
+    relative = os.path.relpath(bundle.root / target, (output_root / page.output_rel).parent)
+    return quote(relative.replace("\\", "/"), safe="/:@-._~!$&'()*+,;=") + suffix, None, None
+
+
+def _path_fields(doc):
+    for key in ("resource", "computation", "superseded_by"):
+        if key != "superseded_by" or doc.status == "deprecated":
+            yield key, doc.get(key)
+    sources = doc.get("sources")
+    for source in sources if isinstance(sources, list) else [sources]:
+        if isinstance(source, dict):
+            yield "sources", source.get("resource")
+    for key in ("executor", "attester"):
+        group = doc.get(key)
+        if isinstance(group, dict):
+            yield key, group.get("resource")
+
+
+def _markdown(okf03: bool = False) -> Any:
     if MarkdownIt is None:
         raise RenderError(
             "markdown-it-py が必要です。"
@@ -160,6 +198,9 @@ def _markdown() -> Any:
         )
     md = MarkdownIt("commonmark", {"html": False, "linkify": False, "typographer": False})
     md.enable("table")
+    if okf03:
+        from mdit_py_plugins.footnote import footnote_plugin
+        md.use(footnote_plugin)
     default_fence = md.renderer.rules.get("fence")
 
     def render_fence(tokens, idx, options, env):
@@ -204,17 +245,19 @@ def _prepare_page(page: Page, md: Any) -> None:
     page.char_count = len(re.sub(r"\s+", "", "".join(text_parts)))
 
 
-def _rewrite_page_links(page: Page, page_sources: set[str], warnings: list[str]) -> None:
+def _rewrite_page_links(bundle, page: Page, page_sources: set[str], output_root: Path, warnings: list[str]) -> None:
     for token in _iter_tokens(page.tokens):
-        if token.type != "link_open":
+        if token.type == "link_open":
+            attr = "href"
+        elif bundle.okf03 and token.type == "image":
+            attr = "src"
+        else:
             continue
-        href = token.attrGet("href")
+        href = token.attrGet(attr)
         if not href:
             continue
-        rewritten, target, warning = rewrite_href(
-            page.source_rel, page.output_rel, href, page_sources
-        )
-        token.attrSet("href", rewritten)
+        rewritten, target, warning = _rewrite_render_href(bundle, page, href, page_sources, output_root)
+        token.attrSet(attr, rewritten)
         if target:
             page.outbound.add(target)
         if warning:
@@ -311,7 +354,8 @@ def _render_navigation(pages: list[Page], current: Page, bundle: Any) -> str:
             state = _backlog_state(page) if page.doc.type == "Backlog Item" else ""
             search = " ".join(str(value) for value in (
                 page.doc.title, page.doc.description, page.doc.type, page.source_rel, state,
-                " ".join(tags) if isinstance(tags, list) else "",
+                " ".join(tag for tag in tags if isinstance(tag, str)) if isinstance(tags, list)
+                else tags if bundle.okf03 and isinstance(tags, str) else "",
             )).lower()
             progress = f" · {html.escape(state)}" if state else ""
             chunks.append(f'<li data-search="{html.escape(search, quote=True)}">'
@@ -369,15 +413,18 @@ def _render_badges(doc: Any) -> str:
     ) + "</div>"
 
 
-def _render_related(page: Page, page_sources: set[str]) -> str:
+def _render_related(bundle, page: Page, page_sources: set[str], output_root: Path) -> str:
     raw = page.doc.get("related", [])
-    if not isinstance(raw, list):
-        return ""
     items = []
-    for value in raw:
+    if page.replacement:
+        href, value = page.replacement
+        label = html.escape(value)
+        display = f'<a href="{html.escape(href, quote=True)}">{label}</a>' if href else label
+        items.append(f"<li>後継文書 — {display}</li>")
+    for value in raw if isinstance(raw, list) else []:
         if not isinstance(value, str):
             continue
-        rewritten, target, _warning = rewrite_href(page.source_rel, page.output_rel, value, page_sources)
+        rewritten, target, _warning = _rewrite_render_href(bundle, page, value, page_sources, output_root)
         if target:
             items.append(f'<li><a href="{html.escape(rewritten, quote=True)}">{html.escape(value)}</a></li>')
     if not items:
@@ -442,7 +489,7 @@ def render_bundle(
     remove_stale: bool = True,
 ) -> RenderReport:
     """Bundle 全体を HTML 化し、結果を返す。"""
-    md = _markdown()
+    md = _markdown(bundle.okf03)
     site_name = str(getattr(bundle, "site_name", "") or "Docs")
     actual_output_root = (output_root or bundle.root).resolve()
     source_paths = bundle.md_files(include_reserved=True)
@@ -461,15 +508,27 @@ def render_bundle(
         )
 
     page_sources = {page.source_rel for page in pages}
+    concepts = {page.source_rel for page in pages if page.doc.type and not bundle.is_reserved(page.doc.name)}
     warnings: list[str] = []
     for page in pages:
         _prepare_page(page, md)
-        _rewrite_page_links(page, page_sources, warnings)
+        _rewrite_page_links(bundle, page, page_sources, actual_output_root, warnings)
+        if page.source_rel in concepts:
+            for key, value in _path_fields(page.doc):
+                if not isinstance(value, str) or not value:
+                    continue
+                target, suffix, _problem = local_reference(bundle, page.source_rel, value, path_field=True)
+                linked = target in concepts
+                if linked:
+                    page.outbound.add(target)
+                if bundle.okf03 and key == "superseded_by":
+                    href = quote(_relative_html(page.output_rel, target), safe="/:@-._~!$&'()*+,;=") + suffix if linked else None
+                    page.replacement = (href, value)
         related = page.doc.get("related", [])
         if isinstance(related, list):
             for value in related:
                 if isinstance(value, str):
-                    _rewritten, target, warning = rewrite_href(page.source_rel, page.output_rel, value, page_sources)
+                    _rewritten, target, warning = _rewrite_render_href(bundle, page, value, page_sources, actual_output_root)
                     if target:
                         page.outbound.add(target)
                     if warning:
@@ -509,7 +568,7 @@ def render_bundle(
             "TOC": _render_toc(page.headings),
             "CONTENT": page.body_html,
             "BACKLOG": _render_backlog(pages, page, bundle),
-            "RELATED": _render_related(page, page_sources),
+            "RELATED": _render_related(bundle, page, page_sources, actual_output_root),
             "BACKLINKS": _render_backlinks(page, pages_by_source),
         }
         planned.append((target, _replace_template(template, values, page.source_rel)))

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "a975dc9519c0000da8e20a184a61fbe28a49647e",
+  "worklog": "harness/state/journal/okf-v03-paths.md",
+  "changes": [
+    {
+      "path": "package.json",
+      "reason": "既存の Markdown-it レンダラーへ脚注プラグインを追加"
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "脚注プラグインと取得ハッシュを固定"
+    },
+    {
+      "path": "pyproject.toml",
+      "reason": "Python の既存 Markdown-it に脚注プラグインを追加"
+    },
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "両実装でリンク、パスフィールド、脚注を公開 CLI から比較"
+    }
+  ],
+  "pull_request_base": "e526fd9c2df1f0f303e1b2235854eebd92fd3a60"
+}
