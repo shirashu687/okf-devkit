@@ -279,6 +279,13 @@ test("both CLIs select hooks, render the chosen runner and compare scaffold read
     const rootUpgrade = ok(run(root, ["upgrade", "--check"], {runtime}));
     assert.match(rootUpgrade, /差分あり（手動確認）: AGENTS\.md/);
     assert.doesNotMatch(rootUpgrade, /docs\/AGENTS|\.\/AGENTS/);
+    const outside = temp(t);
+    put(outside, "unrelated.html", "Outside the project\n");
+    put(root, "okf.yml", "bundle_root: " + JSON.stringify(outside) + "\n");
+    const outOfBounds = run(root, ["doctor"], {runtime});
+    assert.equal(outOfBounds.status, 1);
+    assert.match(outOfBounds.stdout, /旧出力候補: 判定不能/);
+    assert.doesNotMatch(outOfBounds.stdout + outOfBounds.stderr, /unrelated\.html|Traceback/);
 
     const disabled = temp(t);
     ok(run(disabled, ["init", "--agent", "none"], {runtime}));

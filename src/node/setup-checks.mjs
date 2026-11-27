@@ -53,8 +53,9 @@ export function cmdDoctor(root, config) {
   let bundle;
   let failed = false;
   try {
-    bundle = new Bundle(root, config);
-    const maps = validatedLayers(bundle);
+    const candidate = new Bundle(root, config);
+    const maps = validatedLayers(candidate);
+    bundle = candidate;
     console.log("設定: 読み込み成功");
     for (const entry of maps) {
       if (entry.layer === "skip") continue;

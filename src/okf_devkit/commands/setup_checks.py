@@ -73,8 +73,9 @@ def cmd_doctor(root: Path, config: Path | None) -> int:
     bundle = None
     failed = False
     try:
-        bundle = Bundle(config, repo_root=root)
-        layer_map = _validated_layers(bundle)
+        candidate = Bundle(config, repo_root=root)
+        layer_map = _validated_layers(candidate)
+        bundle = candidate
         print("設定: 読み込み成功")
         for entry in layer_map:
             glob, layer = entry["glob"], entry["layer"]
