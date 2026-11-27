@@ -207,6 +207,8 @@ AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製�
 
 ## 6. 明示依頼による更新と復旧
 
+導入済みリポジトリの棚卸し、個別の設定差分と OKF 仕様の切り替えは [既存リポジトリの更新ガイド](/agents/upgrade-existing-okf.md) を使う。
+
 更新前に現行版・取得元・lockfile・Node/npm版とmanifestを保存する。設定/文書/hook/生成物のバックアップはパッケージ復旧用と区別する。
 指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。設定更新は手順5の既知範囲の差分のみ。
 失敗時は今回変更したmanifestとlockfileを保存内容へ戻し、npm管理repoなら `npm.cmd ci --ignore-scripts` で保存した依存状態を再作成する。ciはnode_modulesを入れ替えるため、その影響も事前に確認する。必要な既存buildは承認済みの別工程とする。globalの復旧は保存した旧tgz/取得元を `--ignore-scripts` 付きで再導入する。
