@@ -212,9 +212,9 @@ export function matches(file, pattern) {
   return globCache.get(pattern).test(file);
 }
 const skippedCodeDirs = new Set(["node_modules", "dist", ".git"]);
-export const codeGlobNoMatch = (pattern) =>
+export const codeGlobNoMatch = (pattern, exclusions) =>
   "にマッチするファイルがありません" +
-  (/[*?[]/.test(pattern) ? "（走査除外と code_glob_exclude を確認してください）" : "");
+  ((/[*?[]/.test(pattern) || exclusions.length) ? "（走査除外と code_glob_exclude を確認してください）" : "");
 export function git(root, ...args) {
   const proc = spawnSync("git", args, {
     cwd: root,
@@ -337,6 +337,12 @@ export class Bundle {
     if (!Array.isArray(this.codeGlobExclude) ||
         this.codeGlobExclude.some((rule) => typeof rule !== "string" || !rule.trim()))
       throw new OkfError("code_glob_exclude は空でない glob 文字列のリストで指定してください");
+    try {
+      for (const rule of this.codeGlobExclude) matches("", rule);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      throw new OkfError("code_glob_exclude に不正な glob があります");
+    }
     this.root = inside(repo, path.resolve(repo, this.cfg.bundle_root));
     if (!fs.existsSync(this.root))
       throw new OkfError(`バンドルルートがありません: ${this.root}`);
@@ -404,9 +410,18 @@ export class Bundle {
   resources(pattern) {
     pattern = slash(pattern).replace(/^\/+/, "");
     if (!pattern) return [];
-    const excluded = (relative) => relative && this.codeGlobExclude.some((rule) =>
-      matches(relative, rule) || matches(relative + "/", rule),
-    );
+    try {
+      matches("", pattern);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      return [];
+    }
+    const excluded = (relative) => {
+      const normalized = path.posix.normalize(relative).replace(/\/$/, "");
+      return normalized !== "." && this.codeGlobExclude.some((rule) =>
+        matches(normalized, rule) || matches(normalized + "/", rule),
+      );
+    };
     if (!/[*?[]/.test(pattern)) {
       const components = pattern.split("/");
       if (components.some((_, index) => excluded(components.slice(0, index + 1).join("/"))))

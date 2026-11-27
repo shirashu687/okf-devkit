@@ -129,7 +129,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
         for pattern in globs:
             if not (gitutil.resolve_resource(repo_root, pattern, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(pattern)):
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
-                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern)}"))
+                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}"))
 
         for problem in doc.source_problems():
             add(Finding(path, doc.key_line("sources"), "warn", "L14", problem))
