@@ -13,5 +13,5 @@
       "reason": "読み取り専用チェックが文書バンドル外も含めて元のバイトを保つことを比較する"
     }
   ],
-  "pull_request_base": "28adc05a2e2111ff22d169e266b5d896b7d996b3"
+  "pull_request_base": "3134adecd4d5a1dfe1bce99a3cb31934c76c1722"
 }
