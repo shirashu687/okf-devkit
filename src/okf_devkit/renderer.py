@@ -449,9 +449,12 @@ def render_bundle(
     pages = []
     for source in source_paths:
         source_rel = source.relative_to(bundle.root).as_posix()
+        doc = bundle.document(source) if bundle.okf03 else doc_factory(source, bundle.root)
+        if bundle.okf03 and not (bundle.is_reserved(doc.name) or doc.type):
+            continue
         pages.append(
             Page(
-                doc=doc_factory(source, bundle.root),
+                doc=doc,
                 source_rel=source_rel,
                 output_rel=str(PurePosixPath(source_rel).with_suffix(".html")),
             )
@@ -491,6 +494,7 @@ def render_bundle(
             ),
             "SITE_NAME": html.escape(site_name),
             "LANG": "ja",
+            "OKF_VERSION": html.escape("v" + (bundle.declared_version or ("0.3" if bundle.okf03 else "0.2"))),
             "ASSETS": html.escape(assets_rel, quote=True),
             "SOURCE": html.escape(page.source_rel),
             "SOURCE_LINK": html.escape(quote(source_link, safe="/:@-._~!$&'()*+,;="), quote=True),

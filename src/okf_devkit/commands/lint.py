@@ -70,7 +70,7 @@ def _remaining_placeholders(doc: Doc):
     parsed_strings = []
     if candidates:
         try:
-            parsed_strings = list(_yaml_strings(yamlio.parse_yaml(header)))
+            parsed_strings = list(_yaml_strings(yamlio.parse_yaml(header, core=doc.okf03)))
         except OkfError:
             # A marker can change unusual explicit YAML syntax. The original was already validated.
             pass
@@ -134,18 +134,27 @@ def trust_level(doc: Doc) -> str:
     return "machine-confirmed"
 
 
-def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver=None, index_renderer=None) -> list[Finding]:
+def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver=None, index_renderer=None, project: bool = False) -> list[Finding]:
     """CONVENTIONS.md §10 の L1〜L15 を検証する。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
     findings: list[Finding] = []
     add = findings.append
+    project = project or not bundle.okf03
 
     # --- L1〜L6, L9〜L12: 非予約ドキュメント ---
-    for doc in bundle.docs():
+    documents = (bundle.document(p) for p in bundle.md_files()) if bundle.okf03 else bundle.docs()
+    for doc in documents:
         path = doc.repo_rel
+        if bundle.okf03 and not doc.fm_opened:
+            continue
         if not doc.has_fm or doc.fm_error:
             reason = doc.fm_error or "frontmatter がありません"
             add(Finding(path, 1, "error", "L1", f"frontmatter を読めません: {reason}"))
+            continue
+
+        if bundle.okf03 and not doc.type:
+            continue
+        if not project:
             continue
 
         for line, token in _remaining_placeholders(doc):
@@ -254,8 +263,8 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
     # --- L7: 予約ファイルの frontmatter（ルート index.md の okf_version のみ例外） ---
     for directory in bundle.dirs():
         index_path = directory / "index.md"
-        if index_path.exists():
-            doc = Doc(index_path, bundle.root, repo_root=bundle.repo_root)
+        if index_path.exists() and (not bundle.okf03 or not index_path.is_symlink()):
+            doc = bundle.document(index_path)
             rel = doc.repo_rel
             is_root = directory.resolve() == bundle.root.resolve()
             if doc.fm_opened and not doc.has_fm:
@@ -264,13 +273,13 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             elif doc.has_fm and doc.fm_error:
                 add(Finding(rel, 1, "error", "L7",
                             f"index.md の frontmatter を読めません: {doc.fm_error}"))
-            elif doc.has_fm and not (is_root and set(doc.fm.keys()) <= {"okf_version"}):
+            elif doc.has_fm and not (is_root and (bundle.okf03 or set(doc.fm) <= {"okf_version"})):
                 add(Finding(rel, 1, "error", "L7",
                             "index.md は frontmatter を持てません（ルートの `okf_version` のみ例外）"))
 
         log_path = directory / "log.md"
-        if log_path.exists():
-            log_doc = Doc(log_path, bundle.root, repo_root=bundle.repo_root)
+        if log_path.exists() and (not bundle.okf03 or not log_path.is_symlink()):
+            log_doc = bundle.document(log_path)
             if log_doc.fm_opened:
                 add(Finding(log_doc.repo_rel, 1, "error", "L7",
                             "log.md は frontmatter を持てません（OKF v0.2 §8 の予約ファイル）"))
@@ -278,7 +287,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
     # --- L8: log.md の日付見出し ---
     for directory in bundle.dirs():
         log_path = directory / "log.md"
-        if not log_path.exists():
+        if not log_path.exists() or (bundle.okf03 and log_path.is_symlink()):
             continue
         rel = rel_posix(log_path, repo_root)
         prev: str | None = None
@@ -302,7 +311,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
             prev = heading
 
     # --- L13: index.md が最新か ---
-    for directory in bundle.dirs():
+    for directory in bundle.dirs() if project else ():
         index_path = directory / "index.md"
         try:
             block = _index.build_index_block(bundle, directory)
@@ -310,7 +319,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
         except MarkerError as exc:
             add(Finding(rel_posix(index_path, repo_root), None, "error", "L13", str(exc)))
             continue
-        current = read_text(index_path) if index_path.exists() else None
+        current = _index.read_index(bundle, index_path) if index_path.exists() else None
         if current != content:
             add(Finding(rel_posix(index_path, repo_root), None, "error", "L13",
                         "index.md が最新ではありません（`okf index --write` を実行してください）"))
@@ -320,7 +329,8 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
 
 
 def cmd_lint(bundle: Bundle, args, *, linter=None) -> int:
-    findings = (run_lint if linter is None else linter)(bundle)
+    lint = run_lint if linter is None else linter
+    findings = lint(bundle, project=True) if bundle.okf03 and getattr(args, "project", False) else lint(bundle)
     for finding in findings:
         print(finding)
     errors = sum(1 for f in findings if f.level == "error")

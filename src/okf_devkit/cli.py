@@ -22,8 +22,8 @@ _PATH_TIME_ROOT: Path | None = None
 
 class Doc(_Doc):
     """Legacy Doc constructor using the current injected project root."""
-    def __init__(self, path: Path, bundle_root: Path, *, repo_root: Path | None = None):
-        super().__init__(path, bundle_root, repo_root=REPO_ROOT if repo_root is None else repo_root)
+    def __init__(self, path: Path, bundle_root: Path, *, repo_root: Path | None = None, okf03: bool = False):
+        super().__init__(path, bundle_root, repo_root=REPO_ROOT if repo_root is None else repo_root, okf03=okf03)
 
 
 class Bundle(_config.Bundle):

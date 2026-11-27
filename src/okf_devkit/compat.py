@@ -245,8 +245,8 @@ def install_legacy_exports(ns: dict) -> None:
             return resolve
         return lambda pattern: resolve(pattern, exclude=bundle.code_glob_exclude)
 
-    def run_lint(bundle: Bundle) -> list[Finding]:
-        return ns['_lint'].run_lint(bundle, repo_root=ns['REPO_ROOT'], resource_resolver=bundle_resource_resolver(bundle), index_renderer=ns['render_index'])
+    def run_lint(bundle: Bundle, *, project: bool = False) -> list[Finding]:
+        return ns['_lint'].run_lint(bundle, repo_root=ns['REPO_ROOT'], resource_resolver=bundle_resource_resolver(bundle), index_renderer=ns['render_index'], project=project)
 
     def cmd_lint(bundle: Bundle, args) -> int:
         return ns['_lint'].cmd_lint(bundle, args, linter=ns['run_lint'])

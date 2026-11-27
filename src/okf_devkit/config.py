@@ -87,6 +87,20 @@ class Bundle:
         self.backlog_cfg = dict(cfg.get("backlog") or {})
         self.log_cfg = dict(cfg.get("log") or {})
         self._docs: list[Doc] | None = None
+        self.declared_version = None
+        root_index = self.root / "index.md"
+        if self.root.is_relative_to(self.repo_root) and not root_index.is_symlink() and root_index.is_file():
+            metadata = Doc(root_index, self.root, repo_root=self.repo_root, okf03=True)
+            if not metadata.has_fm or metadata.fm_error:
+                metadata = Doc(root_index, self.root, repo_root=self.repo_root)
+            value = metadata.get("okf_version")
+            if isinstance(value, (str, int, float)) and not isinstance(value, bool) and str(value).strip():
+                self.declared_version = str(value).strip()
+        version = self.declared_version
+        if version is None and not root_index.exists():
+            version = str(self.index_cfg.get("okf_version", "0.2"))
+        parts = re.fullmatch(r"(\d+)\.(\d+)", version or "")
+        self.okf03 = version is not None and (parts is None or tuple(map(int, parts.groups())) >= (0, 3))
 
     def _validate_index_link_style(self) -> str:
         value = self.index_cfg.get("link_style", "bundle-absolute")
@@ -101,6 +115,8 @@ class Bundle:
             rel = rel_posix(path, self.root)
         except ValueError:
             return True
+        if self.okf03 and rel != "." and any(part.startswith(".") for part in rel.split("/")):
+            return True
         return any(path_matches(rel, pat) for pat in self.exclude)
 
     def dirs(self) -> list[Path]:
@@ -109,28 +125,44 @@ class Bundle:
         for dirpath, dirnames, _files in os.walk(self.root):
             dirnames[:] = sorted(
                 d for d in dirnames
-                if not d.startswith(("_", "."))
-                and not self.is_excluded(Path(dirpath) / d)
+                if self.includes_dir(Path(dirpath) / d)
             )
             for d in dirnames:
                 found.append(Path(dirpath) / d)
         return sorted(set(found), key=lambda p: rel_posix(p, self.root) if p != self.root else "")
 
-    def md_files(self, include_reserved: bool = False) -> list[Path]:
-        out = []
-        for d in self.dirs():
-            for p in sorted(d.iterdir()):
-                if p.is_file() and p.suffix == ".md" and not self.is_excluded(p):
-                    if not include_reserved and p.name in self.reserved:
-                        continue
-                    out.append(p)
-        return out
+    def includes_dir(self, path: Path) -> bool:
+        if self.okf03:
+            return not path.is_symlink() and not self.is_excluded(path)
+        return not path.name.startswith(("_", ".")) and not self.is_excluded(path)
 
-    def docs(self) -> list[Doc]:
-        """非予約ファイルの Doc 一覧（キャッシュ付き）。"""
-        if self._docs is None:
-            self._docs = [self._doc_factory(p, self.root, repo_root=self.repo_root) for p in self.md_files()]
-        return self._docs
+    def is_reserved(self, name: str) -> bool:
+        return name in self.reserved or (self.okf03 and name in RESERVED_DEFAULT)
+
+    def md_files(self, include_reserved: bool = False, directory: Path | None = None) -> list[Path]:
+        folders = self.dirs() if directory is None else [directory]
+        return [
+            p for folder in folders for p in sorted(folder.iterdir())
+            if p.suffix == ".md" and (not self.okf03 or not p.is_symlink())
+            and (include_reserved or not self.is_reserved(p.name))
+            and not self.is_excluded(p) and p.is_file()
+        ]
+
+    def document(self, path: Path) -> Doc:
+        if self.okf03:
+            return self._doc_factory(path, self.root, repo_root=self.repo_root, okf03=True)
+        return self._doc_factory(path, self.root, repo_root=self.repo_root)
+
+    def docs(self, directory: Path | None = None) -> list[Doc]:
+        """非予約文書の一覧。OKF 0.3 はコンセプトだけを返す。"""
+        if directory is None and self._docs is not None:
+            return self._docs
+        docs = [self.document(p) for p in self.md_files(directory=directory)]
+        if self.okf03:
+            docs = [doc for doc in docs if doc.type]
+        if directory is None:
+            self._docs = docs
+        return docs
 
     def backlog_dir(self) -> Path:
         return self.root / str(self.backlog_cfg.get("dir", "backlog"))

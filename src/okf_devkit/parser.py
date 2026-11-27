@@ -45,7 +45,7 @@ def _common_option_value(value: str) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="okf", description="OKF v0.2 バンドルを開発リポジトリで運用する CLI"
+        prog="okf", description="OKF バンドルを開発リポジトリで運用する CLI"
     )
     parser.add_argument(
         "--config", type=_common_option_value, help=f"設定ファイルのパス（既定: プロジェクトルートの {CONFIG_FILENAME}）"
@@ -79,6 +79,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_log.add_argument("--dry-run", action="store_true", help="書き込まずに内容を表示する")
 
     p_lint = sub.add_parser("lint", help="OKF 適合 + 語彙の検証")
+    p_lint.add_argument("--project", action="store_true", help="OKF 0.3 でもプロジェクト独自の規約を検証する")
     p_lint.add_argument("--strict", action="store_true", help="warn も exit 1 の対象にする")
 
     p_stale = sub.add_parser("stale", help="陳腐化レポート")

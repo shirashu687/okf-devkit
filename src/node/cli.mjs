@@ -22,7 +22,7 @@ const commands = {
   init: "bundle-root site-name layer* force! agent runner",
   index: "write! check! quiet!",
   log: "write! range layer dry-run!",
-  lint: "strict!",
+  lint: "strict! project!",
   stale: "format",
   affected: "base paths+",
   new: "title layer type dir slug priority effort code-globs+ index!",
@@ -76,6 +76,7 @@ const helpPages = {
     options: [
       ["-h, --help", "show this help message and exit", false],
       ["--strict", "warn も exit 1 の対象にする", false],
+      ["--project", "OKF 0.3 でもプロジェクト独自の規約を検証する", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf lint --strict",
     kinds: [],
@@ -186,7 +187,7 @@ const helpPages = {
     kinds: [],
   },
   "": {
-    purpose: "OKF v0.2 バンドルを開発リポジトリで運用する CLI",
+    purpose: "OKF バンドルを開発リポジトリで運用する CLI",
     options: [
       ["-h, --help", "show this help message and exit", false],
       ["--config CONFIG", "設定ファイルのパス（既定: プロジェクトルートの okf.yml）", false],
