@@ -5,6 +5,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { Bundle, OkfError, git, now, projectRoot, write } from "./core.mjs";
+import { cmdDoctor, cmdUpgrade, packageVersion } from "./setup-checks.mjs";
 import { cmdIndex } from "./index.mjs";
 import { cmdAffected, cmdLog } from "./history.mjs";
 import {
@@ -25,6 +26,8 @@ const commands = {
   stale: "format",
   affected: "base paths+",
   new: "title layer type dir slug priority effort code-globs+ index!",
+  doctor: "",
+  upgrade: "check! agent runner",
   status: "format",
   render: "output cleanup-from check! hook! open!",
   sync: "gate! session-id",
@@ -165,15 +168,33 @@ const helpPages = {
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf sync",
     kinds: [],
   },
+  "doctor": {
+    purpose: "導入状態を読み取り専用で診断する",
+    options: [["-h, --help", "show this help message and exit", false]],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf doctor",
+    kinds: [],
+  },
+  "upgrade": {
+    purpose: "インストール済み版の scaffold と比較する",
+    options: [
+      ["-h, --help", "show this help message and exit", false],
+      ["--check", "差分を表示する（書き込みなし）", true],
+      ["--agent AGENTS", "hook の対象（claude,codex,copilot / all / none。既定: all）", false],
+      ["--runner COMMAND", "生成する案内で使う CLI の起動表記（既定: okf）", false],
+    ],
+    epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf upgrade --check",
+    kinds: [],
+  },
   "": {
     purpose: "OKF v0.2 バンドルを開発リポジトリで運用する CLI",
     options: [
       ["-h, --help", "show this help message and exit", false],
       ["--config CONFIG", "設定ファイルのパス（既定: プロジェクトルートの okf.yml）", false],
       ["--root ROOT", "プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）", false],
+      ["--version", "実行中の版を表示する", false],
     ],
     epilog: "",
-    kinds: ["init", "index", "log", "lint", "stale", "affected", "new", "status", "render", "sync"],
+    kinds: ["init", "index", "log", "lint", "stale", "affected", "new", "doctor", "upgrade", "status", "render", "sync"],
   },
 };
 function commandHelp(args) {
@@ -220,6 +241,8 @@ function parse(argv) {
         i--;
       }
   args.command = rest.shift();
+  if (args.command === "--version" && !rest.length)
+    return { version: true };
   if (!args.command || ["--help", "-h"].includes(args.command))
     return { ...args, help: true };
   if (!Object.hasOwn(commands, args.command))
@@ -277,6 +300,8 @@ function parse(argv) {
     args.priority ??= "medium";
     args.effort ??= "M";
   }
+  if (args.command === "upgrade" && !args.check)
+    throw new OkfError("upgrade には --check を指定してください");
   return args;
 }
 async function sessionId(args) {
@@ -414,6 +439,10 @@ export async function main(argv = process.argv.slice(2)) {
     console.log(commandHelp(args));
     return 0;
   }
+  if (args.version) {
+    console.log("okf-devkit " + packageVersion());
+    return 0;
+  }
   try {
     const root = args.root
       ? path.resolve(args.root)
@@ -423,9 +452,11 @@ export async function main(argv = process.argv.slice(2)) {
     if (!fs.existsSync(root) || !fs.statSync(root).isDirectory())
       throw new OkfError(`--root がディレクトリではありません: ${root}`);
     if (args.command === "init") return cmdInit(root, args);
+    const config = args.config ? path.resolve(args.config) : undefined;
+    if (args.command === "doctor") return cmdDoctor(root, config);
     const b = new Bundle(
       root,
-      args.config ? path.resolve(args.config) : undefined,
+      config,
     );
     return await {
       index: cmdIndex,
@@ -434,6 +465,7 @@ export async function main(argv = process.argv.slice(2)) {
       stale: cmdStale,
       affected: cmdAffected,
       new: cmdNew,
+      upgrade: cmdUpgrade,
       status: cmdStatus,
       render: cmdRender,
       sync: cmdSync,

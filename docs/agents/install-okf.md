@@ -135,7 +135,7 @@ globalを明示選択した場合は、同じ確認済みtgzに `npm.cmd install
 
 ## 4. CLIの実体と動作を検証する
 
-ローカル版はrepoルートから実ファイルを明示する。現行CLIの `--version` に依存せず、インストール済みmanifestで版を確認する。
+`node_modules` を使うローカル版はリポジトリルートから実ファイルを明示する。`--version` に対応する版は実行中の版を確認できる。v0.1.0 プレリリースは同梱 manifest の版を読む。
 
 ```powershell
 node -p "JSON.parse(require('node:fs').readFileSync('node_modules/okf-devkit/package.json','utf8')).version"
@@ -170,7 +170,7 @@ AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製�
 ## 6. 明示依頼による更新と復旧
 
 更新前に現行版・取得元・lockfile・Node/npm版とmanifestを保存する。設定/文書/hook/生成物のバックアップはパッケージ復旧用と区別する。
-指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。設定更新は手順5の既知範囲の差分のみ。
+指定された新SHA/公開済みassetへ更新し、手順4と対象repoの検証を実施する。対応する版では `doctor` で導入状態を確認し、`upgrade --check` で取り込む scaffold の差分を確認する。設定更新は手順5の既知範囲の差分のみ。
 失敗時は今回変更したmanifestとlockfileを保存内容へ戻し、npm管理repoなら `npm.cmd ci --ignore-scripts` で保存した依存状態を再作成する。ciはnode_modulesを入れ替えるため、その影響も事前に確認する。必要な既存buildは承認済みの別工程とする。globalの復旧は保存した旧tgz/取得元を `--ignore-scripts` 付きで再導入する。
 設定/文書/HTMLはそれぞれのバックアップから競合を確認して戻す。後から加わった利用者編集を上書きせず、`git reset --hard` や無関係な変更の一括取消を使わない。
 

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from . import compat, parser, config as _config, yamlio as _yamlio
 from .doc import Doc as _Doc
+from .commands.setup_checks import cmd_doctor, cmd_upgrade
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 SCAFFOLD_DIR = PACKAGE_DIR / "scaffold"
@@ -62,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
         _PATH_TIME_MAP = None
         if args.command == "init":
             return cmd_init(args)
+        if args.command == "doctor":
+            return cmd_doctor(REPO_ROOT, Path(args.config) if args.config else None)
         bundle = Bundle(Path(args.config) if args.config else None)
         if not bundle.root.exists():
             raise OkfError(f"バンドルルートがありません: {bundle.root}")
@@ -72,6 +75,7 @@ def main(argv: list[str] | None = None) -> int:
             "stale": cmd_stale,
             "affected": cmd_affected,
             "new": cmd_new,
+            "upgrade": cmd_upgrade,
             "status": cmd_status,
             "render": cmd_render,
             "sync": cmd_sync,

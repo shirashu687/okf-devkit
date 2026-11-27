@@ -213,13 +213,14 @@ test("L1-L14 finding rules, severity, locations and exit codes agree", (t) => {
   assert.equal(js.stdout, py.stdout);
 });
 
-test("both CLIs select hooks, render the chosen runner", (t) => {
+test("both CLIs select hooks, render the chosen runner and compare scaffold read-only", (t) => {
   for (const runtime of ["python", "node"]) {
     const root = temp(t);
     git(root, "init", "-q");
     put(root, "package.json", '{"private":true}\n');
     put(root, "node_modules/fixture/index.js", "fixture\n");
     put(root, "src/app.ts", "fixture\n");
+    assert.match(ok(run(root, ["--version"], {runtime})), /^okf-devkit \d+\.\d+\.\d+/);
     const selected = ["--agent", "claude,codex", "--runner", "pnpm run okf"];
     const output = ok(run(root, ["init", "--bundle-root", "knowledge", "--site-name", "Example",
       "--layer", "app=src/**:appClient", ...selected], {runtime}));
@@ -231,12 +232,39 @@ test("both CLIs select hooks, render the chosen runner", (t) => {
     const claude = JSON.parse(fs.readFileSync(path.join(root, ".claude/settings.json"), "utf8"));
     assert.equal(claude.hooks.Stop[0].hooks[0].shell, process.platform === "win32" ? "powershell" : "bash");
     assert.equal(fs.existsSync(path.join(root, ".github/hooks/okf-render.json")), false);
+    assert.match(ok(run(root, ["upgrade", "--check", ...selected], {runtime})), /一致: knowledge\/AGENTS\.md/);
+    put(root, "knowledge/AGENTS.md", "Maintainer content\n");
+    put(root, "knowledge/log.html", "Legacy HTML candidate\n");
+    fs.unlinkSync(path.join(root, ".codex/hooks.json"));
+    const before = snapshot(root, "knowledge");
+    const diff = ok(run(root, ["upgrade", "--check", ...selected], {runtime}));
+    assert.match(diff, /差分あり（手動確認）: knowledge\/AGENTS\.md/);
+    assert.match(diff, /追加候補: \.codex\/hooks\.json/);
+    const doctor = ok(run(root, ["doctor"], {runtime}));
+    assert.match(doctor, /layer_map app \(src\/\*\*\): 1 件一致/);
+    assert.match(doctor, /hook claude .*登録あり/);
+    assert.match(doctor, /Git 除外 node_modules\/: 除外済み/);
+    assert.match(doctor, /knowledge\/log\.html/);
+    assert.deepEqual(snapshot(root, "knowledge"), before);
+    assert.equal(fs.existsSync(path.join(root, ".codex/hooks.json")), false);
+    const config = path.join(root, "okf.yml");
+    fs.writeFileSync(config, fs.readFileSync(config, "utf8").replace(/^    app:.*\/log\.md$/m, "    app: appClient/history.md"));
+    fs.renameSync(path.join(root, "knowledge/appClient/log.md"), path.join(root, "knowledge/appClient/history.md"));
+    const relocated = ok(run(root, ["upgrade", "--check", ...selected], {runtime}));
+    assert.match(relocated, /一致: knowledge\/appClient\/history\.md/);
+    assert.doesNotMatch(relocated, /追加候補: knowledge\/appClient\/log\.md/);
+    fs.writeFileSync(config, "layers: 123\n");
+    const invalid = run(root, ["doctor"], {runtime});
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stdout, /設定 \/ layer_map: 要確認/);
+    assert.match(invalid.stdout, /hook claude .*登録あり/);
 
     const disabled = temp(t);
     ok(run(disabled, ["init", "--agent", "none"], {runtime}));
     assert.equal(fs.existsSync(path.join(disabled, ".okf/hooks/render_hook.sh")), true);
     assert.equal(fs.existsSync(path.join(disabled, ".okf/hooks/agent_stop.sh")), false);
     assert.equal(fs.existsSync(path.join(disabled, ".claude/settings.json")), false);
+    assert.match(run(disabled, ["doctor", "--"], {runtime}).stderr, /--/);
   }
 });
 

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "1a30c5535a543df0e89aa4c4cd4b071fc72dcf43",
+  "worklog": "harness/state/journal/split84-setup-diagnostics.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "この PR の Node / Python の機能と互換動作を公開 CLI で検証"
+    }
+  ]
+}

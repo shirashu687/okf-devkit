@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from . import __version__
 from .config import CONFIG_FILENAME
 
 
@@ -46,6 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--root", help="プロジェクトルート（既定: okf.yml を持つ最も近い祖先 / git トップ）"
     )
+    parser.add_argument("--version", action="version", version=f"okf-devkit {__version__}", help="実行中の版を表示する")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init", help="OKF バンドルと設定一式を生成する")
@@ -100,6 +102,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_new_doc.add_argument("--slug", help="ファイル名の slug")
     p_new_doc.add_argument("--index", action="store_true", help="作成後に索引も更新する")
 
+    sub.add_parser("doctor", help="導入状態を読み取り専用で診断する")
+    p_upgrade = sub.add_parser("upgrade", help="インストール済み版の scaffold と比較する")
+    p_upgrade.add_argument("--check", action="store_true", required=True, help="差分を表示する（書き込みなし）")
+    p_upgrade.add_argument("--agent", metavar="AGENTS", help="hook の対象（claude,codex,copilot / all / none。既定: all）")
+    p_upgrade.add_argument("--runner", metavar="COMMAND", help="生成する案内で使う CLI の起動表記（既定: okf）")
+
     p_status = sub.add_parser("status", help="backlog の集計")
     p_status.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
@@ -125,6 +133,8 @@ def build_parser() -> argparse.ArgumentParser:
         "new doc": 'okf new doc --layer shared --type "Reference" --title "Guide" --code-globs "src/**"',
         "new backlog": 'okf new backlog --title "Follow-up"',
         "status": "okf status --format json",
+        "doctor": "okf doctor",
+        "upgrade": "okf upgrade --check",
         "render": "okf render --check",
         "sync": "okf sync",
     }

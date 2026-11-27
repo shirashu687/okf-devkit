@@ -322,6 +322,7 @@ export class Doc {
 export class Bundle {
   constructor(repo, config = path.join(repo, "okf.yml")) {
     this.repo = repo;
+    this.configPath = config;
     if (!fs.existsSync(config))
       throw new OkfError(
         `設定ファイルが見つかりません: ${config}（okf init で生成してください）`,
@@ -338,7 +339,7 @@ export class Bundle {
         this.codeGlobExclude.some((rule) => typeof rule !== "string" || !rule.trim()))
       throw new OkfError("code_glob_exclude は空でない glob 文字列のリストで指定してください");
     this.root = inside(repo, path.resolve(repo, this.cfg.bundle_root));
-    if (!fs.existsSync(this.root))
+    if (!fs.statSync(this.root, { throwIfNoEntry: false })?.isDirectory())
       throw new OkfError(`バンドルルートがありません: ${this.root}`);
     this.index = this.cfg.index;
     if (
