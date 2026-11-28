@@ -171,17 +171,31 @@ def cmd_sync(bundle: Bundle, args, *, runner=None, indexer=None, logger=None, li
     bundle._docs = None  # index / log の書き込み結果を反映させる
     lint = run_lint if linter is None else linter
     findings = lint(bundle, project=True) if bundle.okf03 else lint(bundle)
+    missing_globs_reported: set[tuple[str, str]] = set()
+    errors: list[Finding] = []
+    warns = 0
     for finding in findings:
+        if (pattern := getattr(finding, "missing_local_glob", None)) is not None:
+            key = (finding.path, pattern)
+            if key in missing_globs_reported:
+                continue
+            missing_globs_reported.add(key)
         print(finding)
-    errors = [f for f in findings if f.level == "error"]
-    warns = [f for f in findings if f.level == "warn"]
-    print(f"lint: error {len(errors)} 件 / warn {len(warns)} 件")
+        if finding.level == "error":
+            errors.append(finding)
+        elif finding.level == "warn":
+            warns += 1
+    print(f"lint: error {len(errors)} 件 / warn {warns} 件")
 
     print("\n== stale ==")
     results = (run_stale if stale_reporter is None else stale_reporter)(bundle)
-    if not results:
+    remaining = [item for item in results
+                 if (item["path"], getattr(item, "missing_local_glob", None)) not in missing_globs_reported]
+    if not remaining and results:
+        print("一致するファイルがない code_globs は lint 欄で報告済みです。")
+    elif not results:
         print("陳腐化の兆候はありません。")
-    for item in results:
+    for item in remaining:
         print(f"{item['path']} {item['level']} {item['kind']} {item['message']}")
 
     if not args.gate:

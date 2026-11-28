@@ -128,6 +128,77 @@ test("lint and stale distinguish unavailable code sources and unmatched patterns
   }
 });
 
+test("sync reports a missing local code glob once and standalone checks keep their diagnostics", async (t) => {
+  for (const runtime of ["node", "python"]) {
+    for (const version of ["0.2", "0.3"]) {
+      await t.test(`${runtime} OKF ${version}`, (t) => {
+        const root = temp(t);
+        git(root, "init", "-q");
+        put(root, "okf.yml", `bundle_root: docs\nlayers: [api]\nindex:\n  okf_version: "${version}"\n`);
+        const verified = 'verified: [{by: "human:reviewer", at: "2026-01-01T00:00:00Z"}]\n';
+        const concept = (name, globs, extra = "") =>
+          put(root, `docs/api/${name}.md`, document(extra).replace("[src/**]", globs));
+        concept("sample", "[src/missing.ts]", verified);
+        const options = { runtime };
+        const l10 = /^docs\/api\/sample\.md:\d+ warn L10 `code_globs: src\/missing\.ts`.*$/gm;
+        const orphan = /^docs\/api\/sample\.md warn orphan .*src\/missing\.ts.*$/m;
+        const sync = ok(run(root, ["sync"], options));
+        if (version === "0.3")
+          assert.match(fs.readFileSync(path.join(root, "docs/index.md"), "utf8"), /okf_version: "0\.3"/);
+        assert.equal(sync.match(l10)?.length, 1);
+        assert.doesNotMatch(sync, orphan);
+        assert.match(sync, /== stale ==\n.*lint 欄で報告済み/);
+        assert.doesNotMatch(sync, /陳腐化の兆候はありません/);
+
+        const lintArgs = version === "0.3" ? ["lint", "--project", "--strict"] : ["lint", "--strict"];
+        const lint = run(root, lintArgs, options);
+        assert.equal(lint.status, 1, lint.stderr);
+        assert.match(lint.stdout, l10);
+        assert.match(ok(run(root, ["stale"], options)), orphan);
+        assert.deepEqual(JSON.parse(ok(run(root, ["stale", "--format", "json"], options))), [{
+          path: "docs/api/sample.md",
+          kind: "orphan",
+          level: "warn",
+          message: "code_globs: src/missing.ts にマッチするファイルがありません",
+        }]);
+
+        fs.appendFileSync(path.join(root, "okf.yml"), "code_sources:\n  - name: app\n    path: checkout\n");
+        const checkout = path.join(root, "checkout");
+        fs.mkdirSync(checkout);
+        git(checkout, "init", "-q");
+        put(root, "src/current.ts", "current code");
+        git(root, "add", "src/current.ts");
+        git(root, "commit", "-qm", "update current code");
+        concept("sample", '[src/missing.ts, src/missing.ts, src/another.ts, "app:src/missing.ts", src/current.ts, 42]',
+          verified + 'stale_after: "2020-01-01T00:00:00Z"\n');
+        concept("second", "[src/missing.ts]", verified);
+        concept("empty", "[]");
+
+        const mixed = run(root, ["sync"], options);
+        assert.equal(mixed.status, 1, mixed.stderr);
+        const localPairs = [...mixed.stdout.matchAll(/^docs\/api\/(sample|second)\.md:\d+ warn L10 `code_globs: (src\/[^`]+)`/gm)]
+          .map(([, name, glob]) => `${name} ${glob}`).sort();
+        assert.deepEqual(localPairs, ["sample src/another.ts", "sample src/missing.ts", "second src/missing.ts"]);
+        assert.match(mixed.stdout, /sample\.md:\d+ warn L10 `code_globs: app:src\/missing\.ts`/);
+        assert.match(mixed.stdout, /sample\.md:\d+ error L10 `code_globs\[6\]`/);
+        assert.match(mixed.stdout, /empty\.md:\d+ warn L10 `code_globs` がありません/);
+        assert.match(mixed.stdout, /lint: error 1 件 \/ warn 5 件/);
+        assert.match(mixed.stdout, /sample\.md info external-unverified/);
+        assert.match(mixed.stdout, /sample\.md warn expired/);
+        assert.match(mixed.stdout, /sample\.md warn outdated/);
+        assert.match(mixed.stdout, /empty\.md info unverified/);
+        assert.doesNotMatch(mixed.stdout, / warn orphan |lint 欄で報告済み/);
+        const standalone = run(root, lintArgs, options);
+        assert.equal(standalone.status, 1, standalone.stderr);
+        assert.equal(standalone.stdout.match(l10)?.length, 2);
+        const gate = ["sync", "--gate", "--session-id", "sync-diagnostics"];
+        assert.equal(run(root, gate, options).status, 2);
+        ok(run(root, gate, options));
+      });
+    }
+  }
+});
+
 test("existing Python install wins over a development checkout without npm dependencies", (t) => {
   const root = temp(t);
   init(root, "python");
