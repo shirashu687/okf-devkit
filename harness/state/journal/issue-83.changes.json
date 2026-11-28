@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "303f94ad2840f93c39787777823fea4fbfade0dd",
+  "worklog": "harness/state/journal/issue-83.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "Issue #83 の sync 集約と単独コマンドの診断を Python と Node.js の公開 CLI で回帰検証する"
+    }
+  ]
+}
