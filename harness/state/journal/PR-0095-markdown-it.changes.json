@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "scope": "pull-request",
+  "base": "0531fb7a165148ef93021485d991baaf69f3d8d8",
+  "worklog": "harness/state/journal/PR-0095-markdown-it.md",
+  "changes": [
+    {
+      "path": "package.json",
+      "reason": "markdown-itの最低バージョンを14.3.3へ引き上げ、14.3.2と14.3.3のセキュリティ修正を取り込む。"
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "依存範囲をpackage.jsonと揃え、再現可能なインストールで修正済みの14.3.3を使う。"
+    }
+  ]
+}
