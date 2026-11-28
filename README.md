@@ -18,14 +18,13 @@ https://raw.githubusercontent.com/shirashu687/okf-devkit/main/docs/agents/instal
 既存の文書・設定・未コミット変更は保持してください。
 ```
 
-AIが構成と既存環境を調べ、固定版のローカル導入、`okf.yml` と文書の初期配置、AI向け入口の接続、索引生成・lint・HTML生成の確認まで進める。詳細と完了条件は [導入ガイド](docs/agents/install-okf.md) にまとめている。
-新しいパッケージ管理の追加、既存設定との競合、認証やエージェントの信頼設定など、人の判断・操作が必要な箇所は具体的な内容を確認する。URLを取得できない環境では、導入ガイドの本文をAIへ渡す。
+エージェントはリポジトリの構成を調べ、版を固定して CLI を導入します。`okf.yml` と文書を初期配置し、エージェントの作業ガイドから参照できるようにします。最後に目次、lint、HTML 生成を確認します。認証や信頼設定など、人の操作が必要な場合はエージェントから案内があります。URL を取得できない環境では、ガイドの本文を渡してください。[導入ガイド](docs/agents/install-okf.md)
 
 導入済みのリポジトリは、既存設定の点検と移行用の AI 依頼文を使えます。[既存リポジトリの更新ガイド](docs/agents/upgrade-existing-okf.md)
 
 ## はじめる
 
-Node.js 22 以上、npm、Git を用意します。導入先のリポジトリルートで `node_modules/` が Git の除外対象であることを確認します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。[導入ガイド](docs/agents/install-okf.md#公開済み-tgz) に従って tgz と SHA-256 を照合し、`vendor/` に置いてから実行します。
+Node.js 22 以上、npm、Git を用意します。以下は v0.1.0 プレリリースの固定 tgz を既存の npm プロジェクトに導入する例です。導入先で `node_modules/` が Git の除外対象であることを確認します。tgz と SHA-256 を照合し、`vendor/` に置いてから実行します。[配布ファイルの確認手順](docs/agents/install-okf.md#公開済み-tgz)
 
 ```bash
 npm install --save-dev --save-exact --ignore-scripts "./vendor/okf-devkit-0.1.0.tgz"
@@ -40,7 +39,7 @@ npm run okf -- --help
 
 以降のコマンドでは `npm run okf --` に続けて引数を渡します。スクリプトは導入済みのローカル CLI を直接起動します。Windows の PowerShell で `npm` の実行が制限される場合は `npm.cmd` を使えます。
 
-チームで同じ構成を使うには lockfile を管理してください。開発版を試す場合は導入ガイドに従って完全な Git SHA に固定します。v0.1.0 に含まれる機能は [リリースノート](docs/project/releases/v0.1.0.md) を参照してください。
+チームで同じ構成を使うには lockfile を管理します。OKF 0.3 対応や `doctor`、`upgrade --check` を試す場合は、それらを含む開発版の完全な Git SHA に固定してください。[導入ガイド](docs/agents/install-okf.md) · [v0.1.0 の収録機能](docs/project/releases/v0.1.0.md)
 
 npm 以外の管理方式、manifest のないリポジトリ、更新・復旧の場合は、[導入ガイド](docs/agents/install-okf.md)で手順を確認してください。global インストールや未導入時の `npx` は上の手順では使いません。
 
@@ -78,7 +77,7 @@ okf lint
 2. コードを変更したら `okf affected --base <変更前のコミットSHA>` で影響を確認します。未カバーのパスや `code_globs` のない文書も確認し、必要な本文を更新します。
 3. `okf sync` で目次と設定済みの層の履歴を更新し、lint と stale の診断を確認します。無引数の `init` では履歴の自動追記は設定されません。未コミットの変更は履歴に記録されないため、log のスキップや警告も確認してください。
 
-読み取りだけの点検には `okf lint`、`okf index --check`、`okf stale`、`okf render --check` を使います。文書作成や閲覧を含む目的別の案内は [日常操作ガイド](docs/agents/operate-okf.md)、全コマンドの引数・副作用・終了状態は [コマンド仕様](docs/cli/commands.md) を参照してください。
+読み取りだけの点検には `okf lint`、`okf index --check`、`okf stale`、`okf render --check` を使います。OKF 0.3 のバンドルでプロジェクト固有の規約も検査するには `okf lint --project` を使います。[日常操作ガイド](docs/agents/operate-okf.md) · [コマンド仕様](docs/cli/commands.md)
 
 ## エージェントと設定
 

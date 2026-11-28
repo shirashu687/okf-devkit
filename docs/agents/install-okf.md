@@ -27,8 +27,7 @@ related:
 
 # AIにokf-devkitの導入・セットアップ・更新を依頼する
 
-明示的な導入・更新依頼を受けたAIの作業手順。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) の別責務とし、自動アップデータを設置しない。
-本体はGitHubから取得し、依存の取得にはnpmを使う。Python版の既存利用は継続できる。
+この手順は、利用者から導入または更新を依頼されたエージェント向け。Node 版の本体は GitHub、依存パッケージは npm から取得する。Python 版も引き続き使える。日々の文書更新は [日常操作ガイド](/agents/operate-okf.md) を参照する。
 
 ## 初回セットアップを任されたAIへ
 
@@ -57,15 +56,15 @@ related:
 
 ## 配布状況と導入経路
 
-[v0.1.0](https://github.com/shirashu687/okf-devkit/releases/tag/v0.1.0) は公開済みプレリリース。通常は固定 HTTPS URL の tgz を使い、導入する機能と制約は [リリースノート](/project/releases/v0.1.0.md) で確認する。開発版を試す場合は完全 Git SHA に固定する。配布担当の工程は [公開手順](/agents/release-node.md) を参照する。
-既存v0.1.0の検証済みtgzはタグ対象12cdb44の固定バイトで、同梱READMEには修正前のPyPI例と古い公開状態の説明が残る。今回のリポジトリ文書修正はそのassetへ反映されないため、現在のこの導入ガイドを参照する。タグの移動、再pack、既存assetの差替えで案内を更新しない。
-配布担当の人はworkflowの全job完了とDraftのasset確認後にのみPublishする。upload直前のDraft再確認は行うが、GitHub APIの原子的条件ではなく同時publishの完全防止は保証しない。既に公開済みのReleaseは読み取り照合だけとする。
+公開済みの v0.1.0 プレリリースは、固定 URL から tgz を取得できる。同梱 README にある古い PyPI 例や公開状況の記述については、このガイドの手順を使う。収録機能はリリースノートで確認する。[GitHub Release](https://github.com/shirashu687/okf-devkit/releases/tag/v0.1.0) · [リリースノート](/project/releases/v0.1.0.md)
+
+OKF 0.3 対応や `doctor`、`upgrade --check` を試す場合は、それらを含む確認済みの完全 Git SHA を選ぶ。タグの作成から公開までの作業は配布担当者向けの手順に従う。[公開手順](/agents/release-node.md)
 
 ## 1. 環境と既存状態を読む
 
 対象repoの入口・規約とGit状態、package.json、lockfile、workspace、既存の `okf.yml`、docs、hookとAI設定を読む。
 未コミット変更は利用者の作業として保つ。npm/yarn/pnpmの管理方式を勝手に切り替えない。
-Node.js 22以上、Git、利用するパッケージマネージャーの版と実体を確認する。利用するマネージャーの `--version` と Node.js の動作要件も確認する。WindowsはPowerShell実行ポリシーの影響を避けるため `npm.cmd` を使える。POSIXは `npm` に読み替える。
+Node.js 22 以上と Git を用意する。パッケージマネージャーは、起動する実体とバージョン、そのバージョンが要求する Node.js の範囲を確認する。Windows の PowerShell で `npm` が実行ポリシーにより制限される場合は `npm.cmd` を使える。POSIX では `npm` に読み替える。
 
 ```powershell
 node --version
@@ -127,7 +126,7 @@ yarn add --dev --exact --mode=skip-build "okf-devkit@file:./vendor/okf-devkit-0.
 
 ### 開発版の Git SHA と Python 版
 
-Node の開発版は確認済みの完全40桁 SHA を HTTPS で取得し、作成した tgz を利用先へ導入できる。次は SSH 認証を使わずに確認した例。`okf-devkit-source` は導入先とは別の新規ディレクトリ。
+Node の開発版は、確認済みの完全な 40 桁の Git SHA を HTTPS で取得して tgz にする。以下の SHA は SSH 認証なしで取得手順を確認したときのもの。試したい機能を含む完全 SHA に置き換える。`okf-devkit-source` は導入先とは別の新規ディレクトリ。
 
 ```bash
 git init okf-devkit-source
@@ -140,7 +139,7 @@ npm pack --ignore-scripts
 
 出力された SHA と指定値を照合し、tgz と SHA-256 を記録する。導入先では上記と同じパッケージマネージャーの tgz 手順を使う。
 
-Python 3.11 以上では選んだ仮想環境で `python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@12cdb44c2876b50bd7337a5ea20f7744a27d7802"`、または同じ SHA の clone で `python -m pip install -e .` を使う。
+Python 3.11 以上では、選んだ仮想環境で `python -m pip install "git+https://github.com/shirashu687/okf-devkit.git@<確認済みの完全SHA>"` を実行する。同じ SHA をチェックアウトして `python -m pip install -e .` で導入する方法もある。
 
 ```powershell
 # 取得済みファイルの確認。EXPECTED_SHA256との一致を確認してからインストール
@@ -185,9 +184,9 @@ node node_modules/okf-devkit/node/cli.mjs index --check
 node node_modules/okf-devkit/node/cli.mjs render --check
 ```
 
-`init --help` に `--agent` がある版では `--agent codex` のように新規登録するエージェントを選べる。全対応製品を対象にする既定と、登録を省く `--agent none` がある。`--runner "node node_modules/okf-devkit/node/cli.mjs"` は、対応版で生成ガイドを実際の起動表記に揃える。公開済み v0.1.0 のオプションは同版の help で確認する。
-新しいソースの `init` は、エージェントのプロジェクト設定が未作成なら終了hookも登録する。既存ファイルはスキップし、`--force` は多くの生成物を置換するが、エージェント設定と `.gitignore` は保持する。上記の固定SHA版はこの自動登録を含まない。どちらも管理部分だけを更新する仕組みではない。
-既存 `okf.yml`、文書、hookやAI入口は、保存した変更前内容と差分を取り、所有範囲が分かる部分だけを更新する。利用者の編集があれば調整し、競合時は止める。`init --force` を更新手段にしない。
+使えるオプションは導入した版の `init --help` で確認する。対応版では `--agent codex` のように選んだ製品の設定を新規作成する。既定は全対応製品で、`--agent none` は登録を省く。`--runner "node node_modules/okf-devkit/node/cli.mjs"` を渡すと、生成する案内の起動表記を揃えられる。
+
+`init` は既存ファイルをスキップする。`--force` を指定すると既存の生成物を置き換えるが、エージェント設定と `.gitignore` は保持する。導入済みの `okf.yml` や文書、hook は、変更前との差分を見て管理元が分かる箇所だけを更新する。利用者の編集と競合したら、変更を止めて調整する。[既存リポジトリの更新ガイド](/agents/upgrade-existing-okf.md)
 AI設定・終了hookは [終了hook手順](/agents/completion-hooks.md) の製品別対応と信頼を確認し、repo内の承認済み箇所だけを扱う。global hookは変更しない。
 インストール版の選択だけでhookの実行版は決まらない。ローカル/主worktree/Python/開発checkoutの探索順と実配置を確認し、選んだNode版へ到達することを検証する。実AIイベント未検証ならその限界を報告する。
 生成物のignoreも差分で確認する。HTMLの保存・旧出力整理は [cleanup手順](/render/output-cleanup.md) の別操作とする。

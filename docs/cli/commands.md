@@ -45,15 +45,9 @@ related:
 
 # コマンド仕様
 
-引数解析は `parser.py`、旧CLIの互換adapterは `compat.py` に置く。`cli.py` は project root の解決、旧APIの状態と公開入口、コマンドの dispatch を保持し、各コマンドの処理は `commands/` が持つ。
+例の `okf` は導入済みの CLI に読み替える。Python 版と Node.js 版に共通する書き方は、`--root` と `--config` をサブコマンドの前に置く。引数の一覧は `okf <command> --help`、文書の新規作成は `okf new doc --help`、backlog の新規作成は `okf new backlog --help` で確認できる。[AI の日常操作](/agents/operate-okf.md)
 
-Git を使う log、stale、affected と sync gate の実処理は段階的に `gitutil.py` へ分離した。canonical 関数にはプロジェクト root を明示し、文書 root を別に扱う。
-内部のDoc/config抽出後も、この表の引数・終了値・書き込み条件は維持する。Bundleのプロジェクトrootと文書rootを分けて保持するため、複数プロジェクトの連続呼び出しでも文書一覧cacheは混ざらない。旧CLI constructorは互換adapterを経由する。
-
-
-目的別の短い入口は [AIの日常操作](/agents/operate-okf.md)。この文書を入出力・書き込み・終了状態の参照表として保守する。
-例の `okf` は選んだランタイムの実CLIに読み替える。共通引数 `--root` / `--config` はサブコマンドの前へ置く。詳細なオプション一覧は `okf <command> --help`、新規作成は `okf new doc --help` / `okf new backlog --help` を参照する。
-純粋helpersの分離後も、この表の引数・終了値・書き込み条件は維持する。連続呼出しや別CWDからの絶対 `--root` / `--config` 指定は対象リポジトリに従い、Git時刻cacheもそのrootへ切り替わる。
+Python 版の引数解析、コマンドへの振り分け、Git や文書モデルの処理については [CLI の処理構造](/cli/architecture.md) を参照する。
 
 | コマンド | 入力・結果 | 書き込み条件 |
 |---|---|---|
@@ -63,7 +57,7 @@ Git を使う log、stale、affected と sync gate の実処理は段階的に `
 | upgrade --check | 現行の層・サイト名・配置を使って、配布 scaffold に対する一致・追加候補・差分を表示 | なし。差分があっても exit 0、比較できない対象があれば exit 1 |
 | index | frontmatter から各階層の目次を計画 | `--write`。`--check` は差分があれば exit 1 |
 | log | Git のコミットを層別履歴へ変換 | `--write`。`--range` / `--layer` で範囲を限定 |
-| lint | OKF、語彙、リンク、目次等を検査 | なし。error で exit 1、`--strict` は warn も対象 |
+| lint | OKF の書式を検査。0.3 でプロジェクト固有の規約も検査する場合は `--project` を指定 | なし。エラーで終了コード 1。`--strict` は警告も対象 |
 | stale | 期日・コード更新・検証状態のレポート | なし。指摘があっても exit 0 |
 | affected | `--base` との差分または `--paths` を文書へ逆引き | なし。対応文書と未カバーのパスを表示 |
 | new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。`--index` を指定した場合は索引も更新 |
@@ -95,7 +89,7 @@ OKF 0.3 では、予約ファイル以外の Markdown に空でない `type` が
 
 ## 新規文書の根拠コードと検査
 
-`new doc` の `Project Overview` / `Architecture` / `Reference` / `How-To` は `--code-globs` が必須。その他の型では省略できる。生成後は本文を補完し、目次を更新してから規約検査を実行する。`lint --strict` は残っている記入例も失敗扱いにする。
+`new doc` の `Project Overview`、`Architecture`、`Reference`、`How-To` には `--code-globs` が必要。その他の型では省略できる。生成後は本文を補い、目次を更新してから規約を検査する。雛形の記入例が残ると警告が出る。警告も失敗として扱う場合は、OKF 0.2 なら `lint --strict`、OKF 0.3 なら `lint --project --strict` を使う。
 
 日本語タイトルでは `--slug` でファイル名を指定できる。`new --index` の索引更新に失敗した場合は、作成済みの Markdown を使い、原因を修正して `index --write` を実行する。既存バンドルに `Project Overview` の雛形がなければ、インストール済みパッケージの `scaffold/templates/project-overview.md` を、バンドルの `_templates/project-overview.md` へコピーする。別の空ディレクトリで `init` して生成した同名の雛形も使える。既に配置済みの雛形はそのまま使う。
 
@@ -111,7 +105,7 @@ OKF 0.3 では、予約ファイル以外の Markdown に空でない `type` が
 
 `render --check` は全ページとアセットをメモリ内で生成できるかを検証する。既存 HTML との差分を比較するコマンドではなく、HTML 未生成のクリーン checkout でも使える。生成 HTML を Git に追加する必要はない。通常のテスト・一時バンドル smoke と並行して、実際の docs バンドルを検査する。
 
-配布用の変更検査は通常の PR CI でも `npm run test:release` と `npm run test:package` を実行する。GitHub に書き込まない Release ガードと、一時 prefix での実 tgz 導入・復旧を確認する。タグ起点の Draft Release 手順は [GitHub 配布の判断](/project/decisions/0002-github-node-distribution.md) を参照する。
+PR の CI は Node.js 22 と 24 の両方で `npm run test:release` を実行する。`npm run test:package` で tgz の導入・復旧を検査するのは Node.js 22 のジョブ。両バージョンで、CI が作った同一の tgz のインストールも確認する。[タグから公開する手順](/agents/release-node.md)
 
 ## YAML処理の所有者
 
