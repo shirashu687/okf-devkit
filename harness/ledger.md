@@ -25,7 +25,7 @@
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
 | IMP-0009 | 観測 | 2026-10-03 | 2 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
 | IMP-0014 | 観測 | 2026-10-03 | 1 | coding standards / review | 高 | 旧生成物退避の独立reviewで復元hash・receipt原子的保存とpartialcopy識別の不足を検出した。 | 障害境界ごとの復旧証拠を実装と注入テストで照合する候補 | Python/Node render cleanup | copy/unlink/receipt/restore各失敗で原本保持と記録を照合 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。公開前に本件修正、恒久採用なし。 |
-| IMP-0015 | 観測 | 2026-10-03 | 1 | automated checks | 高 | Windowsの大小文字/末尾dot・space別名により旧新出力が同じ実ディレクトリになり得る境界を追加点検で検出した。 | OSのパス同一性と拒否後の全fixture不変を照合する候補 | render cleanupのルート・manifest境界 | Windows別名指定をCLI check/実行双方で拒否し生成物保持を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。同PRで安全修正、恒久採用なし。 |
+| IMP-0015 | 観測 | 2026-10-03 | 2 | automated checks | 高 | Windows の別表記で、文字列比較と実ディレクトリの同一性が食い違った。 | OS のパス別名と実体の同一性を CLI で照合する候補 | render cleanup と外部コードソースのルート境界 | 同じ実体を指す別表記と、別のディレクトリを指すパスを用意して CLI の判定を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)・[Issue #61 worklog](state/journal/issue-61.md)。個別に修正し、恒久採用なし。 |
 
 ## 採用済み
 
@@ -181,11 +181,12 @@
 
 ### IMP-0015
 
-- 初回2026-10-03、独立発生1回。receipt故障のIMP-0014とは症状・適用範囲が異なるため別ID。mainと未統合npmに同IDなしを確認。
+- 初回2026-10-03、独立発生2回。receipt故障のIMP-0014とは症状・適用範囲が異なるため別ID。mainと未統合npmに同IDなしを確認。
 - 事実・根拠: [cleanup worklog](state/journal/issue-17-output-cleanup.md)。011ae5eのCI確認中、親の追加点検でWindowsのdocs/DOCSや末尾dot/spaceが別lexical rootでも同じ実ディレクトリを指し、新出力を旧生成物として退避し得ることを確認。独立reviewもP1と確認。
 - 原因仮説: パスのlexical比較とOS実体の同一性の差が初期fixtureに含まれなかった可能性。Node拒否fixtureのsnapshotもdocsだけを既定対象としていたため、old/new生成物まで確認するよう拡大した。
 - 候補・重要度: automated checks / 高。旧新の分離という安全条件に直結する。OS固有の別名、同一実体、manifestの大小文字重複をCLI check/実行双方と全fixture snapshotで検証する候補。
 - 本件対応: Windows path比較、末尾dot/space拒否、実体alias/入れ子拒否、case-only manifest重複拒否、全fixture不変検証を追加。実ユーザーの生成物では実行していない。
+- 2026-11-28、独立事象2: PR #99 の Windows CI で、短縮名の一時領域に置いた外部リポジトリのルートが拒否された。短縮名が Git の返す通常表記と一致しないことをローカルで再現。実体の同一性を比較する修正と、デバイスパスを使う公開 CLI の回帰テストを追加した。根拠は [Issue #61 worklog](state/journal/issue-61.md)。
 - 状態・期限・判断: 観測、試行未開始、期限未定。評価9/10、試行0/3、採用0。今回の安全修正を恒久改善効果や採用承認へ読み替えない。最終検証はworklog/PRの最新SHA参照。
 
 ### IMP-0011

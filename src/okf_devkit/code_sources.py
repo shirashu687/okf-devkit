@@ -62,7 +62,8 @@ class CodeSources:
             if not root.is_dir():
                 raise OkfError(f"ソース `{name}` のチェックアウトが見つかりません")
             rc, git_root = gitutil.source_git(root, "rev-parse", "--show-toplevel")
-            if rc != 0 or not git_root or Path(git_root.rstrip("\r\n")).resolve() != root:
+            top = git_root.rstrip("\r\n")
+            if rc != 0 or not top or not root.samefile(top):
                 raise OkfError(f"ソース `{name}` の配置先は Git の作業ツリールートではありません")
         except (OSError, RuntimeError, ValueError) as exc:
             raise OkfError(f"ソース `{name}` の配置先を確認できません") from exc

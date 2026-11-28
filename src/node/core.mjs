@@ -566,10 +566,11 @@ export class Bundle {
       const absolute = path.resolve(this.repo, location);
       if (!fs.statSync(absolute, { throwIfNoEntry: false })?.isDirectory())
         throw new OkfError(`ソース \`${name}\` のチェックアウトが見つかりません`);
-      const root = fs.realpathSync(absolute);
+      // Git for Windows can expand DOS short names and strip the device prefix.
+      const root = fs.realpathSync.native(absolute);
       const [rc, output] = sourceGit(root, "rev-parse", "--show-toplevel");
       const top = output.replace(/[\r\n]+$/, "");
-      if (rc || !top || path.relative(root, fs.realpathSync(top)))
+      if (rc || !top || path.relative(root, fs.realpathSync.native(top)))
         throw new OkfError(`ソース \`${name}\` の配置先は Git の作業ツリールートではありません`);
       this.codeSourceRoots.set(name, root);
       return root;
@@ -649,7 +650,7 @@ export class Bundle {
     const withinSource = (file) => {
       if (!confined) return true;
       try {
-        const relative = path.relative(root, fs.realpathSync(file));
+        const relative = path.relative(root, fs.realpathSync.native(file));
         return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
       } catch (error) {
         if (["ENOENT", "ENOTDIR", "ELOOP"].includes(error.code)) return false;

@@ -5,10 +5,10 @@
 | 項目 | 値 |
 | --- | --- |
 | 課題ID / 作業名 | Issue #61 / 外部コードソースの設計検討 |
-| 状態 | 実装・検証完了 |
+| 状態 | PR #99 の CI 修正をローカル検証済み |
 | 作業場所 | `C:/@git_repogitories/c837/okf-devkit` |
 | ブランチ | `codex/external-code-sources` |
-| 開始日時 / 最終更新日時 | 2026-11-28T12:18+09:00 / 2026-11-28T17:05+09:00 |
+| 開始日時 / 最終更新日時 | 2026-11-28T12:18+09:00 / 2026-11-28T17:17+09:00 |
 | 設計検討の開始SHA | `21829cc40e7ed3300ed9ca282b391125424a49bf` |
 | 実装の開始SHA / 最新HEAD | `2454b6aaa56162d2618d57931b6d892c59cf5891` |
 | 作業者 / 製品 / モデル | Codex / Codex デスクトップ / GPT-6 |
@@ -94,3 +94,22 @@
 ## 実装の完了要約
 
 仕様コメントの範囲を Python と Node.js の CLI に実装し、外部ソースの照合、差分による逆引き、比較できない場合の診断を両版の CLI から確認した。最終検証が成功し、通常の PR へ進める状態になった。
+
+## PR #99 の CI 修正
+
+- 修正前の比較点は `fd7d0c396493224c6756546b9497570317ba5336`。PR の比較元は実装開始時の `2454b6a` のまま。修正と検証結果は [既存の PR](https://github.com/shirashu687/okf-devkit/pull/99) へ反映する。
+- [CI の初回実行](https://github.com/shirashu687/okf-devkit/actions/runs/46124302945)では、Windows の Node.js 22 と 24 で `affected` と `lint` の外部ソース比較が失敗。テスト用の一時パスは DOS 短縮名を含んでいた。ローカルで短縮名を `TEMP` と `TMP` に設定し、同じ2件の失敗を再現した。Git は正常にルートを返しており、通常の表記へ展開したその値と設定パスの文字列比較が原因だった。
+- Node.js はネイティブの実体パスを使って比較し、Python は `samefile` で同じディレクトリか比較する。Windows のデバイスパスを使う回帰テストを追加した。通常のパスと短縮名を使った一時領域の両方で対象の2件が成功し、配下のフォルダを拒否する既存条件も確認した。
+- 仕様軸は CLI の成功条件とルート境界、標準軸は保護対象宣言と差分を独立レビューした。追加指摘なし。`affected` が示す CLI と利用者文書は既定の外部ルート照合の説明と一致するため、バンドル本文の改訂は不要。
+- retro は既存の Windows パス別名に関する [IMP-0015](../../ledger.md#imp-0015) に再発を記録。対処は製品コードの同一性判定と回帰テスト。試行や恒久ルールの変更を伴う判断事項はない。
+
+| 検証 | 結果 | 証拠 |
+| --- | --- | --- |
+| 初回 CI の Windows 互換テスト | 失敗 | Node.js 22 と 24 で外部ソースの2件が失敗 |
+| 短縮名を使ったローカル再現 | 失敗 → 成功 | `node --test --test-name-pattern 'affected only uses changes\|lint and stale distinguish' tests/node/compatibility.test.mjs`。短縮名の一時領域で修正前に2件失敗、修正後に2件成功 |
+| Windows のデバイスパス回帰テスト | 失敗 → 成功 | 追加した `lint --strict` の別表記チェックは修正前の Node.js と Python で拒否され、修正後は両実装で成功 |
+| Python 全体 | 成功 | `.venv/Scripts/python.exe tests/run_all.py` 終了0。273件、失敗・エラー0、スキップ4 |
+| Node.js 全体・両版の比較 | 成功 | `npm ci`、`npm test` 32件、`npm run test:compat` 24件、いずれも終了0 |
+| OKF と宣言の確認 | 成功 | `lint` はエラー・警告0、`index --check`・`affected`・タスクと PR の変更検査は終了0 |
+
+修正コミットを既存の PR に push し、GitHub Actions の再検証結果を PR のチェック欄で確認する。

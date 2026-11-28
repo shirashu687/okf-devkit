@@ -57,8 +57,9 @@ test("affected only uses changes from the selected code source", (t) => {
 
   for (const runtime of ["node", "python"]) {
     const options = { runtime, env: { OKF_TEST_APP_REPO: app } };
-    const output = ok(run(root, ["affected", "--source", "app", "--base", "comparison"], options));
-    assert.match(output, /docs\/api\/app\.md\s+<- .*docs\/examples\/login\.ts.*src\/login\.ts.*src\/session\.ts/);
+    const result = run(root, ["affected", "--source", "app", "--base", "comparison"], options);
+    const output = ok(result);
+    assert.match(output, /docs\/api\/app\.md\s+<- .*docs\/examples\/login\.ts.*src\/login\.ts.*src\/session\.ts/, `${runtime}: ${result.stderr}`);
     assert.match(output, /未カバー:[\s\S]*README\.md/);
     assert.doesNotMatch(output, /docs\/api\/local\.md|src\/register\.ts/);
     const inheritedIndex = { ...options, env: { ...options.env, GIT_INDEX_FILE: path.join(root, ".git", "index") } };
@@ -97,6 +98,11 @@ test("lint and stale distinguish unavailable code sources and unmatched patterns
   for (const runtime of ["node", "python"]) {
     const options = { runtime, env: { OKF_TEST_APP_REPO: "" } };
     assert.match(ok(run(root, ["lint", "--strict"], options)), /warn 0 件/);
+    if (process.platform === "win32") {
+      // Exercise an alternate spelling even on volumes without DOS short names.
+      const alias = { runtime, env: { OKF_TEST_APP_REPO: path.toNamespacedPath(app) } };
+      assert.match(ok(run(root, ["lint", "--strict"], alias)), /warn 0 件/);
+    }
     const missing = { runtime, env: { OKF_TEST_APP_REPO: path.join(root, "missing") } };
     const warnings = ok(run(root, ["lint"], missing));
     assert.equal((warnings.match(/チェックアウトが見つかりません/g) || []).length, 1);
