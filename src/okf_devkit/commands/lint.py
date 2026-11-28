@@ -92,12 +92,14 @@ def _remaining_placeholders(doc: Doc):
 
 
 class Finding:
-    def __init__(self, path: str, line: int | None, level: str, rule: str, message: str):
+    def __init__(self, path: str, line: int | None, level: str, rule: str, message: str, *,
+                 missing_local_glob: str | None = None):
         self.path = path
         self.line = line
         self.level = level
         self.rule = rule
         self.message = message
+        self.missing_local_glob = missing_local_glob
 
     def __str__(self) -> str:
         loc = f"{self.path}:{self.line}" if self.line else self.path
@@ -247,7 +249,8 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
                     continue
             if not matched:
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
-                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}"))
+                            f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}",
+                            missing_local_glob=pattern if source is None else None))
 
         for problem in () if bundle.okf03 else doc.source_problems():
             add(Finding(path, doc.key_line("sources"), "warn", "L14", problem))

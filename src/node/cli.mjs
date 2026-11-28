@@ -12,6 +12,7 @@ import {
   cmdLint,
   cmdStale,
   findingText,
+  missingLocalGlob,
   runLint,
   runStale,
 } from "./checks.mjs";
@@ -396,16 +397,28 @@ async function cmdSync(b, args) {
       "[okf log] 未コミットの変更があります。今回の作業分はコミット後に `okf log --write` を実行してください。",
     );
   console.log("\n== lint ==");
-  const findings = runLint(b, { project: true }),
-    errors = findings.filter((f) => f.level === "error");
+  const reported = new Set();
+  const missingGlobKey = ({ path, [missingLocalGlob]: pattern }) =>
+    pattern === undefined ? undefined : JSON.stringify([path, pattern]);
+  const findings = runLint(b, { project: true }).filter((finding) => {
+    const key = missingGlobKey(finding);
+    if (key === undefined) return true;
+    if (reported.has(key)) return false;
+    reported.add(key);
+    return true;
+  });
+  const errors = findings.filter((f) => f.level === "error");
   findings.forEach((f) => console.log(findingText(f)));
   console.log(
     `lint: error ${errors.length} 件 / warn ${findings.length - errors.length} 件`,
   );
   console.log("\n== stale ==");
   const stale = runStale(b);
-  if (!stale.length) console.log("陳腐化の兆候はありません。");
-  stale.forEach((r) =>
+  const remaining = stale.filter((result) => !reported.has(missingGlobKey(result)));
+  if (!remaining.length && stale.length)
+    console.log("一致するファイルがない code_globs は lint 欄で報告済みです。");
+  else if (!stale.length) console.log("陳腐化の兆候はありません。");
+  remaining.forEach((r) =>
     console.log(`${r.path} ${r.level} ${r.kind} ${r.message}`),
   );
   if (!args.gate) return errors.length || indexRc ? 1 : 0;

@@ -9,6 +9,15 @@ from .. import gitutil
 from ..fsutil import today, extract_date, parse_datetime
 from .lint import trust_level
 
+
+class _Orphan(dict):
+    """Carry the local glob for sync without adding a field to the stale report."""
+
+    def __init__(self, path: str, pattern: str, message: str):
+        super().__init__(path=path, kind="orphan", level="warn", message=message)
+        self.missing_local_glob = pattern
+
+
 def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_time=None) -> list[dict]:
     """陳腐化レポートを組み立てる。"""
     cache = gitutil.CommitTimesCache()
@@ -50,8 +59,8 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
                 continue
             matched = (gitutil.resolve_resource(bundle.repo_root, resource, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(resource))
             if not matched:
-                results.append({"path": path, "kind": "orphan", "level": "warn",
-                                "message": f"code_globs: {resource} {gitutil.code_glob_no_match(resource, bundle.code_glob_exclude)}"})
+                reason = gitutil.code_glob_no_match(resource, bundle.code_glob_exclude)
+                results.append(_Orphan(path, resource, f"code_globs: {resource} {reason}"))
                 continue
             if gen_dt is None:
                 continue

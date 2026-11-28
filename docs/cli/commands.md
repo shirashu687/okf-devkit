@@ -73,6 +73,9 @@ Python 版の引数解析、コマンドへの振り分け、Git や文書モデ
 `affected` は対応文書に加えて未カバーパスも読む。`code_globs` がない文書とバンドル外のREADME等は自動逆引きの保証外なので、変更内容から別途確認する。
 初回コミット前は作業ツリーを調べ、`log` は追記をスキップする。`main` がない場合は実在する基準の SHA を `affected --base` へ指定するか、`affected --paths src/main.js` のように変更を渡す。
 `sync` のlogはGitのコミット済み履歴だけを扱う。未コミット変更はlogに記録せず、logの警告・スキップを確認する。index更新や最終exit0からlog追記成功を推定しない。
+
+`sync` で、同じ文書の接頭辞なし `code_globs` に一致するファイルがなく、`lint` の L10 と `stale` の orphan が重なる場合は、行番号付きの L10 を lint 欄に1件表示する。単独の `lint` と `stale` では、それぞれの診断を確認できる。名前付き外部コードソースの更新時刻が未検証の場合は stale 欄に表示する。
+
 `stale` の指摘と `sync --gate` の同じlint error再検出はexit0になり得る。gateは初回errorでexit2、同一error集合の再検出ではexit0としてループを抑える。指摘が解消したことやCI成功を意味しない。
 `render --hook` はHTMLを書き込み、成功時 `{}` / exit0、失敗時exit1。モデル継続のblock判定は返さない。終了イベント用advisory adapterは失敗をstderrへ出してexit0にするため、そのexit0を生成成功の証拠にしない。
 `init --force` は既存の OKF 設定、文書やhookスクリプトを置換する。エージェント設定と `.gitignore` は例外で、常に保持する。設定の部分更新や新しい案内の移行に使わず、既存ファイルとの必要な差分だけを確認して更新する。初回導入時の登録と既存設定への追加は [終了hookの手順](/agents/completion-hooks.md) を参照する。

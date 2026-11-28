@@ -25,6 +25,7 @@ import { isShallow, pathTimes } from "./history.mjs";
 
 export const findingText = (f) =>
   `${f.path}${f.line ? ":" + f.line : ""} ${f.level} ${f.rule} ${f.message}`;
+export const missingLocalGlob = Symbol("missingLocalGlob");
 const repr = (value) =>
   value === null || value === undefined
     ? "None"
@@ -142,13 +143,14 @@ export function runLint(b, { project = false } = {}) {
   project ||= !b.okf03;
   const findings = [];
   const unavailableSources = new Set();
-  const add = (doc, key, level, rule, message) =>
+  const add = (doc, key, level, rule, message, pattern) =>
     findings.push({
       path: doc.repoRel,
       line: typeof key === "number" ? key : key ? doc.line(key) : null,
       level,
       rule,
       message,
+      [missingLocalGlob]: pattern,
     });
   const documents = b.okf03 ? b.files().map((file) => new Doc(file, b)) : b.docs();
   for (const d of documents) {
@@ -311,6 +313,7 @@ export function runLint(b, { project = false } = {}) {
           "warn",
           "L10",
           `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
+          source === null ? g : undefined,
         );
     }
     const sources = d.fm.sources;
@@ -541,8 +544,8 @@ export function runStale(b) {
     date = today(), now = new Date();
   for (const d of b.docs()) {
     if (!d.hasFm) continue;
-    const add = (kind, level, message) =>
-      results.push({ path: d.repoRel, kind, level, message });
+    const add = (kind, level, message, pattern) =>
+      results.push({ path: d.repoRel, kind, level, message, [missingLocalGlob]: pattern });
     const raw = d.fm.generated?.at,
       gen = timestamp(raw),
       genDate = extractDate(raw),
@@ -570,6 +573,7 @@ export function runStale(b) {
           "orphan",
           "warn",
           `code_globs: ${g} ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
+          g,
         );
         continue;
       }
