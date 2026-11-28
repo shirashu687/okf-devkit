@@ -246,15 +246,55 @@ const skippedCodeDirs = new Set(["node_modules", "dist", ".git"]);
 export const codeGlobNoMatch = (pattern, exclusions) =>
   "にマッチするファイルがありません" +
   ((/[*?[]/.test(pattern) || exclusions.length) ? "（走査除外と code_glob_exclude を確認してください）" : "");
-export function git(root, ...args) {
+function runGit(root, args, env) {
   const proc = spawnSync("git", args, {
     cwd: root,
+    env,
     encoding: "utf8",
     windowsHide: true,
     maxBuffer: 64 * 1024 * 1024,
   });
   return [proc.status ?? 127, proc.stdout || ""];
 }
+
+export function git(root, ...args) {
+  return runGit(root, args);
+}
+
+// Repository-local settings reported by `git rev-parse --local-env-vars`.
+const localGitEnv = new Set([
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG",
+  "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_DIR", "GIT_GRAFT_FILE",
+  "GIT_IMPLICIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_NO_REPLACE_OBJECTS",
+  "GIT_OBJECT_DIRECTORY", "GIT_PREFIX", "GIT_REPLACE_REF_BASE",
+  "GIT_SHALLOW_FILE", "GIT_WORK_TREE",
+]);
+
+export function sourceGit(root, ...args) {
+  const env = Object.fromEntries(Object.entries(process.env)
+    .filter(([key]) => !localGitEnv.has(key.toUpperCase())));
+  return runGit(root, args, env);
+}
+
+const codeSourceName = /^[A-Za-z][A-Za-z0-9_-]*$/;
+
+export function splitCodeGlob(reference) {
+  const separator = reference.indexOf(":");
+  const name = reference.slice(0, separator);
+  if (separator < 0 || !codeSourceName.test(name) || /^[A-Za-z]:[/\\]/.test(reference))
+    return [null, reference];
+  const pattern = slash(reference.slice(separator + 1)).replace(/^(?:\.\/)+/, "");
+  if (!pattern.trim() || pattern.includes("\0") || pattern.startsWith("/") || /^[A-Za-z]:/.test(pattern) || pattern.split("/").includes(".."))
+    return [name, null];
+  try {
+    matches("", pattern);
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    return [name, null];
+  }
+  return [name, pattern];
+}
+
 export function projectRoot(start = process.cwd()) {
   for (let d = path.resolve(start); ; d = path.dirname(d)) {
     if (fs.existsSync(path.join(d, "okf.yml"))) return d;
@@ -463,6 +503,7 @@ export class Bundle {
       parseYaml(read(path.join(dataDir, "defaults.yml"))),
       project,
     );
+    this.codeSourceRoots = new Map();
     this.codeGlobExclude = this.cfg.code_glob_exclude;
     if (!Array.isArray(this.codeGlobExclude) ||
         this.codeGlobExclude.some((rule) => typeof rule !== "string" || !rule.trim()))
@@ -501,6 +542,42 @@ export class Bundle {
     const version = this.declaredVersion ?? (fs.existsSync(rootIndex) ? null : String(this.index.okf_version));
     const parts = /^(\d+)\.(\d+)$/.exec(version ?? "");
     this.okf03 = version !== null && (!parts || Number(parts[1]) > 0 || Number(parts[2]) >= 3);
+  }
+
+  codeSourceRoot(name) {
+    if (this.codeSourceRoots.has(name)) return this.codeSourceRoots.get(name);
+    if (!codeSourceName.test(name)) throw new OkfError(`ソース名 \`${name}\` が不正です`);
+    const declarations = Object.hasOwn(this.cfg, "code_sources") ? this.cfg.code_sources : [];
+    if (!Array.isArray(declarations)) throw new OkfError("`code_sources` はリストで指定してください");
+    const entries = declarations.filter((entry) => isMap(entry) && entry.name === name);
+    if (!entries.length) throw new OkfError(`ソース \`${name}\` が code_sources に登録されていません`);
+    if (entries.length > 1) throw new OkfError(`ソース \`${name}\` の宣言が重複しています`);
+    const entry = entries[0];
+    let location = entry.path;
+    if (typeof location !== "string" || !location.trim())
+      throw new OkfError(`ソース \`${name}\` の path を指定してください`);
+    if (Object.hasOwn(entry, "path_env")) {
+      if (typeof entry.path_env !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.path_env))
+        throw new OkfError(`ソース \`${name}\` の path_env は環境変数名で指定してください`);
+      const override = process.env[entry.path_env];
+      if (typeof override === "string" && override) location = override;
+    }
+    try {
+      const absolute = path.resolve(this.repo, location);
+      if (!fs.statSync(absolute, { throwIfNoEntry: false })?.isDirectory())
+        throw new OkfError(`ソース \`${name}\` のチェックアウトが見つかりません`);
+      // Git for Windows can expand DOS short names and strip the device prefix.
+      const root = fs.realpathSync.native(absolute);
+      const [rc, output] = sourceGit(root, "rev-parse", "--show-toplevel");
+      const top = output.replace(/[\r\n]+$/, "");
+      if (rc || !top || path.relative(root, fs.realpathSync.native(top)))
+        throw new OkfError(`ソース \`${name}\` の配置先は Git の作業ツリールートではありません`);
+      this.codeSourceRoots.set(name, root);
+      return root;
+    } catch (error) {
+      if (error instanceof OkfError) throw error;
+      throw new OkfError(`ソース \`${name}\` の配置先を確認できません`);
+    }
   }
   excluded(file) {
     const relative = rel(file, this.root);
@@ -555,7 +632,7 @@ export class Bundle {
       path.resolve(this.root, this.log.paths?.[layer] || `${layer}/log.md`),
     );
   }
-  resources(pattern) {
+  resources(pattern, { root = this.repo, confined = false } = {}) {
     pattern = slash(pattern).replace(/^\/+/, "");
     if (!pattern) return [];
     try {
@@ -570,17 +647,27 @@ export class Bundle {
         matches(normalized, rule) || matches(normalized + "/", rule),
       );
     };
+    const withinSource = (file) => {
+      if (!confined) return true;
+      try {
+        const relative = path.relative(root, fs.realpathSync.native(file));
+        return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+      } catch (error) {
+        if (["ENOENT", "ENOTDIR", "ELOOP"].includes(error.code)) return false;
+        throw error;
+      }
+    };
     if (!/[*?[]/.test(pattern)) {
       const components = pattern.split("/");
       if (components.some((_, index) => excluded(components.slice(0, index + 1).join("/"))))
         return [];
-      const file = path.resolve(this.repo, pattern);
-      return fs.existsSync(file) && fs.statSync(file).isFile() ? [pattern] : [];
+      const file = path.resolve(root, pattern);
+      return withinSource(file) && fs.existsSync(file) && fs.statSync(file).isFile() ? [pattern] : [];
     }
     const parts = pattern.split("/"),
       found = new Set();
     const walk = (directory, index, relative, ancestors) => {
-      if (excluded(relative)) return;
+      if (excluded(relative) || !withinSource(directory)) return;
       if (!fs.existsSync(directory)) return;
       const stat = fs.statSync(directory);
       if (index === parts.length) {
@@ -600,8 +687,8 @@ export class Bundle {
         })) {
           if (entry.name.startsWith(".")) continue;
           const child = path.join(directory, entry.name);
+          if (excluded(childRel(entry.name)) || !withinSource(child)) continue;
           if (!fs.existsSync(child)) continue;
-          if (excluded(childRel(entry.name))) continue;
           if (fs.statSync(child).isDirectory()) {
             if (!skippedCodeDirs.has(entry.name))
               walk(child, index, childRel(entry.name), next);
@@ -620,7 +707,7 @@ export class Bundle {
         for (const entry of fs.readdirSync(directory)) {
           if (entry.startsWith(".") && !segment.startsWith(".")) continue;
           const child = path.join(directory, entry);
-          if (excluded(childRel(entry))) continue;
+          if (excluded(childRel(entry)) || !withinSource(child)) continue;
           if (skippedCodeDirs.has(entry) &&
               fs.statSync(child, { throwIfNoEntry: false })?.isDirectory()) continue;
           if (matches(entry, segment))
@@ -633,7 +720,7 @@ export class Bundle {
         }
       }
     };
-    walk(this.repo, 0, "", new Set());
+    walk(root, 0, "", new Set());
     return [...found].sort(compare);
   }
 }

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scope": "task-and-pull-request",
+  "base": "2454b6aaa56162d2618d57931b6d892c59cf5891",
+  "worklog": "harness/state/journal/issue-61.md",
+  "changes": [
+    {
+      "path": "tests/node/compatibility.test.mjs",
+      "reason": "外部コードソースの履歴比較、パス照合、診断、鮮度と Windows の別表記でのルート同一性を Python と Node.js の公開 CLI で検証する"
+    }
+  ]
+}

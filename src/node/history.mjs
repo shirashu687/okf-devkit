@@ -7,21 +7,23 @@ import {
   read,
   rel,
   slash,
+  sourceGit,
+  splitCodeGlob,
   write,
 } from "./core.mjs";
 
-export const hasCommits = (root) =>
-  git(root, "rev-parse", "--verify", "--quiet", "HEAD")[0] === 0;
+export const hasCommits = (root, run = git) =>
+  run(root, "rev-parse", "--verify", "--quiet", "HEAD")[0] === 0;
 export const isShallow = (root) =>
   git(root, "rev-parse", "--is-shallow-repository")[1].trim() === "true";
-export const requireGit = (root) => {
-  if (git(root, "rev-parse", "--git-dir")[0])
+export const requireGit = (root, run = git) => {
+  if (run(root, "rev-parse", "--git-dir")[0])
     throw new OkfError(
       "git リポジトリが見つかりません。リポジトリ内で実行してください。",
     );
 };
-export const resolveCommit = (root, ref) => {
-  const [rc, out] = git(
+export const resolveCommit = (root, ref, run = git) => {
+  const [rc, out] = run(
     root,
     "rev-parse",
     "--verify",
@@ -89,27 +91,35 @@ export function statusPaths(out) {
   }
   return paths;
 }
-export function changedPaths(root, base) {
-  requireGit(root);
+export function changedPaths(root, base, { requireHistory = false } = {}) {
+  const run = requireHistory ? sourceGit : git;
+  requireGit(root, run);
   const paths = [];
-  if (hasCommits(root)) {
+  if (hasCommits(root, run)) {
     const ref =
-      resolveCommit(root, base) || resolveCommit(root, `origin/${base}`);
-    if (!ref) throw new OkfError(
-      `base ref を解決できませんでした: ${base}。実在するコミット SHA を --base で指定するか、--paths src/main.js のように変更パスを指定してください。`,
-    );
-    const [rc, mb] = git(root, "merge-base", ref, "HEAD");
+      resolveCommit(root, base, run) || resolveCommit(root, `origin/${base}`, run);
+    if (!ref) {
+      const hint = requireHistory ? "" : "。実在するコミット SHA を --base で指定するか、--paths src/main.js のように変更パスを指定してください。";
+      throw new OkfError(`base ref を解決できませんでした: ${base}${hint}`);
+    }
+    const [rc, mb] = run(root, "merge-base", ref, "HEAD");
+    if (requireHistory && (rc || !mb.trim()))
+      throw new OkfError(`共通祖先を特定できませんでした（base: ${base}）`);
+    const options = requireHistory ? ["--no-renames"] : [];
     const [diffRc, out] =
       rc === 0
-        ? git(root, "diff", "--name-only", "-z", mb.trim(), "HEAD")
-        : git(root, "diff", "--name-only", "-z", ref);
+        ? run(root, "diff", "--name-only", "-z", ...options, mb.trim(), "HEAD")
+        : run(root, "diff", "--name-only", "-z", ref);
     if (diffRc) throw new OkfError(`git diff に失敗しました（base: ${base}）`);
     paths.push(...out.split("\0").filter(Boolean).map(slash));
-  } else
+  } else if (requireHistory) {
+    throw new OkfError("外部ソースにコミットがありません");
+  } else {
     console.error(
       "[okf affected] コミットがまだないため、作業ツリーの変更のみを対象にします。",
     );
-  const [rc, out] = git(
+  }
+  const [rc, out] = run(
     root,
     "status",
     "--porcelain",
@@ -120,9 +130,24 @@ export function changedPaths(root, base) {
   return [...new Set([...paths, ...statusPaths(out)])].sort(compare);
 }
 export function cmdAffected(b, args) {
-  const paths = (args.paths || changedPaths(b.repo, args.base || "main"))
+  const source = args.source ?? null;
+  let changed;
+  if (source !== null) {
+    if (!args.base || args.paths)
+      throw new OkfError("--source には --base を指定してください。--paths と併用できません");
+    try {
+      changed = changedPaths(b.codeSourceRoot(source), args.base, { requireHistory: true });
+    } catch (error) {
+      if (!(error instanceof OkfError)) throw error;
+      console.error(`[okf affected] 警告: ソース \`${source}\` の差分未確認。${error.message}`);
+      return 0;
+    }
+  } else {
+    changed = args.paths || changedPaths(b.repo, args.base || "main");
+  }
+  const paths = changed
     .map(slash)
-    .filter((p) => !p.endsWith("/") && layerOf(b, p) !== null);
+    .filter((p) => !p.endsWith("/") && (source !== null || layerOf(b, p) !== null));
   if (!paths.length) {
     console.log("変更パスがありません。");
     return 0;
@@ -130,8 +155,11 @@ export function cmdAffected(b, args) {
   const mapping = new Map(),
     covered = new Set();
   for (const doc of b.docs()) {
+    const globs = doc.globs.map(splitCodeGlob)
+      .filter(([name, pattern]) => name === source && pattern)
+      .map(([, pattern]) => pattern.replace(/^\//, ""));
     const hits = paths.filter((p) =>
-      doc.globs.some((g) => matches(p, g.replace(/^\//, ""))),
+      globs.some((pattern) => matches(p, pattern)),
     );
     if (hits.length) {
       mapping.set(doc.repoRel, [...new Set(hits)].sort(compare));

@@ -42,6 +42,8 @@ related:
 
 `affected --base <固定SHA>` で変更したコードを調べ、`code_globs` が一致する文書の本文を実装と照合する。対応する文書がない変更パス、`code_globs` のない文書、README などバンドル外の文書も確認する。
 
+外部コードは `okf.yml` の `code_sources` に登録し、`affected --source <ソース名> --base <固定SHA>` で確認する。「差分未確認」が出た場合は、対象のチェックアウトと比較対象が手元にあるか確認する。 [外部コードソースの設定](/cli/commands.md)
+
 本文を直した箇所、変更が不要と判断した根拠、追加の確認や修正が必要な箇所を記録する。`generated.at` を更新する場合も本文が現在の実装を説明できているか確かめる。
 
 `sync` はindexとlogを書き込むため、読み取り点検には使わない。index → log → lint → staleの各出力を確認する。

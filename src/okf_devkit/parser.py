@@ -86,7 +86,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_stale.add_argument("--format", choices=["text", "json"], default="text", help="出力形式: text / json（既定: text）")
 
     p_affected = sub.add_parser("affected", help="更新すべきドキュメントを列挙する")
-    p_affected.add_argument("--base", default="main", help="比較対象のコミット SHA またはブランチ（既定: main）")
+    p_affected.add_argument("--base", help="比較対象のコミット SHA またはブランチ（ローカルの既定: main）")
+    p_affected.add_argument("--source", help="比較する外部ソース名（--base が必要）")
     p_affected.add_argument("--paths", nargs="+", help="変更パスを直接指定する")
 
     p_new = sub.add_parser("new", help="雛形を生成する")

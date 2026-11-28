@@ -12,6 +12,7 @@ code_globs:
   - src/node/cli.mjs
   - src/okf_devkit/compat.py
   - src/okf_devkit/parser.py
+  - src/okf_devkit/code_sources.py
   - tests/test_cli_facade.py
   - src/okf_devkit/commands/stale.py
   - src/okf_devkit/commands/affected.py
@@ -41,6 +42,7 @@ related:
   - /render/architecture.md
   - /scaffold/reference.md
   - /agents/operate-okf.md
+  - /project/decisions/0003-external-code-sources.md
 ---
 
 # コマンド仕様
@@ -59,7 +61,7 @@ Python 版の引数解析、コマンドへの振り分け、Git や文書モデ
 | log | Git のコミットを層別履歴へ変換 | `--write`。`--range` / `--layer` で範囲を限定 |
 | lint | OKF の書式を検査。0.3 でプロジェクト固有の規約も検査する場合は `--project` を指定 | なし。エラーで終了コード 1。`--strict` は警告も対象 |
 | stale | 期日・コード更新・検証状態のレポート | なし。指摘があっても exit 0 |
-| affected | `--base` との差分または `--paths` を文書へ逆引き | なし。対応文書と未カバーのパスを表示 |
+| affected | `--base` との差分または `--paths` を文書へ逆引き。外部リポジトリは `--source <name> --base <ref>` を使う | なし。対応文書と未カバーのパスを表示 |
 | new doc | layer/type/title とテンプレートから文書を作る。`--code-globs` は複数指定可 | 新規 Markdown。`--index` を指定した場合は索引も更新 |
 | new backlog | タイトルと優先度等から backlog 文書を作る | 新規 Markdown。`--index` を指定した場合は索引も更新 |
 | status | backlog の state を集計 | なし。text/json 出力 |
@@ -76,6 +78,27 @@ Python 版の引数解析、コマンドへの振り分け、Git や文書モデ
 `init --force` は既存の OKF 設定、文書やhookスクリプトを置換する。エージェント設定と `.gitignore` は例外で、常に保持する。設定の部分更新や新しい案内の移行に使わず、既存ファイルとの必要な差分だけを確認して更新する。初回導入時の登録と既存設定への追加は [終了hookの手順](/agents/completion-hooks.md) を参照する。
 
 `upgrade --check` は生成ガイドの frontmatter の生成時刻を比較から除き、来歴が分からない差分をファイル単位で手動確認として表示する。必要な変更は配布 scaffold と照合する。hook と Git 除外の追記箇所は [終了hookの手順](/agents/completion-hooks.md) を参照する。既存の初期化で `--runner` や `--agent` を指定した場合は、比較時にも同じ値を渡せる。`doctor` の hook 診断は設定の読み取り結果で、実行環境の確認には製品側のイベント検証を使う。
+
+## 外部リポジトリのコードを参照する
+
+文書プロジェクトの `okf.yml` に外部コードソースを登録する。`path` は作業ツリーのルートを指定する。相対パスは文書プロジェクトルートが起点。`path_env` を指定した場合は、その環境変数の空でない値を優先する。英字で始まるソース名に英数字、`_`、`-` を使える。
+
+```yaml
+code_sources:
+  - name: app
+    path: ../app-repo
+    path_env: APP_REPO_DIR
+```
+
+文書の `code_globs` に `app:src/**` を書くと、`app` 内の `src/` を参照する。接頭辞のない `src/**` は従来どおり文書プロジェクト内を参照する。`lint` は配置を確認して根拠ファイルを照合する。ソースの未配置・未登録と、配置済みで一致するファイルがない場合は、それぞれ理由を警告する。OKF 0.3 バンドルでこのプロジェクト固有の検査を使うときは `lint --project` を指定する。
+
+```powershell
+okf affected --source app --base main
+```
+
+指定ソースで `main` と現在の HEAD が分かれた地点からの変更と、作業ツリーの未コミット変更を集める。ソース名が一致する `code_globs` から対応文書を探し、未カバーのパスも表示する。文書側の `layer_map` はローカル変更の調査に適用する。外部ソースの変更を調べる際は `--base` を指定する。配置先、比較対象、共通の起点を確認できない場合は「差分未確認」を警告し、終了コード `0` を返す。
+
+`stale` は外部コードの更新時刻を未検証と表示する。文書の期限やローカルコードの更新時刻は従来どおり判定する。`log` の対象は文書プロジェクトの Git 履歴。
 
 ## OKF のバンドル仕様を選ぶ
 

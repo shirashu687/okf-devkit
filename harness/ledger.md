@@ -9,7 +9,7 @@
 - 評価中件数: 10 / 10
 - 試行中件数: 0 / 3
 - 採用済み件数: 0
-- 最終確認日: 2026-10-04
+- 最終確認日: 2026-11-28
 - 次回確認: 各作業の開始・再開時、および台帳更新時。定時自動確認は設置していない。
 
 ## 評価中（観測・候補・試行）
@@ -20,12 +20,12 @@
 | IMP-0010 | 観測 | 2026-10-03 | 1 | automated checks | 低 | Issue #9のshared log追記で新しい日付を末尾に置き、lint L8 warn1を検出した。 | 既存日付の降順を追記前に確認する候補 | OKF logの手動更新 | lintのL8と新規日付の位置を照合 | 未定（試行未開始） | 日付を先頭へ移して再lint error0/warn0。[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。恒久採用は未判断。 |
 | IMP-0012 | 観測 | 2026-10-03 | 2 | automated checks | 低 | Issue21の新規比較fixtureにroot indexがなく失敗し、新規文書Actor語彙にlint警告が出た。 | fixture前提と既存テストscript対象を明示する候補 | 新規HTML表示テスト・OKF文書 | npm test/compatで追加名と件数、lint error0/warn0を確認 | 未定（試行なし） | [Issue21 worklog](state/journal/issue-21-backlog-progress.md)と[Issue #9記録](state/journal/issue-9-repo-stop-hook.md)。2026-10-04に実HTML hook fixtureの必須config不足を追加観測。修正確認済み、恒久採用なし。 |
 | IMP-0001 | 観測 | 2026-09-06 | 1 | automated checks | 中 | T-0004の作業記録に、検査スクリプトの期待文言不一致による初回2回の失敗と、期待条件修正後の再実行成功が記録されている。 | 未定（期待条件を対象文書と同期する方法と、失敗履歴を保持する負担を次回同形式の検証で確認） | okf-devkitの文書契約・検証プローブ | 同形式の検証で、期待条件の不一致と再試行を対象版・出力つきで比較する | 未定（試行未開始） | T-0004 worklogから得た実作業の観測要約と根拠参照のみ。演習の入力・出力は保存していない。試行・改善効果・採用承認なし。 |
-| IMP-0005 | 観測 | 2026-09-10 | 4 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hook導入 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。今回の回帰修正とテストを追加。恒久ルール採用・改善効果は未判定。 Issue #34: inherited npm global/prefix settings could defeat temporary install isolation; fixed before publication and verified with a hostile-environment sentinel. [Distribution worklog](state/journal/issue-34-github-distribution.md). |
+| IMP-0005 | 観測 | 2026-09-10 | 5 | automated checks | 中 | Node追加の初回検証でPowerShell文字コード・symlink起動を検出し、レビューでPythonのみ導入済みのhook優先順位回帰を検出した。 | 導入状態ごとの起動経路を互換テストへ含める候補 | 複数ランタイムのCLI/hookの実行環境 | Pythonのみ・Nodeのみ・開発checkoutとnpm依存の有無を分けて成功と終了値を確認 | 未定（改善試行は未開始） | [B-0007 worklog](state/journal/B-0007-node-runtime.md)。Issue #34 と #61 では、意図した実行先が継承された環境変数に左右されるケースを修正。恒久ルール採用・改善効果は未判定。 |
 | IMP-0004 | 観測 | 2026-09-07 | 3 | automated checks | 中 | タスク単位の変更宣言を含む統合PRで、異なる比較元・重複・PR全体の未宣言によりCIがテスト前に停止した。 | 未定（今回のCI修正後、同様の統合で保持と検査を再確認する） | okf-devkitのタスク履歴を含むPR変更検査 | 同じPR base/headで宣言範囲・全対象・CI結果を比較する | 未定（改善試行は未開始） | 根拠: [PR #2 CI修正worklog](state/journal/PR-0002-ci-declarations.md)。本件修正と別プロジェクトへの改善効果・採用は区別する。Issue #58で保護対象へのrename旧名宣言漏れを検出・修正（[記録](state/journal/issue-58-layout.md)）。 |
 | IMP-0003 | 観測 | 2026-09-06 | 1 | information access | 中 | 指定された `.venv\Scripts\python.exe` が通常権限ではプロセス起動に失敗し、同じ既存テストを昇格環境で再試行する必要があった。 | 未定（開始時の起動可否確認、実行不能の記録、許可された再試行の負担を次回Windows作業で比較） | okf-devkit Windowsローカルの既存テスト実行 | 通常権限と許可された再試行の対象版・終了状態・負担を記録して比較する。権限設定は変更しない | 未定（試行未開始） | 初回は実行不能、同じコマンドの昇格再試行は成功。環境改善効果・採用承認なし。根拠: 本worklogの `project-required` と再試行履歴。 |
 | IMP-0009 | 観測 | 2026-10-03 | 2 | coding standards / review | 低 | Issue #11の独立reviewでlog接頭辞・commit参照不足とNode起動検知範囲の説明差を検出した。 | log書式とAPI保証範囲をreview時に現物照合する候補 | CLI機能追加のREADME・層別log | 独立二軸reviewと最終diffで文書契約を照合 | 未定（試行未開始） | [Issue #11 worklog](state/journal/issue-11-render-open.md)。今回の修正は完了、恒久改善の採用・効果は未判定。 |
 | IMP-0014 | 観測 | 2026-10-03 | 1 | coding standards / review | 高 | 旧生成物退避の独立reviewで復元hash・receipt原子的保存とpartialcopy識別の不足を検出した。 | 障害境界ごとの復旧証拠を実装と注入テストで照合する候補 | Python/Node render cleanup | copy/unlink/receipt/restore各失敗で原本保持と記録を照合 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。公開前に本件修正、恒久採用なし。 |
-| IMP-0015 | 観測 | 2026-10-03 | 1 | automated checks | 高 | Windowsの大小文字/末尾dot・space別名により旧新出力が同じ実ディレクトリになり得る境界を追加点検で検出した。 | OSのパス同一性と拒否後の全fixture不変を照合する候補 | render cleanupのルート・manifest境界 | Windows別名指定をCLI check/実行双方で拒否し生成物保持を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)。同PRで安全修正、恒久採用なし。 |
+| IMP-0015 | 観測 | 2026-10-03 | 2 | automated checks | 高 | Windows の別表記で、文字列比較と実ディレクトリの同一性が食い違った。 | OS のパス別名と実体の同一性を CLI で照合する候補 | render cleanup と外部コードソースのルート境界 | 同じ実体を指す別表記と、別のディレクトリを指すパスを用意して CLI の判定を確認 | 未定（試行未開始） | [cleanup worklog](state/journal/issue-17-output-cleanup.md)・[Issue #61 worklog](state/journal/issue-61.md)。個別に修正し、恒久採用なし。 |
 
 ## 採用済み
 
@@ -50,11 +50,13 @@
 
 ### IMP-0005
 
+- 2026-11-28、独立事象5: 外部 Git の差分調査で、呼出し元のインデックス指定が選択済みリポジトリの状態取得にも渡ることを仕様reviewで検出。Issue #34 と同じく、継承した設定が別の実行先に作用した。文書側のインデックスを指定すると外部の `affected` が差分未確認を返すことを CLI で再現し、外部 Git の起動時にリポジトリ固有の環境変数を除いて修正した。複数実装の既存 CLI 比較に呼出し元の設定を含め、同じ外部差分が出ることを確認する。恒久ルールの採用判断なし。根拠は [Issue #61 worklog](state/journal/issue-61.md)。
+
 - 2026-10-29、独立事象4: 導入先の終了hook実装で、adapter自体の起動前にGitルート取得やスクリプト起動が失敗すると終了コードが非ブロッキング契約から外れる可能性を統合前reviewで検出。launcher側の失敗処理を追加し、Gitなし・adapter欠落を検証した。複数製品のhook起動環境という元の適用範囲であり、前回のPowerShell/OS経路とは別作業の再発として1回加算する。原因は未確定。実イベントとWindowsは未検証。試行・恒久採用は行わず、候補は起動前後の失敗境界をOS別に検証する方法。根拠: [導入簡略化worklog](state/journal/issue-48-hooks-split.md)。
 
 - Issue #34 observation (2026-10-04): independent review identified inherited npm configuration overriding fixture installation scope. This is a third independent environment-initialization boundary observation. Case-insensitive environment isolation and explicit temporary local/global prefixes were verified by a hostile-prefix sentinel; no real user-global modification occurred. No trial or permanent-rule adoption. Evidence: [worklog](state/journal/issue-34-github-distribution.md).
 
-- 状態: 観測。初回2026-09-10、初回登録時は独立発生1回（現在は下記再発を含め4回）。B-0007の再試行は別回数に数えない。
+- 状態: 観測。初回2026-09-10、初回登録時は独立発生1回（現在は再発を含め5回）。B-0007の再試行は別回数に数えない。
 - 事実・根拠: [B-0007 worklog](state/journal/B-0007-node-runtime.md)のnative初回失敗、互換比較、二軸reviewと修正確認。PowerShell 5.1によるBOMなしUTF-8の解釈、npm symlink経由のentry判定、Pythonのみ導入済みcheckoutの探索順に問題があった。
 - 原因仮説: コマンド機能の移植に加えて導入状態の組合せも検証する必要があった。全環境を網羅できたとは扱わない。
 - 分類・重要度: automated checks / 中。既存Python利用者のhookが失敗する回帰をレビューで検出した。
@@ -179,11 +181,12 @@
 
 ### IMP-0015
 
-- 初回2026-10-03、独立発生1回。receipt故障のIMP-0014とは症状・適用範囲が異なるため別ID。mainと未統合npmに同IDなしを確認。
+- 初回2026-10-03、独立発生2回。receipt故障のIMP-0014とは症状・適用範囲が異なるため別ID。mainと未統合npmに同IDなしを確認。
 - 事実・根拠: [cleanup worklog](state/journal/issue-17-output-cleanup.md)。011ae5eのCI確認中、親の追加点検でWindowsのdocs/DOCSや末尾dot/spaceが別lexical rootでも同じ実ディレクトリを指し、新出力を旧生成物として退避し得ることを確認。独立reviewもP1と確認。
 - 原因仮説: パスのlexical比較とOS実体の同一性の差が初期fixtureに含まれなかった可能性。Node拒否fixtureのsnapshotもdocsだけを既定対象としていたため、old/new生成物まで確認するよう拡大した。
 - 候補・重要度: automated checks / 高。旧新の分離という安全条件に直結する。OS固有の別名、同一実体、manifestの大小文字重複をCLI check/実行双方と全fixture snapshotで検証する候補。
 - 本件対応: Windows path比較、末尾dot/space拒否、実体alias/入れ子拒否、case-only manifest重複拒否、全fixture不変検証を追加。実ユーザーの生成物では実行していない。
+- 2026-11-28、独立事象2: PR #99 の Windows CI で、短縮名の一時領域に置いた外部リポジトリのルートが拒否された。短縮名が Git の返す通常表記と一致しないことをローカルで再現。実体の同一性を比較する修正と、デバイスパスを使う公開 CLI の回帰テストを追加した。根拠は [Issue #61 worklog](state/journal/issue-61.md)。
 - 状態・期限・判断: 観測、試行未開始、期限未定。評価9/10、試行0/3、採用0。今回の安全修正を恒久改善効果や採用承認へ読み替えない。最終検証はworklog/PRの最新SHA参照。
 
 ### IMP-0011

@@ -69,11 +69,11 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 | index | `commands/index.py` の `_plan_index()` が生成内容を計画し `cmd_index()` が表示・書込・差分検査を選ぶ |
 | log | `commands/log.py` が明示project rootでGit履歴を集め、baselineと記録済みhashを照合する |
 | lint | `commands/lint.py` の `run_lint()` が Finding を集め、`cmd_lint()` が終了値を決める |
-| affected | `changed_paths()` または明示パスを `compute_affected()` の `code_globs` 照合へ渡す |
-| stale | `run_stale()` が期日、検証情報、コード最終更新時刻を調べる |
+| affected | `changed_paths()` または明示パスを `compute_affected()` へ渡し、ソース名が一致する `code_globs` と照合する |
+| stale | `run_stale()` が期日、検証情報、ローカルコードの最終更新時刻を調べ、外部コードの更新時刻を未検証と表示する |
 | render | `commands/render.py` が renderer/cleanup を遅延 import し、同じ project root に束縛した Doc factory を渡す |
 
-`affected` は `code_globs` のない文書を逆引き対象にしない。`layer_map` は未カバーのパス分類にも使う。Git 履歴を参照する log/stale は履歴の深さに依存する。
+ローカルの `affected` は `layer_map` で変更パスを絞り、接頭辞なしの `code_globs` と照合する。`--source` を選んだ場合は、そのコードソースの作業ツリーと Git 履歴から変更を集める。外部用の比較で基準を特定できない場合は「差分未確認」を警告する。Git 履歴を参照する `log` とローカルコードの `stale` 判定も履歴の深さに依存する。 [外部コードソースの利用方法](/cli/commands.md)
 
 ## エラーと hook
 

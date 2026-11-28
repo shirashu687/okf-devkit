@@ -16,6 +16,7 @@ import {
   parseYaml,
   read,
   rel,
+  splitCodeGlob,
   timestamp,
   today,
 } from "./core.mjs";
@@ -140,6 +141,7 @@ function remainingPlaceholders(doc) {
 export function runLint(b, { project = false } = {}) {
   project ||= !b.okf03;
   const findings = [];
+  const unavailableSources = new Set();
   const add = (doc, key, level, rule, message) =>
     findings.push({
       path: doc.repoRel,
@@ -274,8 +276,35 @@ export function runLint(b, { project = false } = {}) {
         "L10",
         `\`code_globs\` がありません（type: ${d.type} はコード由来なので更新検知の起点が必要です）`,
       );
-    for (const g of d.globs)
-      if (!b.resources(g).length)
+    for (const g of d.globs) {
+      const [source, relative] = splitCodeGlob(g);
+      let files;
+      if (source === null) {
+        files = b.resources(g);
+      } else if (relative === null) {
+        add(d, "code_globs", "warn", "L10", `\`code_globs: ${g}\` はソースルートからの有効な相対パターンで指定してください`);
+        continue;
+      } else if (unavailableSources.has(source)) {
+        continue;
+      } else {
+        let root;
+        try {
+          root = b.codeSourceRoot(source);
+        } catch (error) {
+          if (!(error instanceof OkfError)) throw error;
+          unavailableSources.add(source);
+          add(d, "code_globs", "warn", "L10", `外部コード未照合。${error.message}`);
+          continue;
+        }
+        try {
+          files = b.resources(relative, { root, confined: true });
+        } catch (error) {
+          if (typeof error.code !== "string") throw error;
+          add(d, "code_globs", "warn", "L10", `\`code_globs: ${g}\` の外部コードを照合できませんでした`);
+          continue;
+        }
+      }
+      if (!files.length)
         add(
           d,
           "code_globs",
@@ -283,6 +312,7 @@ export function runLint(b, { project = false } = {}) {
           "L10",
           `\`code_globs: ${g}\` ${codeGlobNoMatch(g, b.codeGlobExclude)}`,
         );
+    }
     const sources = d.fm.sources;
     if (!b.okf03 && sources != null) {
       if (!Array.isArray(sources))
@@ -524,7 +554,16 @@ export function runStale(b) {
     } else if (expiry && expiry <= date) {
       add("expired", "warn", `stale_after: ${expiry} を過ぎています`);
     }
+    const externalSources = new Set();
     for (const g of d.globs) {
+      const [source] = splitCodeGlob(g);
+      if (source !== null) {
+        if (!externalSources.has(source)) {
+          externalSources.add(source);
+          add("external-unverified", "info", `ソース \`${source}\` のコード更新時刻は未検証です`);
+        }
+        continue;
+      }
       const files = b.resources(g);
       if (!files.length) {
         add(

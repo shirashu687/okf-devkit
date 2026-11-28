@@ -6,6 +6,7 @@ import posixpath
 import re
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
+from .code_sources import CodeSources
 from .doc import Doc
 from .errors import OkfError
 from .fsutil import read_text, rel_posix, path_matches
@@ -113,6 +114,7 @@ class Bundle:
             )
         cfg = load_merged_config(cfg_path, defaults_path=defaults_path)
         self.cfg = cfg
+        self.code_sources = CodeSources(self.repo_root, cfg.get("code_sources", []))
         self.code_glob_exclude = cfg.get("code_glob_exclude", [])
         if not isinstance(self.code_glob_exclude, list) or any(
             not isinstance(rule, str) or not rule.strip() for rule in self.code_glob_exclude
