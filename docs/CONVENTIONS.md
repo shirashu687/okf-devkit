@@ -131,7 +131,7 @@ code_globs:
   - src/api/*.ts          # glob 可
 ```
 
-- 値は**文字列のフラットなリスト**。リポジトリルートからの相対パス、または glob
+- 値は文字列のリスト。文書プロジェクトのルートからの相対パスや glob、またはソース名付きの外部参照を指定する。
 - **OKF 標準の `sources` と混同しないこと。** `sources` は出典（provenance）用で、`resource` には「実体を一意に指す URI」を書く仕様であり、glob パターンは書けない。監視用途を標準フィールドに載せると汎用 OKF ツールがリンクを解決できないため、独自キーに分離している（OKF v0.2 §5 は独自キーの追加を明示的に許可しており、consumer は未知キーを保持する）
 - **必須となる type**: `Project Overview` / `Architecture` / `Reference` / `How-To`。`Convention` / `Glossary` / `Decision Record` / `Backlog Item` は任意。`status: deprecated` の文書は必須要件から除外される
 
@@ -140,8 +140,10 @@ code_globs:
 | できること | コマンド |
 |---|---|
 | コード変更 → 更新すべきドキュメントの特定 | `okf affected --base <比較元の参照またはSHA>` |
-| コードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
-| コードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
+| ローカルコードが消えた → 陳腐化の検出 | `okf stale`（*orphan*） |
+| ローカルコードの方が新しい → 内容が古い候補の検出 | `okf stale`（*outdated*） |
+
+別リポジトリのコードは `okf.yml` の `code_sources` に登録し、`app:src/**` のようにソースルートからの相対パターンを書く。`code_glob_exclude` は外部ソースのファイル走査でもソースルートを起点に適用する。外部 Git の差分を調べるときは `okf affected --source app --base <比較元の参照またはSHA>` を使う。 [外部リポジトリの設定とコマンド](/cli/commands.md)
 
 ---
 

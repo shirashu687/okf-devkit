@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import datetime as _dt
+import errno
+import os
 import posixpath
 import re
 import subprocess
@@ -17,6 +19,15 @@ from .fsutil import parse_datetime, path_matches
 
 GitRunner = Callable[..., tuple[int, str]]
 
+# Repository-local settings reported by `git rev-parse --local-env-vars`.
+_LOCAL_GIT_ENV = frozenset({
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG",
+    "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_DIR", "GIT_GRAFT_FILE",
+    "GIT_IMPLICIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_NO_REPLACE_OBJECTS",
+    "GIT_OBJECT_DIRECTORY", "GIT_PREFIX", "GIT_REPLACE_REF_BASE",
+    "GIT_SHALLOW_FILE", "GIT_WORK_TREE",
+})
+
 
 @dataclass
 class CommitTimesCache:
@@ -24,12 +35,13 @@ class CommitTimesCache:
     mapping: dict[str, str] | None = None
 
 
-def git(root: Path, *args: str, cwd: Path | None = None) -> tuple[int, str]:
+def git(root: Path, *args: str, cwd: Path | None = None, env: dict[str, str] | None = None) -> tuple[int, str]:
     """git を実行して (returncode, stdout) を返す。失敗しても例外にしない。"""
     try:
         proc = subprocess.run(
             ["git", *args],
             cwd=str(cwd or root),
+            env=env,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -38,6 +50,12 @@ def git(root: Path, *args: str, cwd: Path | None = None) -> tuple[int, str]:
     except FileNotFoundError:
         return 127, ""
     return proc.returncode, proc.stdout or ""
+
+
+def source_git(root: Path, *args: str) -> tuple[int, str]:
+    """Let Git discover the selected source without inheriting another repo's index or worktree."""
+    env = {key: value for key, value in os.environ.items() if key.upper() not in _LOCAL_GIT_ENV}
+    return git(root, *args, env=env)
 
 
 def git_available(root: Path, *, runner: GitRunner | None = None) -> bool:
@@ -219,7 +237,7 @@ def code_glob_no_match(pattern: str, exclusions=()) -> str:
     return "にマッチするファイルがありません" + suffix
 
 
-def resolve_resource(root: Path, resource: str, *, exclude=()) -> list[str]:
+def resolve_resource(root: Path, resource: str, *, exclude=(), confined: bool = False) -> list[str]:
     """code_globs を走査し、除外ディレクトリに降りる前に枝刈りする。"""
     pattern = resource.replace("\\", "/").lstrip("/")
     if not pattern:
@@ -237,15 +255,28 @@ def resolve_resource(root: Path, resource: str, *, exclude=()) -> list[str]:
             for rule in exclude
         )
 
+    def within_source(candidate: Path) -> bool:
+        if not confined:
+            return True
+        try:
+            return candidate.resolve(strict=True).is_relative_to(root)
+        except RuntimeError:  # Symlink loop on Python < 3.13.
+            return False
+        except OSError as exc:
+            if exc.errno in (errno.ENOENT, errno.ENOTDIR, errno.ELOOP):
+                return False
+            raise
+
     if not any(ch in pattern for ch in _WILDCARDS):
         if any(excluded("/".join(parts[:index])) for index in range(1, len(parts) + 1)):
             return []
-        return [pattern] if (root / pattern).is_file() else []
+        file = root / pattern
+        return [pattern] if within_source(file) and file.is_file() else []
 
     found: set[str] = set()
 
     def walk(current: Path, index: int, relative: str, ancestors: frozenset[Path]) -> None:
-        if excluded(relative):
+        if excluded(relative) or not within_source(current):
             return
         if index == len(parts):
             if current.is_file() and path_matches(relative, pattern):
@@ -268,13 +299,15 @@ def resolve_resource(root: Path, resource: str, *, exclude=()) -> list[str]:
         try:
             children = list(current.iterdir())
         except OSError:
+            if confined:
+                raise
             return
         for child in children:
             name = child.name
             if name.startswith(".") and not segment.startswith("."):
                 continue
             child_relative = f"{relative}/{name}" if relative else name
-            if excluded(child_relative) or (name in _CODE_DIRS_TO_SKIP and child.is_dir()):
+            if excluded(child_relative) or not within_source(child) or (name in _CODE_DIRS_TO_SKIP and child.is_dir()):
                 continue
             if recursive:
                 if child.is_dir():
@@ -338,20 +371,28 @@ def collect_commits(root: Path, rev_range: str | None, exclude: str | None = Non
     return commits
 
 
-def changed_paths(root: Path, base: str, *, runner: GitRunner | None = None) -> list[str]:
+def changed_paths(root: Path, base: str, *, runner: GitRunner | None = None, require_history: bool = False) -> list[str]:
     """base からの変更パス。未コミットの作業ツリー変更も含める。
 
     base は `<base>` → `origin/<base>` の順に解決し、HEAD との merge-base で
     比較する（detached HEAD やローカル ref が無い環境でも動くようにする）。
+    名前付きソースの比較では、共通祖先と作業ツリーの両方の確認を要求する。
     """
-    run = runner if runner is not None else partial(git, root)
+    run = runner if runner is not None else partial(source_git if require_history else git, root)
     if not git_available(root, runner=run):
         raise OkfError("git リポジトリが見つかりません。リポジトリ内で実行してください。")
 
     paths: set[str] = set()
     if has_commits(root, runner=run):
-        ref = resolve_ref(root, base, runner=run)
+        if require_history:
+            ref = None if base.startswith("-") else (
+                resolve_commit(root, base, runner=run) or resolve_commit(root, f"origin/{base}", runner=run)
+            )
+        else:
+            ref = resolve_ref(root, base, runner=run)
         if ref is None:
+            if require_history:
+                raise OkfError(f"base ref を解決できませんでした: {base}")
             raise OkfError(
                 f"base ref を解決できませんでした: {base}"
                 "。実在するコミット SHA を --base で指定するか、--paths src/main.js のように変更パスを指定してください。"
@@ -359,13 +400,18 @@ def changed_paths(root: Path, base: str, *, runner: GitRunner | None = None) -> 
         code, out = run("merge-base", ref, "HEAD")
         merge_base = out.strip() if code == 0 else ""
         if merge_base:
-            code, out = run("diff", "--name-only", "-z", merge_base, "HEAD")
+            options = ("--no-renames",) if require_history else ()
+            code, out = run("diff", "--name-only", "-z", *options, merge_base, "HEAD")
+        elif require_history:
+            raise OkfError(f"共通祖先を特定できませんでした（base: {base}）")
         else:
             # 履歴が交わらない（shallow / 別ルート）ときは直接比較にフォールバック
             code, out = run("diff", "--name-only", "-z", ref)
         if code != 0:
             raise OkfError(f"git diff に失敗しました（base: {base}）")
         paths.update(p.replace("\\", "/") for p in out.split("\0") if p.strip())
+    elif require_history:
+        raise OkfError("外部ソースにコミットがありません")
     else:
         print("[okf affected] コミットがまだないため、作業ツリーの変更のみを対象にします。",
               file=sys.stderr)
@@ -373,6 +419,8 @@ def changed_paths(root: Path, base: str, *, runner: GitRunner | None = None) -> 
     code, out = run("status", "--porcelain", "-z", "--untracked-files=all")
     if code == 0:
         paths.update(parse_porcelain_z(out))
+    elif require_history:
+        raise OkfError("git status に失敗しました")
     return sorted(paths)
 
 

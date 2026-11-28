@@ -24,7 +24,7 @@ const commands = {
   log: "write! range layer dry-run!",
   lint: "strict! project!",
   stale: "format",
-  affected: "base paths+",
+  affected: "base source paths+",
   new: "title layer type dir slug priority effort code-globs+ index!",
   doctor: "",
   upgrade: "check! agent runner",
@@ -94,7 +94,8 @@ const helpPages = {
     purpose: "更新すべきドキュメントを列挙する",
     options: [
       ["-h, --help", "show this help message and exit", false],
-      ["--base BASE", "比較対象のコミット SHA またはブランチ（既定: main）", false],
+      ["--base BASE", "比較対象のコミット SHA またはブランチ（ローカルの既定: main）", false],
+      ["--source SOURCE", "比較する外部ソース名（--base が必要）", false],
       ["--paths PATHS ...", "変更パスを直接指定する", false],
     ],
     epilog: "共通オプション（サブコマンドの前に指定）:\n  --root DIR     プロジェクトルート\n  --config FILE  設定ファイルのパス\n\n例: okf affected --base <比較元のコミットSHA> / okf affected --paths src/main.js\n初回コミット前は作業ツリーだけを調べます。main がなければ実在する基準または変更パスを指定します。",

@@ -132,7 +132,7 @@ code_globs:
   - src/api/*.ts          # glob 可
 ```
 
-- 値は**文字列のフラットなリスト**。リポジトリルートからの相対パス、または glob
+- 値は文字列のリスト。文書プロジェクトのルートからの相対パスや glob、またはソース名付きの外部参照を指定する。
 - **OKF 標準の `sources` と混同しないこと。** `sources` は出典（provenance）用で、`resource` には「実体を一意に指す URI」を書く仕様であり、glob パターンは書けない。監視用途を標準フィールドに載せると汎用 OKF ツールがリンクを解決できないため、独自キーに分離している（OKF v0.2 §5 は独自キーの追加を明示的に許可しており、consumer は未知キーを保持する）
 - **必須となる type**: `Project Overview` / `Architecture` / `Reference` / `How-To`。`Convention` / `Glossary` / `Decision Record` / `Backlog Item` は任意。`status: deprecated` の文書は必須要件から除外される
 
@@ -141,10 +141,12 @@ code_globs:
 | できること | コマンド |
 |---|---|
 | コード変更 → 更新すべきドキュメントの特定 | `{{RUNNER}} affected --base <比較元SHA>` または `{{RUNNER}} affected --paths src/main.js` |
-| コードが消えた → 陳腐化の検出 | `{{RUNNER}} stale`（*orphan*） |
-| コードの方が新しい → 内容が古い候補の検出 | `{{RUNNER}} stale`（*outdated*） |
+| ローカルコードが消えた → 陳腐化の検出 | `{{RUNNER}} stale`（*orphan*） |
+| ローカルコードの方が新しい → 内容が古い候補の検出 | `{{RUNNER}} stale`（*outdated*） |
 
 初回コミット前の `{{RUNNER}} affected` は作業ツリーを調べ、`{{RUNNER}} log` は追記をスキップする。`main` がない場合は、実在する比較元のコミット SHA または変更パスを指定する。
+
+コードと文書を別々に管理する場合は、`okf.yml` の `code_sources` に `name` と `path` を指定して外部コードソースを登録する。たとえば `name: app`、`path: ../app-repo` なら、文書の `code_globs` に `app:src/**` と書ける。配置先だけを環境で変えるには、`path_env` に上書き用の環境変数名を指定する。外部 Git の変更は `{{RUNNER}} affected --source app --base <比較元SHA>` で調べる。差分を確認できない場合は警告を確認する。`{{RUNNER}} stale` では外部コードの更新時刻を未検証と表示する。
 
 ---
 

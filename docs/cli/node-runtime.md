@@ -53,8 +53,8 @@ node node/cli.mjs --root "C:/path/to/project" lint
 | index | relative / bundle-absolute形式、backlog集計、write / check、全マーカーの事前検証 |
 | log | Gitのfirst-parent履歴、baseline、層振り分け、ハッシュによる重複防止 |
 | lint | OKF の書式を検査。0.3 でプロジェクト固有の規約も検査するには `--project`、警告で失敗させるには `--strict` を指定 |
-| stale | expired / orphan / outdated / unverified / draft-stale、JSON出力 |
-| affected | base比較・作業ツリー・明示pathsから文書と未カバーパスを出力 |
+| stale | expired / orphan / outdated / unverified / draft-stale / external-unverified、JSON出力 |
+| affected | ローカル変更または `--source` で選んだ外部 Git の変更から文書と未カバーパスを出力 |
 | new | backlog / docの雛形、語彙検査、採番、出力先の検証 |
 | status | backlogの状態・優先度集計、JSON出力 |
 | render | 共有HTMLアセット、目次・関連・被リンク・Mermaid、output / check / hook / open |

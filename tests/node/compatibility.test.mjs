@@ -25,6 +25,103 @@ const normalize = (text) =>
   text.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, "<timestamp>");
 const normalized = (files) =>
   Object.fromEntries(Object.entries(files).map(([k, v]) => [k, normalize(v)]));
+
+test("affected only uses changes from the selected code source", (t) => {
+  const root = temp(t);
+  const app = temp(t);
+  init(root);
+  fs.appendFileSync(path.join(root, "okf.yml"), `\ncode_sources:\n  - name: app\n    path: missing-checkout\n    path_env: OKF_TEST_APP_REPO\n`);
+  put(root, "docs/api/app.md", document().replace("[src/**]", '["app:src/**", "app:docs/examples/**"]'));
+  put(root, "docs/api/local.md", document());
+  put(root, "src/login.ts", "local login");
+  put(root, "src/docs-only.ts", "tracked only in the documentation repository");
+  git(root, "add", "src");
+
+  git(app, "init", "-qb", "comparison");
+  put(app, "src/login.ts", "first login");
+  put(app, "src/unchanged.ts", "unchanged tracked code");
+  git(app, "add", ".");
+  git(app, "commit", "-qm", "initial app");
+  git(app, "branch", "feature");
+  put(app, "src/register.ts", "comparison only");
+  git(app, "add", ".");
+  git(app, "commit", "-qm", "comparison only");
+  git(app, "checkout", "-q", "feature");
+  put(app, "src/login.ts", "updated login");
+  git(app, "commit", "-qam", "feature login");
+  put(app, "src/session.ts", "staged session");
+  git(app, "add", "src/session.ts");
+  put(app, "docs/examples/login.ts", "untracked example");
+  put(app, "README.md", "uncovered change");
+  const unrelated = git(app, "commit-tree", git(app, "rev-parse", "HEAD^{tree}"), "-m", "unrelated history");
+
+  for (const runtime of ["node", "python"]) {
+    const options = { runtime, env: { OKF_TEST_APP_REPO: app } };
+    const output = ok(run(root, ["affected", "--source", "app", "--base", "comparison"], options));
+    assert.match(output, /docs\/api\/app\.md\s+<- .*docs\/examples\/login\.ts.*src\/login\.ts.*src\/session\.ts/);
+    assert.match(output, /未カバー:[\s\S]*README\.md/);
+    assert.doesNotMatch(output, /docs\/api\/local\.md|src\/register\.ts/);
+    const inheritedIndex = { ...options, env: { ...options.env, GIT_INDEX_FILE: path.join(root, ".git", "index") } };
+    assert.equal(ok(run(root, ["affected", "--source", "app", "--base", "comparison"], inheritedIndex)), output);
+    const local = ok(run(root, ["affected", "--paths", "src/login.ts"], options));
+    assert.match(local, /docs\/api\/local\.md/);
+    assert.doesNotMatch(local, /docs\/api\/app\.md/);
+    for (const base of ["missing-ref", unrelated]) {
+      const result = run(root, ["affected", "--source", "app", "--base", base], options);
+      assert.equal(ok(result), "");
+      assert.match(result.stderr, /差分未確認/);
+    }
+    const missing = run(root, ["affected", "--source", "app", "--base", "comparison"], {
+      runtime, env: { OKF_TEST_APP_REPO: "" },
+    });
+    assert.equal(ok(missing), "");
+    assert.match(missing.stderr, /差分未確認.*チェックアウト/);
+    assert.notEqual(run(root, ["affected", "--source", "app", "--paths", "src/login.ts"], options).status, 0);
+  }
+});
+
+test("lint and stale distinguish unavailable code sources and unmatched patterns", (t) => {
+  const root = temp(t);
+  const app = path.join(root, "checkout");
+  init(root);
+  fs.appendFileSync(path.join(root, "okf.yml"), `\ncode_sources:\n  - name: app\n    path: checkout\n    path_env: OKF_TEST_APP_REPO\n`);
+  put(app, "src/login.ts", "external login");
+  git(app, "init", "-q");
+  put(root, "src/login.ts", "local login");
+  put(root, "docs/api/mixed.md", document("stale_after: 2020-01-01\n")
+    .replace("[src/**]", '["app:src/login.ts", "src/login.ts"]'));
+  put(root, "docs/api/other.md", document().replace("[src/**]", '["app:src/**"]'));
+  git(root, "add", "src/login.ts");
+  git(root, "commit", "-qm", "local login");
+  ok(run(root, ["index", "--write"]));
+  for (const runtime of ["node", "python"]) {
+    const options = { runtime, env: { OKF_TEST_APP_REPO: "" } };
+    assert.match(ok(run(root, ["lint", "--strict"], options)), /warn 0 件/);
+    const missing = { runtime, env: { OKF_TEST_APP_REPO: path.join(root, "missing") } };
+    const warnings = ok(run(root, ["lint"], missing));
+    assert.equal((warnings.match(/チェックアウトが見つかりません/g) || []).length, 1);
+    assert.doesNotMatch(warnings, /マッチするファイルがありません/);
+    assert.equal(run(root, ["lint", "--strict"], missing).status, 1);
+    assert.match(ok(run(root, ["lint"], { runtime, env: { OKF_TEST_APP_REPO: path.join(app, "src") } })), /作業ツリールート/);
+    const stale = JSON.parse(ok(run(root, ["stale", "--format", "json"], missing)));
+    const mixed = stale.filter(({ path }) => path.endsWith("/mixed.md"));
+    assert.ok(mixed.some(({ kind, level }) => kind === "external-unverified" && level === "info"));
+    assert.ok(mixed.some(({ kind }) => kind === "outdated"));
+    assert.ok(mixed.some(({ kind }) => kind === "expired"));
+    assert.ok(!stale.some(({ kind }) => kind === "orphan"));
+  }
+
+  put(root, "docs/api/mismatch.md", document()
+    .replace("[src/**]", '["app:src/missing.ts", "appp:src/login.ts", "app:../src/login.ts"]'));
+  ok(run(root, ["index", "--write"]));
+  for (const runtime of ["node", "python"]) {
+    const output = ok(run(root, ["lint"], { runtime, env: { OKF_TEST_APP_REPO: "" } }));
+    assert.match(output, /app:src\/missing\.ts.*マッチするファイルがありません/);
+    assert.match(output, /appp.*登録されていません/);
+    assert.match(output, /app:\.\.\/src\/login\.ts.*相対/);
+  }
+});
+
 test("existing Python install wins over a development checkout without npm dependencies", (t) => {
   const root = temp(t);
   init(root, "python");

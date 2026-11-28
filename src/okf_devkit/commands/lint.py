@@ -4,6 +4,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from .. import gitutil, yamlio
+from ..code_sources import split_code_glob
 from ..config import Bundle, local_reference
 from ..doc import Doc
 from ..errors import MarkerError, OkfError
@@ -140,6 +141,7 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
     """CONVENTIONS.md §10 の L1〜L15 を検証する。"""
     repo_root = bundle.repo_root if repo_root is None else repo_root
     findings: list[Finding] = []
+    unavailable_sources: set[str] = set()
     add = findings.append
     project = project or not bundle.okf03
 
@@ -220,7 +222,30 @@ def run_lint(bundle: Bundle, *, repo_root: Path | None = None, resource_resolver
                         f"`code_globs` がありません（type: {doc.type} はコード由来なので更新検知の起点が必要です）"))
 
         for pattern in globs:
-            if not (gitutil.resolve_resource(repo_root, pattern, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(pattern)):
+            source, relative = split_code_glob(pattern)
+            if source is None:
+                matched = (gitutil.resolve_resource(repo_root, pattern, exclude=bundle.code_glob_exclude)
+                           if resource_resolver is None else resource_resolver(pattern))
+            elif relative is None:
+                add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
+                            f"`code_globs: {pattern}` はソースルートからの有効な相対パターンで指定してください"))
+                continue
+            elif source in unavailable_sources:
+                continue
+            else:
+                try:
+                    source_root = bundle.code_sources.root(source)
+                except OkfError as exc:
+                    unavailable_sources.add(source)
+                    add(Finding(path, doc.key_line("code_globs"), "warn", "L10", f"外部コード未照合。{exc}"))
+                    continue
+                try:
+                    matched = gitutil.resolve_resource(source_root, relative, exclude=bundle.code_glob_exclude, confined=True)
+                except OSError:
+                    add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
+                                f"`code_globs: {pattern}` の外部コードを照合できませんでした"))
+                    continue
+            if not matched:
                 add(Finding(path, doc.key_line("code_globs"), "warn", "L10",
                             f"`code_globs: {pattern}` {gitutil.code_glob_no_match(pattern, bundle.code_glob_exclude)}"))
 

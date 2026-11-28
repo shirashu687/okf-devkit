@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import sys
+from ..code_sources import split_code_glob
 from ..config import Bundle
 from .. import gitutil
 from ..fsutil import today, extract_date, parse_datetime
@@ -38,7 +39,15 @@ def run_stale(bundle: Bundle, *, runner=None, resource_resolver=None, commit_tim
             results.append({"path": path, "kind": "expired", "level": "warn",
                             "message": f"stale_after: {stale_after} を過ぎています"})
 
+        external_sources: set[str] = set()
         for resource in doc.code_globs():
+            source, _ = split_code_glob(resource)
+            if source is not None:
+                if source not in external_sources:
+                    external_sources.add(source)
+                    results.append({"path": path, "kind": "external-unverified", "level": "info",
+                                    "message": f"ソース `{source}` のコード更新時刻は未検証です"})
+                continue
             matched = (gitutil.resolve_resource(bundle.repo_root, resource, exclude=bundle.code_glob_exclude) if resource_resolver is None else resource_resolver(resource))
             if not matched:
                 results.append({"path": path, "kind": "orphan", "level": "warn",
