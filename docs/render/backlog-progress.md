@@ -36,7 +36,7 @@ okf render --output _site
 
 ## 設定と対象
 
-一覧対象は `okf.yml` の `backlog.dir` 直下の `Backlog Item`。予約文書・別 type・配下の別ディレクトリは一覧に含めない。設定の `state_order` 順に表示し、`states` の追加語彙も件数へ含める。未知の状態は最後に表示し、未設定の状態は「未設定」として隠さず表示する。語彙の不適合は `okf lint` で確認する。
+一覧には `okf.yml` の `backlog.dir` 直下にある `Backlog Item` が載る。`state_order` の順に表示し、`states` で追加した状態も集計する。未知の状態は末尾に並び、値がない項目には「未設定」と表示される。語彙の検査は OKF 0.2 では `okf lint`、OKF 0.3 では `okf lint --project` で行う。
 
 対象が0件の場合もルート HTML に空の一覧と状態ごとの0件を表示する。Backlog 索引が未作成でもルートで確認できる。索引も閲覧したい場合は先に `okf index --write` を実行する。
 

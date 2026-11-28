@@ -53,7 +53,9 @@ Python の `cmd_init()` は `src/okf_devkit/scaffold/` の素材からプロジ�
 
 `--bundle-root` は既定 docs で、プロジェクト内の相対パスへ制限する。`--site-name` の既定はルート名。`--layer NAME=GLOB[:DIR]` を複数指定して層・コード配置・文書配置を対応させる。例えば `appclient=src/appClient/**:appClient` のように小文字の層名と実際のディレクトリ名を指定できる。既存ファイルは通常スキップする。`--force` は多くの生成物を置き換えるが、既存のエージェント設定と `.gitignore` は保持する。
 
-配置後に語彙と layer_map を確認し、`okf new doc` の雛形を仕上げてから `okf index --write` と lint を実行する。`--agent codex,copilot` や `--agent none` で追加する終了 hook を選べる。既定は全対応エージェント。既存設定に追加する場合は [終了 hook の手順](/agents/completion-hooks.md) を参照する。
+`--agent codex,copilot` のように終了 hook の登録先を選べる。既定は全対応エージェントで、`--agent none` はエージェント設定を生成しない。既存設定へ追加する方法は [終了 hook の手順](/agents/completion-hooks.md) を参照する。
+
+初期化後は語彙と `layer_map` を確認する。`okf new doc` で作った文書の本文を補い、`okf index --write` と `okf lint` を実行する。初回の目次生成は既定で OKF 0.2。0.3 のバンドルを作る場合は初回生成前に版を指定し、プロジェクト固有の規約も検査する場合は `lint --project` を使う。[バンドルの版指定](/cli/commands.md)
 
 `--runner "npm run okf --"` のように生成ガイドと初期化後の案内で使う起動方法を指定できる。先に実際の起動方法を導入先で確認する。`upgrade --check` は生成設定・文書・hook などを現行 scaffold と読み取り専用で比較する。
 

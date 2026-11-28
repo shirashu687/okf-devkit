@@ -14,10 +14,9 @@ related:
 
 # ドキュメント執筆規約
 
-本リポジトリの `{{BUNDLE_ROOT}}/` は **OKF (Open Knowledge Format) v0.2** バンドルである。
-仕様本体: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
+バンドルで使う OKF の版は `{{BUNDLE_ROOT}}/index.md` の `okf_version` で確認する。新規バンドルの既定は 0.2。このガイドの OKF 標準フィールドと節番号は 0.2 に基づく。[OKF 仕様](https://github.com/open-knowledge-format/open-knowledge-format)
 
-OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`{{RUNNER}} lint` が機械的に強制する。
+`type` や `layer` の具体的な値はこのバンドルの規約で定める。OKF 0.3 でこの規約も検査するには `{{RUNNER}} lint --project` を使う。
 
 > このファイルは `{{RUNNER}} init` が生成した規約であり、既定のまま使える。
 > 必要に応じて語彙表（§2 / §5 / §1-1 の `layer`）を変更する場合は、`okf.yml` の対応するキーも必ず合わせること。
@@ -183,9 +182,9 @@ OKF v0.2 §6 に従い、**バンドルルート起点の絶対パス**を推奨
 
 ## 6. `index.md` の書式（自動生成）
 
-OKF v0.2 §8 に従う。**手で編集しない。**
+文書の追加や目次に載る情報の変更後は、`{{RUNNER}} index --write` で目次を更新する。
 
-- `index.md` は **frontmatter を持たない**。唯一の例外はバンドルルート `{{BUNDLE_ROOT}}/index.md` の `okf_version: "0.2"` のみ
+- 0.2 の目次では、バンドルルートの `index.md` だけに `okf_version: "0.2"` を置く。0.3 ではルートの `index.md` に `okf_version: "0.3"` と、必要に応じて `title`、`description`、`license` などを記載できる。
 - エントリ形式は `* [Title](path) - description`
 - `<!-- okf:auto:start -->` 〜 `<!-- okf:auto:end -->` の間だけがスクリプトの管理範囲。**その外側の前文は手書きしてよく、上書きされない**
 
@@ -279,7 +278,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ## 10. lint ルール
 
-`{{RUNNER}} lint` が検証する内容。
+0.2 のバンドルで `{{RUNNER}} lint` が検査する内容。0.3 のバンドルでは `{{RUNNER}} lint --project` でこのプロジェクトの規約も検査する。
 
 | # | ルール | レベル | 根拠 |
 |---|---|---|---|
@@ -301,7 +300,7 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 | L14 | `sources` は、ある場合のみリスト型・各要素マップ型・非空 `resource` | warn | OKF §5.1 |
 | L15 | 配布雛形の既知の記入例を frontmatter や本文に残さない | warn | 本規約 |
 
-L15 が検出した記入例を埋めてから `lint --strict` を実行する。コード例や一般的な山括弧表記は使える。
+L15 が指摘した記入例を埋める。警告も失敗として扱う場合は、0.2 では `{{RUNNER}} lint --strict`、0.3 では `{{RUNNER}} lint --project --strict` を実行する。コード例や一般的な山括弧表記は使える。
 
 ---
 

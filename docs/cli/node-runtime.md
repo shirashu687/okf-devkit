@@ -15,6 +15,9 @@ code_globs:
   - tests/node/*.mjs
   - src/okf_devkit/scaffold/hooks/*
 related:
+  - /agents/install-okf.md
+  - /agents/upgrade-existing-okf.md
+  - /cli/commands.md
   - /project/decisions/0001-node-runtime.md
 ---
 
@@ -22,8 +25,7 @@ related:
 
 ## 導入
 
-Node.js 22以上とnpmを使用する。履歴を読む機能とhookにはGitも必要。
-Pythonは実行・インストール時ともに不要。npmレジストリへの公開は未実施なので、チェックアウトまたはローカルtgzから利用する。
+Node.js 22 以上と npm を使う。履歴を読む機能と hook には Git も必要。Node.js 版のインストールと実行に Python は不要。GitHub Release の tgz または Git SHA を固定して導入できる。[導入ガイド](/agents/install-okf.md)
 
 ```powershell
 # okf-devkit のチェックアウトで実行
@@ -34,21 +36,23 @@ node node/cli.mjs --root "C:/path/to/project" index --write
 node node/cli.mjs --root "C:/path/to/project" lint
 ```
 
-導入先で `npm exec -- okf` を使うには、チェックアウトで `npm pack` を実行し、生成した `okf-devkit-0.1.0.tgz` を導入先の `npm install --save-dev <tgzのパス>` でインストールする。
-POSIX環境ではパスを書き換え、同じコマンドを利用する。
+チェックアウトした版を別のリポジトリで使う場合は、`npm pack --ignore-scripts` で tgz を作る。導入先で `npm install --save-dev --save-exact --ignore-scripts <tgzのパス>` を実行し、`node node_modules/okf-devkit/node/cli.mjs --help` で導入先の CLI を確認する。POSIX 環境では例のパスを実際の配置に合わせる。
 
 ## 日常操作とhelp
 
-目的別の短い経路は [日常操作ガイド](/agents/operate-okf.md) を使う。`<command> --help` はそのコマンドの目的・引数・例を表示し、`new --help` はkind一覧、`new doc --help` と `new backlog --help` は各kindの引数を表示する。helpは未初期化のrepoでも書き込まず終了する。共通オプションを前置すればPythonと同じ起動表記で使える。
+`<command> --help` でコマンドの用途、引数、実行例を確認する。新規作成の引数は `new doc --help` または `new backlog --help` で確認できる。初期化前でもヘルプを表示できる。`--root` と `--config` はサブコマンドの前に置くと Python 版でも同じ書き方を使える。[日常操作ガイド](/agents/operate-okf.md)
 
 ## 対応機能
 
 | コマンド | 振る舞い |
 | --- | --- |
-| init | 共有scaffoldから設定・文書・hookを生成。既存ファイルは通常保持し、エージェント設定と `.gitignore` はforceでも保持 |
+| --version | 実行した CLI のバージョンを表示 |
+| init | 設定、文書、hook を生成。`--agent` で登録先、`--runner` で案内の起動表記を指定 |
+| doctor | CLI の実体、設定、層、hook 登録、Git 除外、旧 HTML の候補を表示 |
+| upgrade --check | 導入先のファイルを配布時の雛形と比較し、差分を表示 |
 | index | relative / bundle-absolute形式、backlog集計、write / check、全マーカーの事前検証 |
 | log | Gitのfirst-parent履歴、baseline、層振り分け、ハッシュによる重複防止 |
-| lint | L1〜L14、strict指定でwarnも非ゼロ終了 |
+| lint | OKF の書式を検査。0.3 でプロジェクト固有の規約も検査するには `--project`、警告で失敗させるには `--strict` を指定 |
 | stale | expired / orphan / outdated / unverified / draft-stale、JSON出力 |
 | affected | base比較・作業ツリー・明示pathsから文書と未カバーパスを出力 |
 | new | backlog / docの雛形、語彙検査、採番、出力先の検証 |
@@ -57,10 +61,10 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 | sync | index → log → lint → stale、gateの指紋による差し戻し制限 |
 
 `new doc` の Project Overview / Architecture / Reference / How-To 型では `--code-globs "src/**"` が必須。複数のglobを指定でき、relatedは空リストで生成する。既存スクリプトにも根拠コード引数を追加する。
-`--root` / `--config` はコマンドの前後で指定できる。
+Node.js 版では `--root` と `--config` をサブコマンドの後にも指定できる。[コマンド仕様](/cli/commands.md)
 `render --open` は生成先の `index.html` を既定ブラウザで開く。Windows は rundll32、macOS は open、Linux は xdg-open を使用し、起動コマンドを開始できない場合は警告として扱う。起動後の表示やコマンド終了結果までは確認しない。
 `--check` / `--hook` との併用では開かない。Mermaid の file:// 制限がある場合はローカルHTTP配信を使う。
-`render` は既定でプロジェクトルートの `_site/` へ生成する。`.gitignore` に `_site/` を追加する。従来の隣接配置は `--output docs`（bundle_rootに合わせる）で使用できる。既存の隣接HTMLは自動削除しない。
+`render` は既定でプロジェクトルートの `_site/` へ生成する。`_site/` は Git の除外対象にする。Markdown と同じディレクトリに出力する場合は、`--output docs` の `docs` をバンドルルートに合わせて指定する。旧生成物は後述の整理手順で確認する。
 `render --check` は書き込まず生成可否を検証する。保存済みHTMLとの一致検査ではない。
 `render --output _site --cleanup-from docs --check` は旧生成物の退避計画も表示する。`--check` を外すと新出力成功後に未編集生成物だけを `.okf/render-backups/<id>/` へ退避する。手書き・編集済み・識別できない旧版出力は保持し、`--hook` との併用は拒否する。詳細は [生成済みHTMLの整理](/render/output-cleanup.md) を参照。
 `render --hook` は成功時に `{}`、失敗時に1を返す。`sync --gate` は初回のlint errorで2、同じエラー集合の再検出で0を返す。
@@ -68,8 +72,7 @@ POSIX環境ではパスを書き換え、同じコマンドを利用する。
 
 ## 既存hookの更新
 
-新規 `init` はNode.jsを探索するhookと、未作成のエージェント設定を生成する。導入済みプロジェクトでラッパーを更新する場合は、カスタムhookとの差分を確認して以下の2ファイルをコピーする。エージェント設定と終了アダプターの導入は [終了hookの手順](/agents/completion-hooks.md) を参照する。
-`init --force` は設定や文書も上書きするため、hook更新専用には使わない。
+対応版の `init` は、Node.js を探して起動するラッパーと、選んだエージェントの未作成の設定ファイルを配置する。導入済みのプロジェクトでは `doctor` と `upgrade --check` で状態を確認し、必要な差分を反映する。ラッパーを置き換える場合は、既存ファイルに独自の変更があるか確認してから以下の 2 ファイルをコピーする。[更新ガイド](/agents/upgrade-existing-okf.md) · [終了 hook の手順](/agents/completion-hooks.md)
 
 ```powershell
 # 導入先プロジェクトで、npmパッケージをインストールした後に実行
@@ -98,7 +101,7 @@ npm run test:compat
 `npm run test:compat` は開発時の比較用で、既存 `.venv` または環境変数 `OKF_TEST_PYTHON` で指定したPythonを要求する。
 生成日時を除くscaffoldと新規文書、索引2形式、Git履歴、レポート、HTMLを共通入力で比較する。コンソールのCRLF/LFのみ比較時に正規化し、ファイル内容はそのまま比較する。
 
-YAMLは1.1として読み、日付を文字列に正規化する。Node.js版では重複キー・循環aliasをエラーにする。
+プロジェクト設定と OKF 0.2 の frontmatter は YAML 1.1 として読み、日付を文字列に正規化する。OKF 0.3 の frontmatter には YAML 1.2 の Core Schema を使う。Node.js 版では重複キーと循環エイリアスをエラーにする。
 全YAML構文・全Markdown・全カスタム正規表現の同値性を保証しない。`kind_rules.pattern` はJavaScriptのRegExpで評価するため、Python専用正規表現構文は移植が必要。
 Node.js版はシンボリックリンクを含む出力先が対象範囲外なら書き込みを拒否する。PowerShell単独の実装ではなく、Node.js CLIをPowerShellから実行する。
 
@@ -112,4 +115,4 @@ Backlogの閲覧は状態別の折り畳みリストを既定とし、同じ項�
 
 ## GitHub 配布と AI による導入
 
-本体を npm registry に公開しない方針で `package.json` は `private: true` とし、GitHub の固定 SHA と公開後の版付き tgz を取得経路とする。依存の npm 取得は許容する。導入・指定版更新・package と設定の別々の復旧は [AI 導入手順](/agents/install-okf.md) に従う。install と init・agent 設定を分離し、未導入時の npx による暗黙取得に頼らない。今回の workflow 追加は公開済み Release の存在を意味しない。
+`package.json` は `private: true`。本体は GitHub から取得し、依存パッケージは npm から取得する。導入後は選んだ版の CLI を直接起動する。初期化、エージェント設定、導入したパッケージの復旧は、それぞれ必要に応じて実施する。[導入ガイド](/agents/install-okf.md)

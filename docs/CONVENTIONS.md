@@ -15,10 +15,9 @@ related:
 
 # ドキュメント執筆規約
 
-本リポジトリの `docs/` は **OKF (Open Knowledge Format) v0.2** バンドルである。
-仕様本体: <https://github.com/GoogleCloudPlatform/open-knowledge-format>
+このリポジトリの `docs/` は OKF 0.2 のバンドル。ここでは OKF 0.2 に加え、`okf lint` がこのバンドルで検査する語彙と書式を定める。[OKF 仕様](https://github.com/open-knowledge-format/open-knowledge-format)
 
-OKF は「器」の仕様であり、**`type` に何を書くかなどの語彙は規定していない**。本ファイルがその語彙を定義し、`okf lint` が機械的に強制する。
+`type` の具体的な値はバンドルごとに定める。このバンドルで使う値は §2 を参照する。
 
 > このファイルは `okf init` が生成した雛形である。**プロジェクトに合わせて自由に書き換えてよい。**
 > ただし語彙表（§2 / §5 / §1-1 の `layer`）を変えたら、`okf.yml` の対応するキーも必ず合わせること。
@@ -314,10 +313,8 @@ OKF v0.2 §9 に**そのまま従う**。独自の拡張はしない。
 
 ## 11. 閲覧用 HTML
 
-- OKF Bundle の正本は常に `.md`。生成された `.html` を手で編集しない
-- `okf render` は、除外対象を除く全 `.md` を同じ階層の `.html` に変換する
-- 生成HTML内のBundle内リンクは `.html` に変換するが、元Markdownのリンクは変更しない
-- 共有アセットは `_assets/` に置く。`_` 始まりなのでBundle、index、lintの対象外
-- `*.html`、`_assets/`、公開用の `_site/` はGit管理外の派生物とする
-- 公開用にMarkdownと分離した構成が必要な場合だけ `okf render --output _site` を使う
-- hookからのHTML生成はローカルコマンドだけで完結させ、モデル継続を指示する終了コード2や `decision: block` を返さない
+- 内容は Markdown で編集し、`okf render` で HTML を再生成する。
+- `okf render` は既定でリポジトリルートの `_site/` に書き込む。バンドル内のディレクトリ構成を保ち、共有アセットは出力先の `_assets/` に置く。
+- バンドル内リンクは、HTML 上で対応する `.html` を指す。書き換えの対象は生成する HTML 内のリンク。
+- 旧来の隣接配置を使う場合は `okf render --output docs` を指定する。生成先と退避先は Git 管理から除外する。[生成済み HTML の整理](/render/output-cleanup.md)
+- 終了 hook はローカルで HTML を生成する。モデルの継続判定を行うコマンドは `sync --gate`。[終了 hook の手順](/agents/completion-hooks.md)

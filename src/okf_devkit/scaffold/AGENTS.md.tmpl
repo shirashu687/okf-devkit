@@ -25,7 +25,7 @@ OKF 仕様の版はルートの `index.md` で確認する。新規バンドル�
 | 目的 | 操作 |
 |---|---|
 | コード変更後 | `{{RUNNER}} affected --base <変更前の固定SHA>` で対象を調べ、本文を更新して `{{RUNNER}} sync` の各診断を確認 |
-| 文書を新規作成 | `{{RUNNER}} new doc --layer shared --type Reference --title "<title>" --code-globs "<実コードのパス>"` で雛形を作り、本文を補完して `{{RUNNER}} index --write` → `{{RUNNER}} lint` |
+| 文書を新規作成 | `{{RUNNER}} new doc --layer shared --type Reference --title "<title>" --code-globs "<実コードのパス>"` で雛形を作る。本文を補い、`{{RUNNER}} index --write` で目次を更新してから規約を検査する |
 | 書き込まずに点検 | `{{RUNNER}} lint`、`{{RUNNER}} index --check`、`{{RUNNER}} stale`、`{{RUNNER}} render --check` |
 | 閲覧 | `{{RUNNER}} render` は `_site/` に HTML を生成。必要なら `{{RUNNER}} render --open` |
 | backlog を使う場合 | `{{RUNNER}} new backlog --title "<title>"` で雛形を作り、本文を補完。`{{RUNNER}} status` で集計 |

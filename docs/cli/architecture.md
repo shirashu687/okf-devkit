@@ -19,6 +19,7 @@ code_globs:
   - src/okf_devkit/commands/render.py
   - src/okf_devkit/commands/sync.py
   - src/okf_devkit/commands/init.py
+  - src/okf_devkit/commands/setup_checks.py
   - tests/test_commands_b.py
   - src/okf_devkit/commands/__init__.py
   - src/okf_devkit/commands/index.py
@@ -39,18 +40,15 @@ code_globs:
   - tests/test_fsutil.py
 related:
   - /cli/commands.md
+  - /cli/module-migration.md
   - /cli/node-runtime.md
 ---
 
 # CLI の処理構造
 
-第6段階で引数解析を `parser.py`、旧CLIの互換adapterを `compat.py` へ分離した。`cli.py` は98行で、project rootの解決、可変の旧API状態、トップレベルのDoc/Bundle、command dispatchと公開入口を保持する。第6段階の10コマンドの所有者は `commands/` 配下にあり、canonical moduleはCLIをimportしない。設定済みhelpのparser AST、引数、終了値、生成物の契約は変えていない。
+`cli.py` は引数解析を `parser.py` に委ね、プロジェクトルートを決めて `commands/` の各処理を呼ぶ。`compat.py` は旧 API を提供する。共通の例外は `errors.py`、ファイル・日付・glob の処理は `fsutil.py` にある。Issue #12 でこれらの処理を分割した際の経緯は移行記録を参照する。[モジュール分割の記録](/cli/module-migration.md)
 
-更新済み親のAI案内・helpとモデル/YAMLを統合後も、第4段階ではGit実行・ref解決・NUL区切り履歴解析・Commit・変更パス・resource列挙・時刻集計を `gitutil.py` へ分離した。canonical関数はプロジェクトrootを明示引数で受け、時刻cacheは呼出元の `CommitTimesCache(root, mapping)` に保持する。モデルやcliをimportしない。旧cli adapterは現在の `REPO_ROOT` と `git` runnerを渡し、`_PATH_TIME_MAP = None` による既存リセット、root変更時の再取得、同rootへの反復mainの更新を維持する。新しいcommandsからはBundleの `.repo_root` を渡し、文書rootの `.root` と区別する。
-第3段階では frontmatter の所有者を `doc.py`、設定マージとBundle探索の所有者を `config.py` に分離した。canonical Doc/Bundle は `repo_root` を明示的に受け、Bundleの `.repo_root` はプロジェクトroot、`.root` は設定された文書rootを示す。文書cacheとrepo相対パスは構築時のrootに固定する。モデルはGitやcliをimportしない。旧 `cli.Doc(path, bundle_root)` と `cli.Bundle(config_path)` は一時的なsubclass adapterで保持し、CLI経由のDoc型とrenderer callbackも維持する。YAMLの実行所有者と同梱defaults位置は変わらない。
-
-
-Issue #12 の最初の分割では、共通例外を `errors.py`、rootに依存しないファイル・日付・glob処理を `fsutil.py` へ移す。従来のcliシンボルは同じ関数・例外classを再exportし、glob cacheも同じオブジェクトを参照する。rootはcliが所有し、Git時刻cacheは現在のrootが変わると再取得する。同じrootへのmain再呼出しでもcacheを更新し、途中に追加されたコミットを反映する。
+コミット履歴や変更パス、ファイルの更新時刻を調べる処理は `gitutil.py` にある。呼び出し元がプロジェクトルートを渡し、`CommitTimesCache` を管理する。`main()` を再度呼ぶと Git の時刻キャッシュを初期化するため、同じリポジトリでも新しいコミットを参照できる。
 
 Python のエントリーポイントは `run()` → `main()`。`build_parser()` が引数を解釈し、`resolve_root()` がプロジェクトルートを決める。`--version` はルート探索前に終了する。`init` は Bundle を作る前に処理し、`doctor` は設定や Bundle の不備も診断する。他のコマンドは Bundle を確認して `cmd_*` に振り分ける。
 
@@ -62,7 +60,7 @@ Python のエントリーポイントは `run()` → `main()`。`build_parser()`
 
 `--root`、`--config` の親、自動探索の順でルートを決める。自動探索は最も近い `okf.yml` を優先し、Git のトップディレクトリへフォールバックする。`load_merged_config()` は同梱 `defaults.yml` とプロジェクト設定を合成する。辞書は再帰マージし、リストとスカラーは置き換える。
 
-`Bundle` はバンドル配置、設定、Markdown の列挙を担う。`Doc` は frontmatter と本文を解析する。予約文書 index/log の扱いと除外ディレクトリはコマンドの用途に応じて Bundle の列挙オプションを使う。
+`config.py` の `Bundle` は設定を読み込み、バンドルの Markdown を列挙する。`.repo_root` はプロジェクトルート、`.root` は文書ルートを指す。`doc.py` の `Doc` は frontmatter と本文を読み込む。`index.md`、`log.md`、除外ディレクトリを列挙に含めるかどうかは、各コマンドが指定する。OKF 0.3 かどうかの判定には、バンドルルートの `index.md` の版宣言を使う。
 
 ## 更新と検査
 
